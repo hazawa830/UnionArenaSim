@@ -1,35 +1,48 @@
 .app {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 16px;
   font-family: sans-serif;
 }
 
-.info,
-.status {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin-bottom: 12px;
+.app h1 {
+  text-align: center;
+  margin: 0 0 12px;
 }
 
-.player {
-  margin: 16px 0;
+.game-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(720px, 1fr) 500px;
+  gap: 16px;
+  align-items: start;
+}
+
+.side-panel {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafafa;
+  position: sticky;
+  top: 12px;
+}
+
+.battlefield {
   text-align: center;
+  min-width: 0;
 }
 
 .line {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .slot,
 .card {
   border: 1px solid #4caf50;
-  width: 120px;
-  min-height: 170px;
+  width: 150px;
+  min-height: 200px;
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -37,17 +50,45 @@
 }
 
 .card-image {
-  width: 100px;
+  width: 120px;
   height: auto;
   display: block;
 }
 
 .hand {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 12px;
-  justify-content: flex-start;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+
+}
+
+.hand .card {
+  width: 150px;
+  flex: 0 0 auto;
+}
+
+.hand .card-image {
+  width: 150px;
+  cursor: zoom-in;
+}
+
+.status,
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.info-row {
+  padding: 6px 0;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.control-panel button {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .card-status {
@@ -60,4 +101,28 @@
 .card.rest {
   opacity: 0.65;
   transform: rotate(4deg);
+}
+.card-zoom-modal {
+  background: transparent;
+}
+
+.card-zoom-image {
+  width: min(420px, 90vw);
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+.hover-card-preview {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.card-preview-image {
+  width: 350px;
+  max-width: 100%;
+  height: auto;
+}
+.control-panel strong {
+    font-weight: bold;
+    color: #222;
 }

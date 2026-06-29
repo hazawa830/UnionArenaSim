@@ -16,11 +16,13 @@ import { PlayerView } from "./components/PlayerView";
 import { HandView } from "./components/HandView";
 import { BlockPanel } from "./components/BlockPanel";
 import { WinnerModal } from "./components/WinnerModal";
+import { CompactPlayerInfo } from "./components/CompactPlayerInfo";
 
 function App() {
   const gameRef = useRef<Game>(GameFactory.createSampleGame());
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const [pendingAttack, setPendingAttack] = useState<number | null>(null);
+  const [hoveredCardImage, setHoveredCardImage] = useState<string | null>(null);
 
   const game = gameRef.current;
   const player1 = game.player1;
@@ -59,6 +61,7 @@ function App() {
   const handleNewGame = () => {
     gameRef.current = GameFactory.createSampleGame();
     setPendingAttack(null);
+    setHoveredCardImage(null);
     refresh();
   };
 
@@ -166,54 +169,86 @@ function App() {
     <div className="app">
       <h1>Union Arena Simulator</h1>
 
-      {isGameOver && <WinnerModal winner={game.winner} onNewGame={handleNewGame} />}
-
-      <section className="info">
-        <div>Phase: {game.phase}</div>
-        <div>Turn: {game.turnCount}</div>
-        <div>Current Player: {currentPlayer.name}</div>
-        <div>Winner: {game.winner ?? "-"}</div>
-      </section>
-
-      <button onClick={handleNextPhase} disabled={isGameOver}>
-        Next Phase
-      </button>
-
-      {isYourTurn && game.phase === GamePhase.Start && (
-        <button onClick={handleExtraDraw} disabled={isGameOver}>
-          Extra Draw - AP1
-        </button>
+      {isGameOver && (
+        <WinnerModal winner={game.winner} onNewGame={handleNewGame} />
       )}
 
-      <PlayerView title="Opponent" player={player2} reverseLines />
+      <div className="game-layout">
+        <aside className="side-panel">
+          <CompactPlayerInfo title="Opponent" player={player2} />
+        </aside>
 
-      <hr />
+        <main className="battlefield">
+          <PlayerView
+            title="Opponent"
+            player={player2}
+            reverseLines
+            onHoverImage={setHoveredCardImage}
+          />
 
-      {pendingAttack !== null && (
-        <BlockPanel
-          attackerIndex={pendingAttack}
-          player={player1}
-          isGameOver={isGameOver}
-          onNoBlock={handleNoBlock}
-          onBlock={handleBlock}
-        />
-      )}
+          <hr />
 
-      <PlayerView
-        title="You"
-        player={player1}
-        isYou
-        onMoveToFront={handleMoveToFront}
-        onAttack={handleAttack}
-      />
+          {pendingAttack !== null && (
+            <BlockPanel
+              attackerIndex={pendingAttack}
+              player={player1}
+              isGameOver={isGameOver}
+              onNoBlock={handleNoBlock}
+              onBlock={handleBlock}
+            />
+          )}
 
-      <HandView
-        player={player1}
-        isYourTurn={isYourTurn}
-        isGameOver={isGameOver}
-        onPlayToEnergy={handlePlayToEnergy}
-        onPlayToFront={handlePlayToFront}
-      />
+          <PlayerView
+            title="You"
+            player={player1}
+            isYou
+            onMoveToFront={handleMoveToFront}
+            onAttack={handleAttack}
+            onHoverImage={setHoveredCardImage}
+          />
+
+          <HandView
+            player={player1}
+            isYourTurn={isYourTurn}
+            isGameOver={isGameOver}
+            onPlayToEnergy={handlePlayToEnergy}
+            onPlayToFront={handlePlayToFront}
+            onHoverImage={setHoveredCardImage}
+          />
+        </main>
+
+        <aside className="side-panel">
+          <section className="control-panel">
+            <h2>Game</h2>
+            <div><strong>Phase: {game.phase}</strong></div>
+            <div><strong>Turn: {game.turnCount}</strong></div>
+            <div><strong>Current: {currentPlayer.name}</strong></div>
+            <div><strong>Winner: {game.winner ?? "-"}</strong></div>
+
+            <button onClick={handleNextPhase} disabled={isGameOver}>
+              Next Phase
+            </button>
+
+            {isYourTurn && game.phase === GamePhase.Start && (
+              <button onClick={handleExtraDraw} disabled={isGameOver}>
+                Extra Draw - AP1
+              </button>
+            )}
+          </section>
+
+          <CompactPlayerInfo title="You" player={player1} />
+
+          {hoveredCardImage && (
+            <section className="hover-card-preview">
+              <img
+                src={hoveredCardImage}
+                className="card-preview-image"
+                alt="card preview"
+              />
+            </section>
+          )}
+        </aside>
+      </div>
     </div>
   );
 }

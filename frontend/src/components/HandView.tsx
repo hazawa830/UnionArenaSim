@@ -9,12 +9,14 @@ export function HandView({
   isGameOver,
   onPlayToEnergy,
   onPlayToFront,
+  onHoverImage,
 }: {
   player: Player;
   isYourTurn: boolean;
   isGameOver: boolean;
   onPlayToEnergy: (handIndex: number) => void;
   onPlayToFront: (handIndex: number) => void;
+  onHoverImage?: (imagePath: string) => void;
 }) {
   return (
     <section>
@@ -25,7 +27,7 @@ export function HandView({
       <div className="hand">
         {player.board.hand.map((card, index) => (
           <div className="card" key={card.instanceId}>
-            <CardView card={card} />
+            <CardView card={card} onHoverImage={onHoverImage}/>
 
             <button onClick={() => onPlayToEnergy(index)} disabled={isGameOver}>
               Energy

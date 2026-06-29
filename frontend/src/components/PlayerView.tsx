@@ -10,6 +10,7 @@ export function PlayerView({
   reverseLines = false,
   onMoveToFront,
   onAttack,
+  onHoverImage,
 }: {
   title: string;
   player: Player;
@@ -17,6 +18,7 @@ export function PlayerView({
   reverseLines?: boolean;
   onMoveToFront?: (energyIndex: number) => void;
   onAttack?: (frontIndex: number) => void;
+  onHoverImage?: (imagePath: string) => void;
 }) {
   const frontLineView = (
     <>
@@ -48,7 +50,7 @@ export function PlayerView({
 
           return (
             <div className={`slot ${card?.isRest ? "rest" : "active"}`} key={index}>
-              <CardView card={card} />
+              <CardView card={card} onHoverImage={onHoverImage}/>
 
               {card && isYou && (
                 <button onClick={() => onMoveToFront?.(index)}>
