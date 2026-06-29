@@ -6,18 +6,20 @@ export class StartPhaseAction {
     const currentPlayer = game.getCurrentPlayer();
 
     currentPlayer.board.activateAllCards();
+        game.playerTurnCounts[game.currentPlayerId]++;
 
-    if (!this.shouldSkipDraw(game)) {
-      currentPlayer.board.draw(1);
+    const currentPlayerTurnCount = game.playerTurnCounts[game.currentPlayerId];
+
+    if (!this.shouldSkipDraw(game, currentPlayerTurnCount)) {
+    currentPlayer.board.draw(1);
     }
 
     const isFirstPlayer = game.currentPlayerId === game.firstPlayerId;
-    const ap = ActionPointRule.calculate(isFirstPlayer, game.turnCount);
-
+    const ap = ActionPointRule.calculate(isFirstPlayer, currentPlayerTurnCount);
     currentPlayer.board.setActionPoint(ap);
   }
 
-  private static shouldSkipDraw(game: Game): boolean {
-    return game.currentPlayerId === game.firstPlayerId && game.turnCount === 1;
-  }
+  private static shouldSkipDraw(game: Game, currentPlayerTurnCount: number): boolean {
+  return game.currentPlayerId === game.firstPlayerId && currentPlayerTurnCount === 1;
+}
 }

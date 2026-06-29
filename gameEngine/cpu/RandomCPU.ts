@@ -3,7 +3,7 @@ import { GamePhase } from "../enum/GamePhase";
 import { BoardLine } from "../enum/BoardLine";
 import { PlayCardAction } from "../actions/PlayCardAction";
 import { AttackAction } from "../actions/AttackAction";
-
+import { CardType } from "../enum/CardType";
 export class RandomCPU {
   public static playPhase(game: Game): void {
     if (game.winner) {
@@ -146,4 +146,41 @@ export class RandomCPU {
         AttackAction.execute(game, i);
     }
   }
+    public static chooseBlockerIndex(game: Game): number | undefined {
+    const blockerPlayer = game.getOpponentPlayer();
+
+    const blockableIndexes: number[] = [];
+
+    for (let i = 0; i < blockerPlayer.board.frontLine.length; i++) {
+        const card = blockerPlayer.board.frontLine[i].getCard();
+
+        if (!card) {
+        continue;
+        }
+
+        if (card.isRest) {
+        continue;
+        }
+
+        if (card.card.cardType !== CardType.Character) {
+        continue;
+        }
+
+        blockableIndexes.push(i);
+    }
+
+    if (blockableIndexes.length === 0) {
+        return undefined;
+    }
+
+    const shouldBlock = Math.random() < 0.5;
+
+    if (!shouldBlock) {
+        return undefined;
+    }
+
+    return blockableIndexes[
+        Math.floor(Math.random() * blockableIndexes.length)
+    ];
+    }
 }

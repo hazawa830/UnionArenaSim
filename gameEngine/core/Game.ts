@@ -15,7 +15,7 @@ export class Game {
   public winner?: PlayerId;
   public turnCount: number;
   public firstPlayerId: PlayerId;
-
+  public playerTurnCounts: Record<PlayerId, number>;
   constructor(player1: Player, player2: Player) {
     this.player1 = player1;
     this.player2 = player2;
@@ -27,6 +27,10 @@ export class Game {
     this.winner = undefined;
     this.turnCount = 1;
     this.firstPlayerId = this.currentPlayerId;
+    this.playerTurnCounts = {
+    [PlayerId.Player1]: 0,
+    [PlayerId.Player2]: 0,
+};
   }
 
   public start(): void {

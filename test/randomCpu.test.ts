@@ -3,6 +3,9 @@ import { describe, it, expect } from "vitest";
 import { createTestGame } from "./helpers/createTestGame";
 import { RandomCPU } from "../gameEngine/cpu/RandomCPU";
 import { GamePhase } from "../gameEngine/enum/GamePhase";
+import { BoardLine } from "../gameEngine/enum/BoardLine";
+import { PlayCardAction } from "../gameEngine/actions/PlayCardAction";
+import { advanceToMainPhase } from "./helpers/gamePhaseHelper";
 
 describe("RandomCPU", () => {
   it("StartフェーズをMoveフェーズへ進められる", () => {
@@ -86,4 +89,33 @@ describe("RandomCPU", () => {
     expect(game.phase).toBe(GamePhase.Start);
     expect(game.getCurrentPlayer()).not.toBe(beforePlayer);
   });
+  it("ブロック可能なキャラがいない場合はundefinedを返す", () => {
+    const game = createTestGame();
+
+    const blockerIndex = RandomCPU.chooseBlockerIndex(game);
+
+    expect(blockerIndex).toBeUndefined();
+  });
+  it("ブロック可能なキャラがいる場合はundefinedまたは有効なindexを返す", () => {
+    const game = createTestGame();
+
+    const currentPlayer = game.getCurrentPlayer();
+    const opponent = game.getOpponentPlayer();
+
+    // 自分のターンで相手にキャラを直接配置
+    advanceToMainPhase(game);
+
+    const blocker = opponent.board.hand[0];
+    opponent.board.hand.splice(0, 1);
+
+    blocker.isRest = false;
+    opponent.board.frontLine[2].setCard(blocker);
+
+    const blockerIndex = RandomCPU.chooseBlockerIndex(game);
+
+    expect(
+        blockerIndex === undefined ||
+        (blockerIndex >= 0 && blockerIndex < 4)
+    ).toBe(true);
+    });
 });

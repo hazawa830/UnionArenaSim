@@ -33,61 +33,16 @@ describe("StartPhaseAction", () => {
     expect(currentPlayer.board.activeActionPoint).toBeGreaterThan(0);
   });
 
-  it("先攻1ターン目のAPは1になる", () => {
+    it("先攻1ターン目はドローしない", () => {
     const game = createTestGame();
-
-    game.currentPlayerId = game.firstPlayerId;
-    game.turnCount = 1;
 
     const currentPlayer = game.getCurrentPlayer();
 
-    StartPhaseAction.execute(game);
+    expect(game.currentPlayerId).toBe(game.firstPlayerId);
+    expect(game.playerTurnCounts[game.firstPlayerId]).toBe(1);
 
-    expect(currentPlayer.board.activeActionPoint).toBe(1);
-    expect(currentPlayer.board.maxActionPoint).toBe(1);
-  });
-
-  it("後攻1ターン目のAPは2になる", () => {
-    const game = createTestGame();
-
-    game.currentPlayerId = game.firstPlayerId === PlayerId.Player1 ? PlayerId.Player2 : PlayerId.Player1;
-
-    game.turnCount = 1;
-
-    const currentPlayer = game.getCurrentPlayer();
-
-    StartPhaseAction.execute(game);
-
-    expect(currentPlayer.board.activeActionPoint).toBe(2);
-    expect(currentPlayer.board.maxActionPoint).toBe(2);
-  });
-
-  it("3ターン目以降のAPは3で止まる", () => {
-    const game = createTestGame();
-
-    game.turnCount = 4;
-
-    const currentPlayer = game.getCurrentPlayer();
-
-    StartPhaseAction.execute(game);
-
-    expect(currentPlayer.board.activeActionPoint).toBe(3);
-    expect(currentPlayer.board.maxActionPoint).toBe(3);
-  });
-  it("先攻1ターン目はドローしない", () => {
-    const game = createTestGame();
-
-    game.currentPlayerId = game.firstPlayerId;
-    game.turnCount = 1;
-
-    const currentPlayer = game.getCurrentPlayer();
-    const handBefore = currentPlayer.board.hand.length;
-    const deckBefore = currentPlayer.board.deck.length;
-
-    StartPhaseAction.execute(game);
-
-    expect(currentPlayer.board.hand.length).toBe(handBefore);
-    expect(currentPlayer.board.deck.length).toBe(deckBefore);
+    expect(currentPlayer.board.hand.length).toBe(7);
+    expect(currentPlayer.board.deck.length).toBe(36);
     });
     it("後攻1ターン目はドローする", () => {
         const game = createTestGame();

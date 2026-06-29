@@ -1,13 +1,13 @@
 export class ActionPointRule {
-  public static calculate(isFirstPlayer: boolean, turnCount: number): number {
+  public static calculate(isFirstPlayer: boolean, playerTurnCount: number): number {
     if (isFirstPlayer) {
-      return Math.min(turnCount, 3);
+      return Math.min(playerTurnCount, 3);
     }
 
-    if (turnCount === 1) {
+    if (playerTurnCount === 1) {
       return 2;
     }
 
-    return Math.min(turnCount, 3);
+    return Math.min(playerTurnCount, 3);
   }
 }
