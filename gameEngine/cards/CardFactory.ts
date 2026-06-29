@@ -1,0 +1,75 @@
+import { Energy } from "../models/Energy";
+import { Card } from "./Card";
+import { CardType } from "../enum/CardType";
+import { CharacterCard } from "./CharacterCard";
+import { StageCard } from "./StageCard";
+import { EventCard } from "./EventCard";
+
+type RawEnergy = Partial<{
+  red: number;
+  blue: number;
+  green: number;
+  yellow: number;
+  purple: number;
+}>;
+
+type RawCardData = {
+  id: string;
+  name: string;
+  cardType: string; // ← CardType ではなく string にする
+  requiredEnergy: RawEnergy;
+  actionPointCost: number;
+  effects?: string[];
+  trigger?: string | null;
+
+  bp?: number;
+  generatedEnergy?: RawEnergy;
+};
+
+export class CardFactory {
+  public static create(raw: RawCardData): Card {
+    const cardType = raw.cardType as CardType;
+    const commonData = {
+        id: raw.id,
+        name: raw.name,
+        cardType,
+        requiredEnergy: new Energy(raw.requiredEnergy),
+        actionPointCost: raw.actionPointCost,
+        effects: raw.effects ?? [],
+        trigger: raw.trigger ?? undefined,
+    };
+    
+    switch (cardType) {
+      case CardType.Character:
+        if (raw.bp === undefined) {
+          throw new Error(`Character card ${raw.id} must have bp.`);
+        }
+
+        if (raw.generatedEnergy === undefined) {
+          throw new Error(`Character card ${raw.id} must have generatedEnergy.`);
+        }
+
+        return new CharacterCard({
+          ...commonData,
+          bp: raw.bp,
+          generatedEnergy: new Energy(raw.generatedEnergy),
+        });
+
+      case CardType.Stage:
+        if (raw.generatedEnergy === undefined) {
+          throw new Error(`Stage card ${raw.id} must have generatedEnergy.`);
+        }
+
+        return new StageCard({
+          ...commonData,
+          generatedEnergy: new Energy(raw.generatedEnergy),
+        });
+
+      case CardType.Event:
+        return new EventCard(commonData);
+
+      default:
+        throw new Error(`Unknown card type: ${raw.cardType}`);
+    }
+  }
+}

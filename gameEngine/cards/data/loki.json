@@ -1,0 +1,11 @@
+{
+  "id": "UA34BT-CGD-1-041",
+  "name": "ロキ",
+  "cardType": "character",
+  "requiredEnergy": {},
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": { "blue": 1 },
+  "effects": [],
+  "trigger": null
+}

@@ -1,0 +1,47 @@
+.app {
+  padding: 24px;
+  font-family: sans-serif;
+}
+
+.info,
+.status {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.line,
+.hand {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.slot,
+.card {
+  border: 1px solid #ccc;
+  padding: 8px;
+  min-width: 90px;
+  min-height: 60px;
+}
+
+button {
+  margin-right: 8px;
+  margin-top: 8px;
+}
+
+.slot.active {
+  border-color: #4caf50;
+}
+
+.slot.rest {
+  border-color: #999;
+  opacity: 0.6;
+  transform: rotate(4deg);
+}
+
+.card-status {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
