@@ -1,6 +1,7 @@
 {
   "id": "UA34BT-CGD-1-041",
   "name": "ロキ",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
   "cardType": "character",
   "requiredEnergy": {},
   "actionPointCost": 1,

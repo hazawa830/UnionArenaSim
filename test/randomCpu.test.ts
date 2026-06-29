@@ -118,4 +118,27 @@ describe("RandomCPU", () => {
         (blockerIndex >= 0 && blockerIndex < 4)
     ).toBe(true);
     });
+    it("StartフェーズでCPUはランダムにエクストラドローしてMoveフェーズへ進む", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+
+  const handBefore = player.board.hand.length;
+  const deckBefore = player.board.deck.length;
+  const apBefore = player.board.activeActionPoint;
+
+  RandomCPU.playPhase(game);
+
+  expect(game.phase).toBe(GamePhase.Move);
+
+  const didExtraDraw = player.board.hand.length === handBefore + 1;
+
+  if (didExtraDraw) {
+    expect(player.board.deck.length).toBe(deckBefore - 1);
+    expect(player.board.activeActionPoint).toBe(apBefore - 1);
+  } else {
+    expect(player.board.hand.length).toBe(handBefore);
+    expect(player.board.deck.length).toBe(deckBefore);
+    expect(player.board.activeActionPoint).toBe(apBefore);
+  }
+});
 });

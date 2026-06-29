@@ -4,6 +4,7 @@ import { BoardLine } from "../enum/BoardLine";
 import { PlayCardAction } from "../actions/PlayCardAction";
 import { AttackAction } from "../actions/AttackAction";
 import { CardType } from "../enum/CardType";
+import { ExtraDrawAction } from "../actions/ExtraDrawAction";
 export class RandomCPU {
   public static playPhase(game: Game): void {
     if (game.winner) {
@@ -11,6 +12,7 @@ export class RandomCPU {
     }
     switch (game.phase) {
       case GamePhase.Start:
+        this.tryExtraDraw(game);
         game.nextPhase();
         break;
 
@@ -183,4 +185,19 @@ export class RandomCPU {
         Math.floor(Math.random() * blockableIndexes.length)
     ];
     }
+    private static tryExtraDraw(game: Game): void {
+  const player = game.getCurrentPlayer();
+
+  if (player.board.activeActionPoint < 1) {
+    return;
+  }
+
+  const shouldExtraDraw = Math.random() < 0.5;
+
+  if (!shouldExtraDraw) {
+    return;
+  }
+
+  ExtraDrawAction.execute(game);
+}
 }

@@ -5,6 +5,7 @@ import { CardType } from "../enum/CardType";
 export abstract class Card {
     public readonly id: string;
     public readonly name: string;
+    public readonly imagePath?: string;
     public readonly requiredEnergy: Energy;
     public readonly actionPointCost: number;
     public readonly cardType: CardType;
@@ -14,6 +15,7 @@ export abstract class Card {
     constructor(data: CardData) {
         this.id = data.id;
         this.name = data.name;
+        this.imagePath = data.imagePath;
         this.requiredEnergy = data.requiredEnergy;
         this.actionPointCost = data.actionPointCost;
         this.cardType = data.cardType;

@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import "./App.css";
 
 import { GameFactory } from "../../gameEngine/factory/GameFactory";
@@ -8,36 +8,97 @@ import { BoardLine } from "../../gameEngine/enum/BoardLine";
 import { PlayCardAction } from "../../gameEngine/actions/PlayCardAction";
 import { MoveCardAction } from "../../gameEngine/actions/MoveAction";
 import { AttackAction } from "../../gameEngine/actions/AttackAction";
+import { GamePhase } from "../../gameEngine/enum/GamePhase";
+import { ExtraDrawAction } from "../../gameEngine/actions/ExtraDrawAction";
+import { PlayerId } from "../../gameEngine/enum/PlayerId";
 
 function App() {
   const gameRef = useRef<Game>(GameFactory.createSampleGame());
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
-
+  const [pendingAttack, setPendingAttack] = useState<number | null>(null);
   const game = gameRef.current;
   const player1 = game.player1;
   const player2 = game.player2;
   const currentPlayer = game.getCurrentPlayer();
   const isYourTurn = currentPlayer === player1;
+  const isGameOver = game.winner !== undefined;
 
   const refresh = () => forceUpdate();
+  useEffect(() => {
+  if (!game.winner) {
+    return;
+  }
+
+  const winnerName =
+    game.winner === player1.id ? "あなた" : "CPU";
+
+  alert(`${winnerName}の勝利です！`);
+}, [game.winner]);
 
   useEffect(() => {
-    if (game.winner) return;
-    if (currentPlayer !== player2) return;
+  if (game.winner) return;
+  if (currentPlayer !== player2) return;
+  if (pendingAttack !== null) return;
 
-    const timer = setTimeout(() => {
-      RandomCPU.playPhase(game);
-      refresh();
-    }, 1000);
+  const timer = setTimeout(() => {
+    if (game.phase === GamePhase.Attack) {
+      const attackerIndex = player2.board.frontLine.findIndex((slot) => {
+        const card = slot.getCard();
+        return card && !card.isRest;
+      });
 
-    return () => clearTimeout(timer);
-  }, [game.phase, game.currentPlayerId, game.winner]);
+      if (attackerIndex !== -1) {
+        setPendingAttack(attackerIndex);
+        return;
+      }
+    }
+
+    RandomCPU.playPhase(game);
+    refresh();
+  }, 1000);
+
+  return () => clearTimeout(timer);
+}, [game.phase, game.currentPlayerId, game.winner, pendingAttack]);
 
   const handleNextPhase = () => {
     game.nextPhase();
     refresh();
   };
+  const handleExtraDraw = () => {
+    if (!isYourTurn) {
+      alert("相手ターンです");
+      return;
+    }
 
+    try {
+      ExtraDrawAction.execute(game);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
+  const handleNoBlock = () => {
+    if (pendingAttack === null) return;
+
+    try {
+      AttackAction.execute(game, pendingAttack);
+      setPendingAttack(null);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
+  const handleBlock = (blockerIndex: number) => {
+    if (pendingAttack === null) return;
+
+    try {
+      AttackAction.execute(game, pendingAttack, blockerIndex);
+      setPendingAttack(null);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
   const handlePlayToEnergy = (handIndex: number) => {
     if (!isYourTurn) return alert("相手ターンです");
 
@@ -115,13 +176,59 @@ function App() {
         <div>Current Player: {currentPlayer.name}</div>
         <div>Winner: {game.winner ?? "-"}</div>
       </section>
+      {isGameOver && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h2>
+              {game.winner === PlayerId.Player1
+                ? "🎉 あなたの勝利！"
+                : "🤖 CPUの勝利！"}
+            </h2>
 
-      <button onClick={handleNextPhase}>Next Phase</button>
+            <button
+              onClick={() => {
+                gameRef.current = GameFactory.createSampleGame();
+                setPendingAttack(null);
+                refresh();
+              }}
+            >
+              もう一度プレイ
+            </button>
+          </div>
+        </div>
+      )}
+      <button onClick={handleNextPhase} disabled={isGameOver}>Next Phase</button>
+
+      {isYourTurn && game.phase === GamePhase.Start && (
+        <button onClick={handleExtraDraw} disabled={isGameOver}>Extra Draw - AP1</button>
+      )}
 
       <PlayerView title="Opponent" player={player2} reverseLines />
 
       <hr />
+      {pendingAttack !== null && (
+        <section className="block-panel">
+          <h2>CPUが攻撃しています</h2>
+          <p>攻撃元: CPUフロントライン {pendingAttack + 1}</p>
 
+          <button onClick={handleNoBlock} disabled={isGameOver}>No Block</button>
+
+          <h3>Blocker</h3>
+          {player1.board.frontLine.map((slot, index) => {
+            const card = slot.getCard();
+
+            if (!card || card.isRest) {
+              return null;
+            }
+
+            return (
+              <button key={index} onClick={() => handleBlock(index)}>
+                {card.card.name} でBlock
+              </button>
+            );
+          })}
+        </section>
+      )}
       <PlayerView
         title="You"
         player={player1}
@@ -139,8 +246,8 @@ function App() {
             <div className="card" key={card.instanceId}>
               <div>{card.card.name}</div>
               <div>{card.isRest ? "REST" : "ACTIVE"}</div>
-              <button onClick={() => handlePlayToEnergy(index)}>Energy</button>
-              <button onClick={() => handlePlayToFront(index)}>Front</button>
+              <button onClick={() => handlePlayToEnergy(index)} disabled={isGameOver}>Energy</button>
+              <button onClick={() => handlePlayToFront(index)} disabled={isGameOver}>Front</button>
             </div>
           ))}
         </div>
