@@ -16,6 +16,7 @@ type RawEnergy = Partial<{
 type RawCardData = {
   id: string;
   name: string;
+  imagePath?: string;
   cardType: string; // ← CardType ではなく string にする
   requiredEnergy: RawEnergy;
   actionPointCost: number;
@@ -32,6 +33,7 @@ export class CardFactory {
     const commonData = {
         id: raw.id,
         name: raw.name,
+        imagePath: raw.imagePath,
         cardType,
         requiredEnergy: new Energy(raw.requiredEnergy),
         actionPointCost: raw.actionPointCost,

@@ -1,4 +1,6 @@
 .app {
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 24px;
   font-family: sans-serif;
 }
@@ -7,37 +9,45 @@
 .status {
   display: flex;
   gap: 16px;
-  margin-bottom: 16px;
+  justify-content: center;
+  margin-bottom: 12px;
 }
 
-.line,
-.hand {
+.player {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.line {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 .slot,
 .card {
-  border: 1px solid #ccc;
-  padding: 8px;
-  min-width: 90px;
-  min-height: 60px;
+  border: 1px solid #4caf50;
+  width: 120px;
+  min-height: 170px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-button {
-  margin-right: 8px;
-  margin-top: 8px;
+.card-image {
+  width: 100px;
+  height: auto;
+  display: block;
 }
 
-.slot.active {
-  border-color: #4caf50;
-}
-
-.slot.rest {
-  border-color: #999;
-  opacity: 0.6;
-  transform: rotate(4deg);
+.hand {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 12px;
+  justify-content: flex-start;
 }
 
 .card-status {
@@ -45,33 +55,9 @@ button {
   font-size: 12px;
   font-weight: bold;
 }
-.game-over {
-  margin: 16px 0;
-  padding: 16px;
-  border: 2px solid #333;
-  font-size: 24px;
-  font-weight: bold;
-}
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-}
 
-.modal {
-  background: white;
-  padding: 32px;
-  border-radius: 12px;
-  min-width: 280px;
-  text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-.card-image {
-  width: 80px;
-  height: auto;
-  display: block;
+.slot.rest,
+.card.rest {
+  opacity: 0.65;
+  transform: rotate(4deg);
 }
