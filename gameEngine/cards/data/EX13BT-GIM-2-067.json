@@ -1,0 +1,25 @@
+{
+  "id": "EX13BT-GIM-2-067",
+  "name": "お母さんか！",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "event",
+  "requiredEnergy": { "red": 3 },
+  "actionPointCost": 1,
+  "generatedEnergy": {},
+  "triggerType": "final",
+  "effects": [
+    {
+      "trigger": "onUse",
+      "actions": [
+        {
+          "type": "activate",
+          "target": {
+            "side": "own",
+            "zone": "ap",
+            "maxCount": 2
+          }
+        }
+      ]
+    }
+  ]
+}

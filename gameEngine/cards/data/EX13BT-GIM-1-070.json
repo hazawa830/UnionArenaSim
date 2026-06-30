@@ -1,0 +1,21 @@
+{
+  "trigger": "onPlay",
+  "actions": [
+    {
+      "type": "searchTopDeck",
+      "lookCount": 3,
+      "takeCount": 1,
+      "target": {
+        "nameFilter": ["月村 手毬", "花海 咲季", "藤田 ことね"],
+        "cardType": "character"
+      },
+      "restToBottom": true,
+      "ifTaken": [
+        {
+          "type": "discardHand",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

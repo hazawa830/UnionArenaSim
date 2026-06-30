@@ -4,7 +4,8 @@ import { Slot } from "../models/Slot";
 import { GamePhase } from "../enum/GamePhase";
 import { BoardLine } from "../enum/BoardLine";
 import { ActionSource } from "../enum/ActionSource";
-
+import { EffectResolver } from "../effects/EffectResolver";
+import { EffectTrigger } from "../effects/EffectTrigger";
 export class PlayCardAction {
   public static execute(
     game: Game,
@@ -43,6 +44,7 @@ export class PlayCardAction {
     }
     board.hand.splice(handIndex, 1);
     targetSlot.setCard(cardInstance);
+    EffectResolver.resolve(game, cardInstance, EffectTrigger.OnPlay);
   }
 
   private static getTargetSlot(

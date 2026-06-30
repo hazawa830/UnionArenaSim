@@ -1,0 +1,38 @@
+{
+  "id": "EX13BT-GIM-2-064",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/EX13BT_GIM-2-064.png",
+  "cardType": "character",
+  "requiredEnergy": {
+    "red": 2
+  },
+  "actionPointCost": 1,
+  "bp": 3000,
+  "generatedEnergy": {
+    "red": 1
+  },
+  "triggerType": "active",
+  "effects": [
+    {
+      "trigger": "onPlay",
+      "actions": [
+        {
+          "type": "modifyBpThisTurn",
+          "amount": 1000,
+          "target": {
+            "side": "own",
+            "zone": "field",
+            "cardType": "character",
+            "excludeSelf": true,
+            "maxCount": 1,
+            "nameFilter": [
+              "花海 咲季",
+              "月村 手毬",
+              "藤田 ことね"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

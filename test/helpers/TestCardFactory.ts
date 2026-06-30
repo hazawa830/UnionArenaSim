@@ -1,7 +1,7 @@
 import { CardFactory } from "../../gameEngine/cards/CardFactory";
 import { CardInstance } from "../../gameEngine/cards/CardInstance";
 import { TriggerType } from "../../gameEngine/enum/TriggerType";
-
+import { Effect } from "../../gameEngine/effects/Effect";
 let nextTestInstanceId = 900000;
 
 type CreateTestCharacterOptions = {
@@ -10,6 +10,7 @@ type CreateTestCharacterOptions = {
   bp?: number;
   triggerType?: TriggerType;
   color?: string;
+  effects?: Effect[];
 };
 
 export class TestCardFactory {
@@ -28,7 +29,7 @@ export class TestCardFactory {
       generatedEnergy: { blue: 1 },
       triggerType,
       color: options.color,
-      effects: [],
+      effects: options.effects ?? [],
     });
 
     return new CardInstance(nextTestInstanceId++, card);

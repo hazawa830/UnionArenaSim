@@ -1,5 +1,33 @@
+import { TargetType } from "./TargetType";
+import { EffectTarget } from "./EffectTarget";
+
 export type EffectAction =
-{
-    type: "draw";
-    count: number;
-};
+  | {
+      type: "draw";
+      count: number;
+    }
+  | {
+      type: "activate";
+      target: TargetType | EffectTarget;
+      count?: number;
+    }
+  | {
+      type: "modifyBpThisTurn";
+      target: TargetType | EffectTarget;
+      amount: number;
+    }
+  | {
+      type: "searchTopDeck";
+      lookCount: number;
+      takeCount: number;
+      target: {
+        cardType?: "character" | "event" | "stage";
+        nameFilter?: string[];
+      };
+      restToBottom: boolean;
+      ifTaken?: EffectAction[];
+    }
+  | {
+      type: "discardHand";
+      count: number;
+    };
