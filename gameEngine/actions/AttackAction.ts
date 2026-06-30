@@ -1,9 +1,10 @@
 import { Game } from "../core/Game";
 import { GamePhase } from "../enum/GamePhase";
-import { PlayerId } from "../enum/PlayerId";
+
 import { ActionSource } from "../enum/ActionSource";
 import { CardType } from "../enum/CardType";
 import { CharacterCard } from "../cards/CharacterCard";
+import { TriggerAction } from "./TriggerAction";
 
 export class AttackAction {
   public static execute(
@@ -52,7 +53,11 @@ export class AttackAction {
       throw new Error("Opponent has no life.");
     }
 
-    opponentPlayer.board.trash.push(lifeCard);
+    TriggerAction.resolve(game, lifeCard, opponentPlayer, currentPlayer);
+
+    if (!lifeCard) {
+      throw new Error("Opponent has no life.");
+    }
 
     if (opponentPlayer.board.lifeArea.length === 0) {
       game.winner = game.currentPlayerId;

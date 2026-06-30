@@ -4,7 +4,8 @@ import { CardType } from "../enum/CardType";
 import { CharacterCard } from "./CharacterCard";
 import { StageCard } from "./StageCard";
 import { EventCard } from "./EventCard";
-
+import { TriggerType } from "../enum/TriggerType";
+import { Effect } from "../effects/Effect";
 type RawEnergy = Partial<{
   red: number;
   blue: number;
@@ -20,9 +21,9 @@ type RawCardData = {
   cardType: string; // ← CardType ではなく string にする
   requiredEnergy: RawEnergy;
   actionPointCost: number;
-  effects?: string[];
-  trigger?: string | null;
-
+  effects?: Effect[];
+  triggerType?: string;
+  color?: string;
   bp?: number;
   generatedEnergy?: RawEnergy;
 };
@@ -38,7 +39,8 @@ export class CardFactory {
         requiredEnergy: new Energy(raw.requiredEnergy),
         actionPointCost: raw.actionPointCost,
         effects: raw.effects ?? [],
-        trigger: raw.trigger ?? undefined,
+        triggerType: (raw.triggerType ?? TriggerType.None) as TriggerType,
+        color: raw.color,
     };
     
     switch (cardType) {

@@ -135,5 +135,14 @@ public activateAllCards(): void {
     }
   }
 }
+public clearTemporaryBpBonus(): void {
+  for (const slot of [...this.frontLine, ...this.energyLine]) {
+    const card = slot.getCard();
+
+    if (card) {
+      card.temporaryBpBonus = 0;
+    }
+  }
+}
 
 }

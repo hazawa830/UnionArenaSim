@@ -1,0 +1,28 @@
+{
+  "id": "EX13BT-GIM-1-067",
+  "name": "花海 咲季",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 3},
+  "actionPointCost": 1,
+  "generatedEnergy": {"red":2},
+  "triggerType": "none",
+  "effects": [
+  {
+    "trigger": "onPlay",
+    "conditions": [
+      {
+        "type": "hasCharacterNamesOnField",
+        "names": ["月村 手毬", "藤田 ことね"],
+        "mode": "all"
+      }
+    ],
+    "actions": [
+      {
+        "type": "draw",
+        "count": 1
+      }
+    ]
+  }
+]
+}

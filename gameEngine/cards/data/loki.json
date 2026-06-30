@@ -7,6 +7,7 @@
   "actionPointCost": 1,
   "bp": 2000,
   "generatedEnergy": { "blue": 1 },
+  "triggerType": "draw",
   "effects": [],
   "trigger": null
 }

@@ -1,7 +1,8 @@
 import { Energy } from "../models/Energy";
 import { CardData } from "./CardData";
 import { CardType } from "../enum/CardType";
-
+import { TriggerType } from "../enum/TriggerType";
+import { Effect } from "../effects/Effect";
 export abstract class Card {
     public readonly id: string;
     public readonly name: string;
@@ -9,8 +10,9 @@ export abstract class Card {
     public readonly requiredEnergy: Energy;
     public readonly actionPointCost: number;
     public readonly cardType: CardType;
-    public readonly effects: string[];
-    public readonly trigger?: string;
+    public readonly effects: Effect[];
+    public readonly triggerType: TriggerType;
+    public readonly color?: string;
 
     constructor(data: CardData) {
         this.id = data.id;
@@ -20,6 +22,7 @@ export abstract class Card {
         this.actionPointCost = data.actionPointCost;
         this.cardType = data.cardType;
         this.effects = data.effects ?? [];
-        this.trigger = data.trigger;
+        this.triggerType = data.triggerType;
+        this.color = data.color;
     }
 }

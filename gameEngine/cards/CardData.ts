@@ -1,16 +1,19 @@
 import { Energy } from "../models/Energy";
 import { CardType } from "../enum/CardType";
 
-export interface CardData {
-    id: string;
-    name: string;
-    imagePath?: string;
-    requiredEnergy: Energy;
-    actionPointCost: number;
-    cardType: CardType;
-    effects?: string[];
-    trigger?: string;
-}
+import { TriggerType } from "../enum/TriggerType";
+import { Effect } from "../effects/Effect";
+export type CardData = {
+  id: string;
+  name: string;
+  imagePath?: string;
+  cardType: CardType;
+  requiredEnergy: Energy;
+  actionPointCost: number;
+  effects?: Effect[];
+  triggerType: TriggerType;
+  color?: string;
+};
 
 export interface CharacterCardData extends CardData {
     bp: number;

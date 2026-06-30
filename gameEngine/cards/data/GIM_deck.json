@@ -1,0 +1,139 @@
+[
+{
+  "id": "EX13BT-GIM-2-061",
+  "name": "月村 手毬",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {},
+  "actionPointCost": 1,
+  "bp": 1500,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "draw",
+  "effects": ["[起動メイン] (手札を1枚場外に置く) : 「ターン1」このキャラはこのターン中、BP+1500。"]
+},
+{
+  "id": "EX13BT-GIM-2-062",
+  "name": "月村 手毬",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 3},
+  "actionPointCost": 1,
+  "bp": 3000,
+  "generatedEnergy": { "red": 2 },
+  "triggerType": "color",
+  "effects": ["[自分のターン中] 自分の場に〈花海 咲季〉と〈藤田 ことね〉がある場合、このキャラはBP+1000と、「このキャラがアタックしてバトルに勝利した時、カードを1枚まで引く。」を得る。"]
+},
+{
+  "id": "EX13BT-GIM-2-063",
+  "name": "花海 咲季",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {},
+  "actionPointCost": 1,
+  "bp": 1500,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "none",
+  "effects": ["{インパクト無効}","[自分のターン中] 自分のフロントラインに〈月村 手毬〉と〈藤田 ことね〉がある場合、このキャラはBP+1500。"]
+},
+{
+  "id": "EX13BT-GIM-2-064",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {},
+  "actionPointCost": 1,
+  "bp": 1000,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "draw",
+  "effects": ["[登場時] 自分の場の〈花海 咲季〉か〈月村 手毬〉か他の〈藤田 ことね〉を1枚まで選び、このターン中、BP+1000。"]
+},
+{
+  "id": "EX13BT-GIM-2-065",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 2},
+  "actionPointCost": 1,
+  "bp": 3000,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "active",
+  "effects": ["(フロントラインにある場合) 「ターン1」 自分の〈月村 手毬〉のアタックがブロックされなかった時、このキャラはこのターン中、BP+1000。","(フロントラインにある場合) 「ターン1」自分の〈花海 咲季〉がアタックしてバトルに勝利した時、カードを1枚まで引く。"]
+},
+{
+  "id": "EX13BT-GIM-2-067",
+  "name": "お母さんか！",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "event",
+  "requiredEnergy": {"red": 3},
+  "actionPointCost": 1,
+  "generatedEnergy": {},
+  "triggerType": "final",
+  "effects": ["自分のAPカードを2枚まで選び、アクティブにする。"]
+},
+{
+  "id": "EX13BT-GIM-2-070",
+  "name": "夏を満喫するわよ！",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "event",
+  "requiredEnergy": {"red": 4},
+  "actionPointCost": 1,
+  "generatedEnergy": {},
+  "triggerType": "none",
+  "effects": ["このカードは自分の場に〈花海 咲季〉と〈月村 手毬〉と〈藤田 ことね〉がある場合のみ使用できる。BP5000以下の相手のフロントラインのキャラを1枚まで選び、退場させる。自分の場のキャラを1枚まで選び、このターン中、BP+1000。"]
+},
+{
+  "id": "EX13BT-GIM-1-061",
+  "name": "月村 手毬",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 1},
+  "actionPointCost": 1,
+  "generatedEnergy": {"red":1},
+  "triggerType": "active",
+  "effects": ["自分の場に〈花海 咲季〉と〈藤田 ことね〉がどちらもある場合、このキャラはBP+1000。"]
+},
+{
+  "id": "EX13BT-GIM-1-067",
+  "name": "花海 咲季",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 3},
+  "actionPointCost": 1,
+  "generatedEnergy": {"red":2},
+  "triggerType": "none",
+  "effects": ["{ステップ}","[登場時] 自分の場に〈月村 手毬〉と〈藤田 ことね〉がどちらもある場合、カードを1枚引く。"]
+},
+{
+  "id": "EX13BT-GIM-1-068",
+  "name": "花海 咲季",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 4},
+  "actionPointCost": 1,
+  "generatedEnergy": {"red":1},
+  "triggerType": "get",
+  "effects": ["このキャラはBP4000以上のキャラにブロックされない","[登場時] 自分のフロントラインに〈月村 手毬〉と〈藤田 ことね〉がどちらもある場合、このキャラをアクティブにする。〈花海 咲季〉のこの効果は1ターンに1回のみ発動する。"]
+},
+{
+  "id": "EX13BT-GIM-1-070",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 1},
+  "actionPointCost": 1,
+  "generatedEnergy": {"red":1},
+  "triggerType": "active",
+  "effects": ["[登場時] 自分の山札の上から3枚見る。その中から〈月村 手毬〉か〈花海 咲季〉か〈藤田 ことね〉を1枚まで公開し手札に加える。残りを望む順で自分の山札の下に置く。手札に加えた場合、自分の手札を1枚場外に置く。"]
+},
+{
+  "id": "EX13BT-GIM-1-071",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"red": 2},
+  "actionPointCost": 1,
+  "generatedEnergy": {"red":1},
+  "triggerType": "active",
+  "effects": ["[登場時] (エナジーラインにある場合) 自分の場に〈花海 咲季〉と〈月村 手毬〉がどちらもある場合、このキャラをアクティブにする。","[起動メイン] (レストにする) 自分の場の他のキャラを1枚選び、このターン中、BP+1000。"]
+}
+]

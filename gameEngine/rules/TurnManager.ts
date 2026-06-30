@@ -41,9 +41,10 @@ export class TurnManager {
       game.currentPlayerId === PlayerId.Player1
         ? PlayerId.Player2
         : PlayerId.Player1;
-
+    game.player1.board.clearTemporaryBpBonus();
+    game.player2.board.clearTemporaryBpBonus();
     game.turnCount++;
-
+   
     this.startTurn(game);
   }
 }
