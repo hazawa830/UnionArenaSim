@@ -1,0 +1,33 @@
+{
+  "id": "EX13BT-GIM-2-061",
+  "name": "月村 手毬",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {},
+  "actionPointCost": 1,
+  "bp": 1500,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "draw",
+  "effects": [
+    {
+      "id": "activate-main-discard-bp-plus-1500",
+      "trigger": "activateMain",
+      "oncePerTurn": {
+        "scope": "instance"
+      },
+      "costs": [
+        {
+          "type": "discardHand",
+          "count": 1
+        }
+      ],
+      "actions": [
+        {
+          "type": "modifyBpThisTurn",
+          "target": "self",
+          "amount": 1500
+        }
+      ]
+    }
+  ]
+}

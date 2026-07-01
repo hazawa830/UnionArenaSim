@@ -1,4 +1,8 @@
 export type EffectCost =
-| {
-    type: "restSelf";
-};
+  | {
+      type: "restSelf";
+    }
+  | {
+      type: "discardHand";
+      count: number;
+    };

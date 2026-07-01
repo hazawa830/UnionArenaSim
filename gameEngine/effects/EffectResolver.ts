@@ -6,6 +6,7 @@ import { EffectCondition } from "./EffectCondition";
 import { EffectActionExecutor } from "./EffectActionExecutor";
 import { EffectContext } from "./EffectContext";
 import { EffectConditionResolver } from "./EffectConditionResolver";
+import { EffectCostExecutor } from "./EffectCostExecutor";
 
 export class EffectResolver {
   public static resolve(
@@ -31,6 +32,7 @@ export class EffectResolver {
       if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {
         continue;
       }
+      EffectCostExecutor.payCosts(context, effect.costs);
       this.markOncePerTurnEffectUsed(context, effect);
       this.executeActions(context, effect);
     }
@@ -84,6 +86,7 @@ export class EffectResolver {
       if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {
         continue;
       }
+      EffectCostExecutor.payCosts(context, effect.costs);
       this.markOncePerTurnEffectUsed(context, effect);
       this.executeActions(context, effect);
     }
