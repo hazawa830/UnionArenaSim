@@ -452,4 +452,5 @@ it("ターン終了後はカード名ターン1の効果を再度使用できる
   expect(player.board.hand.length).toBe(handBefore + 2);
   expect(player.board.deck.length).toBe(deckBefore - 2);
 });
+
 });

@@ -1,5 +1,6 @@
 import { TargetType } from "./TargetType";
 import { EffectTarget } from "./EffectTarget";
+import { Effect } from "./Effect";
 
 export type EffectAction =
   | {
@@ -39,5 +40,11 @@ export type EffectAction =
     type: "modifyBpContinuous";
     target: "self";
     amount: number;
+  }
+  | {
+    type: "grantEffect";
+    target: "self";
+    effect: Effect;
   };
+  
     

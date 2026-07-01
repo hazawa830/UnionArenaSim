@@ -1,19 +1,22 @@
-
 import { CardInstance } from "../cards/CardInstance";
 import { EffectTarget } from "./EffectTarget";
 import { CardType } from "../enum/CardType";
-
 import { EffectContext } from "./EffectContext";
+import { ContinuousEffectResolver } from "./ContinuousEffectResolver";
 
 export class EffectTargetResolver {
   public static resolveCandidates(
-  context: EffectContext,
-  target: EffectTarget
-): CardInstance[] {
-  const board =
-    target.side === "own"
-      ? context.actor.board
-      : context.opponent.board;
+    context: EffectContext,
+    target: EffectTarget
+  ): CardInstance[] {
+    const board =
+      target.side === "own" ? context.actor.board : context.opponent.board;
+
+    const targetActor =
+      target.side === "own" ? context.actor : context.opponent;
+
+    const targetOpponent =
+      target.side === "own" ? context.opponent : context.actor;
 
     const slots =
       target.zone === "field"
@@ -41,9 +44,24 @@ export class EffectTargetResolver {
             return false;
           }
         }
+
         if (target.maxBp !== undefined) {
-          if (card.getCurrentBp() > target.maxBp)
-              return false;
+          const targetContext: EffectContext = {
+            game: context.game,
+            source: card,
+            actor: targetActor,
+            opponent: targetOpponent,
+            event: context.event,
+          };
+
+          const currentBp = ContinuousEffectResolver.getCurrentBp(
+            targetContext,
+            card
+          );
+
+          if (currentBp > target.maxBp) {
+            return false;
+          }
         }
 
         return true;

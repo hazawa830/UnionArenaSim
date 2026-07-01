@@ -16,4 +16,7 @@ export type EffectCondition =
     type: "hasCharacterNamesOnFrontLine";
     names: string[];
     mode: "all" | "any";
-  };
+  }
+  | {
+      type: "attackerIsSelf";
+    };;

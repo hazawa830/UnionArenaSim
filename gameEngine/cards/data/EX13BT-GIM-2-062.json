@@ -1,63 +1,32 @@
 {
-  "id": "EX13BT-GIM-2-062",
-  "name": "月村 手毬",
-  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
-  "cardType": "character",
-  "requiredEnergy": { "red": 3 },
-  "actionPointCost": 1,
-  "bp": 3000,
-  "generatedEnergy": { "red": 2 },
-  "triggerType": "color",
-  "effects": [
+  "id": "temari-grant-battle-win-draw",
+  "trigger": "duringOwnTurn",
+  "conditions": [
     {
-      "id": "temari-own-turn-bp",
-      "trigger": "duringOwnTurn",
-      "conditions": [
-        {
-          "type": "hasCharacterNamesOnField",
-          "names": ["花海 咲季", "藤田 ことね"],
-          "mode": "all"
-        }
-      ],
-      "actions": [
-        {
-          "type": "modifyBpContinuous",
-          "target": "self",
-          "amount": 1000
-        }
-      ]
-    },
+      "type": "hasCharacterNamesOnField",
+      "names": ["花海 咲季", "藤田 ことね"],
+      "mode": "all"
+    }
+  ],
+  "actions": [
     {
-      "id": "temari-grant-battle-win-draw",
-      "trigger": "duringOwnTurn",
-      "conditions": [
-        {
-          "type": "hasCharacterNamesOnField",
-          "names": ["花海 咲季", "藤田 ことね"],
-          "mode": "all"
-        }
-      ],
-      "actions": [
-        {
-          "type": "grantEffect",
-          "target": "self",
-          "effect": {
-            "id": "temari-battle-win-draw",
-            "trigger": "onBattleWin",
-            "conditions": [
-              {
-                "type": "attackerIsSelf"
-              }
-            ],
-            "actions": [
-              {
-                "type": "draw",
-                "count": 1
-              }
-            ]
+      "type": "grantEffect",
+      "target": "self",
+      "effect": {
+        "id": "temari-battle-win-draw",
+        "trigger": "onBattleWin",
+        "conditions": [
+          {
+            "type": "attackerIsSelf"
           }
-        }
-      ]
+        ],
+        "actions": [
+          {
+            "type": "draw",
+            "count": 1
+          }
+        ]
+      }
     }
   ]
 }

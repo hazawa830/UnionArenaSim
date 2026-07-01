@@ -10,7 +10,7 @@ import { CardType } from "../enum/CardType";
 import { TriggerAction } from "./TriggerAction";
 import { EffectResolver } from "../effects/EffectResolver";
 import { EffectTrigger } from "../effects/EffectTrigger";
-
+import { ContinuousEffectResolver } from "../effects/ContinuousEffectResolver";
 
 export class AttackAction {
   public static execute(
@@ -148,8 +148,23 @@ export class AttackAction {
       }
     }
     blocker.isRest = true;
+    const attackerContext = {
+      game,
+      source: attacker,
+      actor: currentPlayer,
+      opponent: opponentPlayer,
+    };
 
-    if (attacker.getCurrentBp() >= blocker.getCurrentBp()) {
+    const blockerContext = {
+      game,
+      source: blocker,
+      actor: opponentPlayer,
+      opponent: currentPlayer,
+    };
+    const attackerBp = ContinuousEffectResolver.getCurrentBp(attackerContext, attacker);
+    const blockerBp = ContinuousEffectResolver.getCurrentBp(blockerContext, blocker);
+
+    if (attackerBp >= blockerBp) {
       EffectResolver.resolveForField(
           game,
           EffectTrigger.OnBattleWin,

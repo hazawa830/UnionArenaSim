@@ -5,6 +5,7 @@ import { Effect } from "./Effect";
 import { EffectCondition } from "./EffectCondition";
 import { EffectActionExecutor } from "./EffectActionExecutor";
 import { EffectContext } from "./EffectContext";
+import { EffectConditionResolver } from "./EffectConditionResolver";
 
 export class EffectResolver {
   public static resolve(
@@ -21,15 +22,13 @@ export class EffectResolver {
       opponent,
     };
 
-    const effects = source.card.effects.filter(
-      (effect) => effect.trigger === trigger
-    );
+    const effects = this.getResolvedEffects(context, trigger);
 
     for (const effect of effects) {
       if (!this.canUseOncePerTurnEffect(context, effect)) {
         continue;
       }
-      if (!this.checkConditions(context, effect)) {
+      if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {
         continue;
       }
       this.markOncePerTurnEffectUsed(context, effect);
@@ -37,78 +36,19 @@ export class EffectResolver {
     }
   }
 
-  private static checkConditions(
-    context: EffectContext,
-    effect: Effect
-  ): boolean {
-    if (!effect.conditions || effect.conditions.length === 0) {
-      return true;
-    }
+ 
 
-    return effect.conditions.every((condition) =>
-      this.checkCondition(context, condition)
-    );
-  }
-
-  private static checkCondition(
-    context: EffectContext,
-    condition: EffectCondition
-  ): boolean {
-    switch (condition.type) {
-      case "hasCharacterNamesOnField": {
-        const board = context.actor.board;
-
-        const fieldNames = [...board.frontLine, ...board.energyLine]
-          .map((slot) => slot.getCard()?.card.name)
-          .filter((name): name is string => name !== undefined);
-
-        if (condition.mode === "all") {
-          return condition.names.every((name) => fieldNames.includes(name));
-        }
-
-        return condition.names.some((name) => fieldNames.includes(name));
-      }
-
-      case "isOnLine": {
-        const board = context.actor.board;
-
-        const line =
-          condition.line === "frontLine"
-            ? board.frontLine
-            : board.energyLine;
-
-        return line.some((slot) => slot.getCard() === context.source);
-      }
-      case "attackerNameIs": {
-        const attacker = context.event?.attacker;
-
-        if (!attacker) {
-          return false;
-        }
-
-        return condition.names.includes(attacker.card.name);
-      }
-      case "hasCharacterNamesOnFrontLine": {
-        const fieldNames = context.actor.board.frontLine
-          .map((slot) => slot.getCard()?.card.name)
-          .filter((name): name is string => name !== undefined);
-
-        if (condition.mode === "all") {
-          return condition.names.every((name) => fieldNames.includes(name));
-        }
-
-        return condition.names.some((name) => fieldNames.includes(name));
-      }
-      default:
-        throw new Error(`Unknown effect condition: ${(condition as any).type}`);
-    }
-  }
+  
 
   private static executeActions(
-    context: EffectContext,
-    effect: Effect
+  context: EffectContext,
+  effect: Effect
   ): void {
     for (const action of effect.actions) {
+      if (action.type === "grantEffect") {
+        continue;
+      }
+
       EffectActionExecutor.execute(context, action);
     }
   }
@@ -135,15 +75,13 @@ export class EffectResolver {
       event,
     };
 
-    const effects = card.card.effects.filter(
-      (effect) => effect.trigger === trigger
-    );
+    const effects = this.getResolvedEffects(context, trigger);
 
     for (const effect of effects) {
       if (!this.canUseOncePerTurnEffect(context, effect)) {
         continue;
       }
-      if (!this.checkConditions(context, effect)) {
+      if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {
         continue;
       }
       this.markOncePerTurnEffectUsed(context, effect);
@@ -211,4 +149,26 @@ private static markOncePerTurnEffectUsed(
 
   throw new Error(`Unsupported oncePerTurn scope: ${effect.oncePerTurn.scope}`);
 }
+private static getResolvedEffects(
+  context: EffectContext,
+  trigger: EffectTrigger
+): Effect[] {
+  const baseEffects = context.source.card.effects;
+
+  const grantedEffects = baseEffects.flatMap((effect) => {
+    if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {
+      return [];
+    }
+
+    return effect.actions
+      .filter((action) => action.type === "grantEffect")
+      .filter((action) => action.target === "self")
+      .map((action) => action.effect);
+  });
+
+  return [...baseEffects, ...grantedEffects].filter(
+    (effect) => effect.trigger === trigger
+  );
+}
+  
 }
