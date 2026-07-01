@@ -9,5 +9,6 @@ export type EffectContext = {
   opponent: Player;
   event?: {
     attacker?: CardInstance;
+    target?: CardInstance;
   };
 };

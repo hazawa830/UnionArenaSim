@@ -14,7 +14,7 @@ export class ModifyBpThisTurnEffectAction {
     action: ModifyBpThisTurnAction
   ): void {
     if (typeof action.target === "string") {
-      this.executeStringTarget(context.source, action);
+      this.executeStringTarget(context, action);
       return;
     }
 
@@ -33,13 +33,28 @@ export class ModifyBpThisTurnEffectAction {
   }
 
   private static executeStringTarget(
-    source: CardInstance,
+    context: EffectContext,
     action: ModifyBpThisTurnAction
   ): void {
     switch (action.target) {
       case "self":
-        source.temporaryBpBonus += action.amount;
+        context.source.temporaryBpBonus += action.amount;
         return;
+
+      case "selectedOwnOtherCharacter": {
+        const target = context.event?.target;
+
+        if (!target) {
+          throw new Error("Target card not found.");
+        }
+
+        if (target === context.source) {
+          throw new Error("Cannot target self.");
+        }
+
+        target.temporaryBpBonus += action.amount;
+        return;
+      }
 
       default:
         throw new Error(

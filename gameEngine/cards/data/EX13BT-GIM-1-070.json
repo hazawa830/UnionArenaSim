@@ -1,19 +1,33 @@
 {
-  "trigger": "onPlay",
-  "actions": [
+  "id": "EX13BT-GIM-1-070",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": { "red": 1 },
+  "actionPointCost": 1,
+  "bp": 3000,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "active",
+  "effects": [
     {
-      "type": "searchTopDeck",
-      "lookCount": 3,
-      "takeCount": 1,
-      "target": {
-        "nameFilter": ["月村 手毬", "花海 咲季", "藤田 ことね"],
-        "cardType": "character"
-      },
-      "restToBottom": true,
-      "ifTaken": [
+      "id": "on-play-search-top-3",
+      "trigger": "onPlay",
+      "actions": [
         {
-          "type": "discardHand",
-          "count": 1
+          "type": "searchTopDeck",
+          "lookCount": 3,
+          "takeCount": 1,
+          "target": {
+            "cardType": "character",
+            "nameFilter": ["月村 手毬", "花海 咲季", "藤田 ことね"]
+          },
+          "restToBottom": true,
+          "ifTaken": [
+            {
+              "type": "discardHand",
+              "count": 1
+            }
+          ]
         }
       ]
     }

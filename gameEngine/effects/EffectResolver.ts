@@ -14,13 +14,15 @@ export class EffectResolver {
     source: CardInstance,
     trigger: EffectTrigger,
     actor = game.getCurrentPlayer(),
-    opponent = game.getOpponentPlayer()
+    opponent = game.getOpponentPlayer(),
+    event?: EffectContext["event"]
   ): void {
     const context: EffectContext = {
       game,
       source,
       actor,
       opponent,
+      event,
     };
 
     const effects = this.getResolvedEffects(context, trigger);
@@ -37,10 +39,6 @@ export class EffectResolver {
       this.executeActions(context, effect);
     }
   }
-
- 
-
-  
 
   private static executeActions(
   context: EffectContext,
