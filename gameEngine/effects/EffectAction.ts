@@ -34,5 +34,10 @@ export type EffectAction =
   | {
         type:"destroy",
         target: EffectTarget
-    };
+    }
+  | {
+    type: "modifyBpContinuous";
+    target: "self";
+    amount: number;
+  };
     

@@ -88,6 +88,17 @@ export class EffectResolver {
 
         return condition.names.includes(attacker.card.name);
       }
+      case "hasCharacterNamesOnFrontLine": {
+        const fieldNames = context.actor.board.frontLine
+          .map((slot) => slot.getCard()?.card.name)
+          .filter((name): name is string => name !== undefined);
+
+        if (condition.mode === "all") {
+          return condition.names.every((name) => fieldNames.includes(name));
+        }
+
+        return condition.names.some((name) => fieldNames.includes(name));
+      }
       default:
         throw new Error(`Unknown effect condition: ${(condition as any).type}`);
     }
@@ -140,6 +151,17 @@ export class EffectResolver {
     }
   }
 }
+private static getOncePerTurnKey(
+  context: EffectContext,
+  effect: Effect
+): string {
+  if (!effect.id) {
+    throw new Error("oncePerTurn effect must have id.");
+  }
+
+  return `${context.source.card.name}:${effect.id}`;
+}
+
 private static canUseOncePerTurnEffect(
   context: EffectContext,
   effect: Effect
@@ -156,8 +178,14 @@ private static canUseOncePerTurnEffect(
     return !context.source.usedEffectIdsThisTurn.has(effect.id);
   }
 
+  if (effect.oncePerTurn.scope === "cardName") {
+    const key = this.getOncePerTurnKey(context, effect);
+    return !context.actor.board.usedCardNameEffectIdsThisTurn.has(key);
+  }
+
   throw new Error(`Unsupported oncePerTurn scope: ${effect.oncePerTurn.scope}`);
 }
+
 private static markOncePerTurnEffectUsed(
   context: EffectContext,
   effect: Effect
@@ -172,6 +200,12 @@ private static markOncePerTurnEffectUsed(
 
   if (effect.oncePerTurn.scope === "instance") {
     context.source.usedEffectIdsThisTurn.add(effect.id);
+    return;
+  }
+
+  if (effect.oncePerTurn.scope === "cardName") {
+    const key = this.getOncePerTurnKey(context, effect);
+    context.actor.board.usedCardNameEffectIdsThisTurn.add(key);
     return;
   }
 

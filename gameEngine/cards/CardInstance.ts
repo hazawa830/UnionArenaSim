@@ -4,11 +4,13 @@ import { CharacterCard } from "./CharacterCard";
 
 export class CardInstance {
   public usedEffectIdsThisTurn = new Set<string>();
+  public cannotBeBlockedByMinBp?: number;
   constructor(
     public readonly instanceId: number,
     public readonly card: Card,
     public isRest: boolean = false,
     public temporaryBpBonus: number = 0
+    
   ) {}
 
   public getCurrentBp(): number {

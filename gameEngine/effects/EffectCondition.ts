@@ -11,4 +11,9 @@ export type EffectCondition =
   | {
       type: "attackerNameIs";
       names: string[];
-    };
+    }
+    | {
+    type: "hasCharacterNamesOnFrontLine";
+    names: string[];
+    mode: "all" | "any";
+  };

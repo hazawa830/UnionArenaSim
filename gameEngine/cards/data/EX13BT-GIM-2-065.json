@@ -30,6 +30,29 @@
           "amount": 1000
         }
       ]
+    },
+    {
+        "id": "battleWinDraw",
+        "trigger": "onBattleWin",
+        "oncePerTurn": {
+            "scope": "instance"
+        },
+        "conditions": [
+            {
+            "type": "isOnLine",
+            "line": "frontLine"
+            },
+            {
+            "type": "attackerNameIs",
+            "names": ["花海 咲季"]
+            }
+        ],
+        "actions": [
+            {
+            "type": "draw",
+            "count": 1
+            }
+        ]
     }
   ]
 }

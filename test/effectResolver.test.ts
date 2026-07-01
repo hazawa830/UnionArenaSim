@@ -10,6 +10,7 @@ import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
 import { PlayCardAction } from "../gameEngine/actions/PlayCardAction";
 import { EffectResolver } from "../gameEngine/effects/EffectResolver";
 import { CardInstance } from "../gameEngine/cards/CardInstance";
+
 describe("EffectResolver", () => {
   it("登場時、自分の場に指定名称が両方ある場合、カードを1枚引く", () => {
     const game = createTestGame();
@@ -330,6 +331,119 @@ it("ターン終了後はターン1の効果を再度使用できる", () => {
   EffectResolver.resolve(
     game,
     source,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  expect(player.board.hand.length).toBe(handBefore + 2);
+  expect(player.board.deck.length).toBe(deckBefore - 2);
+});
+it("カード名ターン1の効果は同名カードが2枚いても1回しか発動しない", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+
+  advanceToMainPhase(game);
+
+  const effect: Effect = {
+    id: "drawOncePerCardName",
+    trigger: EffectTrigger.OnPlay,
+    oncePerTurn: {
+      scope: "cardName",
+    },
+    actions: [
+      {
+        type: "draw",
+        count: 1,
+      },
+    ],
+  };
+
+  const cardA = TestCardFactory.createCharacter({
+    name: "花海 咲季",
+    bp: 3000,
+    effects: [effect],
+  });
+
+  const cardB = TestCardFactory.createCharacter({
+    name: "花海 咲季",
+    bp: 3000,
+    effects: [effect],
+  });
+
+  const handBefore = player.board.hand.length;
+  const deckBefore = player.board.deck.length;
+
+  EffectResolver.resolve(
+    game,
+    cardA,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  EffectResolver.resolve(
+    game,
+    cardB,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  // 同名なので1回しか発動しない
+  expect(player.board.hand.length).toBe(handBefore + 1);
+  expect(player.board.deck.length).toBe(deckBefore - 1);
+});
+it("ターン終了後はカード名ターン1の効果を再度使用できる", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+
+  advanceToMainPhase(game);
+
+  const effect: Effect = {
+    id: "drawOncePerCardName",
+    trigger: EffectTrigger.OnPlay,
+    oncePerTurn: {
+      scope: "cardName",
+    },
+    actions: [
+      {
+        type: "draw",
+        count: 1,
+      },
+    ],
+  };
+
+  const cardA = TestCardFactory.createCharacter({
+    name: "花海 咲季",
+    bp: 3000,
+    effects: [effect],
+  });
+
+  const cardB = TestCardFactory.createCharacter({
+    name: "花海 咲季",
+    bp: 3000,
+    effects: [effect],
+  });
+
+  const handBefore = player.board.hand.length;
+  const deckBefore = player.board.deck.length;
+
+  EffectResolver.resolve(
+    game,
+    cardA,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  game.nextPhase(); // Main → Attack
+  game.nextPhase(); // Attack → End
+  game.nextPhase(); // End → 次ターン Start
+
+  EffectResolver.resolve(
+    game,
+    cardB,
     EffectTrigger.OnPlay,
     player,
     game.getOpponentPlayer()

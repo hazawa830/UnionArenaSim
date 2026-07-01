@@ -3,4 +3,6 @@ export enum EffectTrigger {
   ActivateMain = "activateMain",
   OnUse = "onUse",
   OnAttackNotBlocked = "onAttackNotBlocked",
+  OnBattleWin = "onBattleWin",
+  DuringOwnTurn = "duringOwnTurn",
 }

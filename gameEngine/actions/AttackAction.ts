@@ -11,6 +11,7 @@ import { TriggerAction } from "./TriggerAction";
 import { EffectResolver } from "../effects/EffectResolver";
 import { EffectTrigger } from "../effects/EffectTrigger";
 
+
 export class AttackAction {
   public static execute(
     game: Game,
@@ -141,10 +142,23 @@ export class AttackAction {
     if (blocker.isRest) {
       throw new Error("Rested card cannot block.");
     }
-
+    if (attacker.cannotBeBlockedByMinBp !== undefined) {
+      if (blocker.getCurrentBp() >= attacker.cannotBeBlockedByMinBp) {
+        throw new Error("This attacker cannot be blocked by this blocker.");
+      }
+    }
     blocker.isRest = true;
 
     if (attacker.getCurrentBp() >= blocker.getCurrentBp()) {
+      EffectResolver.resolveForField(
+          game,
+          EffectTrigger.OnBattleWin,
+          currentPlayer,
+          opponentPlayer,
+          {
+              attacker,
+          }
+      );
       const destroyed = blockerSlot.removeCard();
 
       if (destroyed) {
