@@ -1,5 +1,6 @@
 export enum EffectTrigger {
-    OnPlay = "onPlay",
-    ActivateMain = "activateMain",
-    OnUse = "onUse"
+  OnPlay = "onPlay",
+  ActivateMain = "activateMain",
+  OnUse = "onUse",
+  OnAttackNotBlocked = "onAttackNotBlocked",
 }

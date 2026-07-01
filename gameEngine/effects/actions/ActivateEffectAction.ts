@@ -1,25 +1,24 @@
-import { Game } from "../../core/Game";
 import { CardInstance } from "../../cards/CardInstance";
 import { EffectAction } from "../EffectAction";
+import { EffectContext } from "../EffectContext";
 
 type ActivateAction = Extract<EffectAction, { type: "activate" }>;
 
 export class ActivateEffectAction {
   public static execute(
-    game: Game,
-    source: CardInstance,
+    context: EffectContext,
     action: ActivateAction
   ): void {
     if (typeof action.target === "string") {
-      this.executeStringTarget(source, action);
+      this.executeStringTarget(context.source, action);
       return;
     }
 
     if (action.target.zone === "ap") {
       const board =
         action.target.side === "own"
-          ? game.getCurrentPlayer().board
-          : game.getOpponentPlayer().board;
+          ? context.actor.board
+          : context.opponent.board;
 
       const count = action.target.maxCount ?? action.count ?? 1;
 

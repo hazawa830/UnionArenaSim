@@ -1,18 +1,19 @@
-import { Game } from "../core/Game";
+
 import { CardInstance } from "../cards/CardInstance";
 import { EffectTarget } from "./EffectTarget";
 import { CardType } from "../enum/CardType";
 
+import { EffectContext } from "./EffectContext";
+
 export class EffectTargetResolver {
   public static resolveCandidates(
-    game: Game,
-    source: CardInstance,
-    target: EffectTarget
-  ): CardInstance[] {
-    const board =
-      target.side === "own"
-        ? game.getCurrentPlayer().board
-        : game.getOpponentPlayer().board;
+  context: EffectContext,
+  target: EffectTarget
+): CardInstance[] {
+  const board =
+    target.side === "own"
+      ? context.actor.board
+      : context.opponent.board;
 
     const slots =
       target.zone === "field"
@@ -25,7 +26,7 @@ export class EffectTargetResolver {
       .map((slot) => slot.getCard())
       .filter((card): card is CardInstance => card !== undefined)
       .filter((card) => {
-        if (target.excludeSelf && card === source) {
+        if (target.excludeSelf && card === context.source) {
           return false;
         }
 
@@ -39,6 +40,10 @@ export class EffectTargetResolver {
           if (!target.nameFilter.includes(card.card.name)) {
             return false;
           }
+        }
+        if (target.maxBp !== undefined) {
+          if (card.getCurrentBp() > target.maxBp)
+              return false;
         }
 
         return true;

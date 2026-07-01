@@ -30,4 +30,9 @@ export type EffectAction =
   | {
       type: "discardHand";
       count: number;
+    }
+  | {
+        type:"destroy",
+        target: EffectTarget
     };
+    

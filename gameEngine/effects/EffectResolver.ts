@@ -3,30 +3,42 @@ import { CardInstance } from "../cards/CardInstance";
 import { EffectTrigger } from "./EffectTrigger";
 import { Effect } from "./Effect";
 import { EffectCondition } from "./EffectCondition";
-import { EffectAction } from "./EffectAction";
 import { EffectActionExecutor } from "./EffectActionExecutor";
+import { EffectContext } from "./EffectContext";
+
 export class EffectResolver {
   public static resolve(
     game: Game,
     source: CardInstance,
-    trigger: EffectTrigger
+    trigger: EffectTrigger,
+    actor = game.getCurrentPlayer(),
+    opponent = game.getOpponentPlayer()
   ): void {
+    const context: EffectContext = {
+      game,
+      source,
+      actor,
+      opponent,
+    };
+
     const effects = source.card.effects.filter(
       (effect) => effect.trigger === trigger
     );
 
     for (const effect of effects) {
-      if (!this.checkConditions(game, source, effect)) {
+      if (!this.canUseOncePerTurnEffect(context, effect)) {
         continue;
       }
-
-      this.executeActions(game, source, effect);
+      if (!this.checkConditions(context, effect)) {
+        continue;
+      }
+      this.markOncePerTurnEffectUsed(context, effect);
+      this.executeActions(context, effect);
     }
   }
 
   private static checkConditions(
-    game: Game,
-    source: CardInstance,
+    context: EffectContext,
     effect: Effect
   ): boolean {
     if (!effect.conditions || effect.conditions.length === 0) {
@@ -34,18 +46,17 @@ export class EffectResolver {
     }
 
     return effect.conditions.every((condition) =>
-      this.checkCondition(game, source, condition)
+      this.checkCondition(context, condition)
     );
   }
 
   private static checkCondition(
-    game: Game,
-    source: CardInstance,
+    context: EffectContext,
     condition: EffectCondition
   ): boolean {
     switch (condition.type) {
       case "hasCharacterNamesOnField": {
-        const board = game.getCurrentPlayer().board;
+        const board = context.actor.board;
 
         const fieldNames = [...board.frontLine, ...board.energyLine]
           .map((slot) => slot.getCard()?.card.name)
@@ -57,31 +68,113 @@ export class EffectResolver {
 
         return condition.names.some((name) => fieldNames.includes(name));
       }
+
       case "isOnLine": {
-        const board = game.getCurrentPlayer().board;
+        const board = context.actor.board;
 
         const line =
-            condition.line === "frontLine"
+          condition.line === "frontLine"
             ? board.frontLine
             : board.energyLine;
 
-        return line.some((slot) => slot.getCard() === source);
+        return line.some((slot) => slot.getCard() === context.source);
       }
+      case "attackerNameIs": {
+        const attacker = context.event?.attacker;
 
+        if (!attacker) {
+          return false;
+        }
+
+        return condition.names.includes(attacker.card.name);
+      }
       default:
         throw new Error(`Unknown effect condition: ${(condition as any).type}`);
     }
   }
 
   private static executeActions(
-    game: Game,
-    source: CardInstance,
+    context: EffectContext,
     effect: Effect
-    ): void {
+  ): void {
     for (const action of effect.actions) {
-        EffectActionExecutor.execute(game, source, action);
+      EffectActionExecutor.execute(context, action);
     }
   }
+  public static resolveForField(
+  game: Game,
+  trigger: EffectTrigger,
+  actor = game.getCurrentPlayer(),
+  opponent = game.getOpponentPlayer(),
+  event?: EffectContext["event"]
+): void {
+  const fieldCards = [
+    ...actor.board.frontLine,
+    ...actor.board.energyLine,
+  ]
+    .map((slot) => slot.getCard())
+    .filter((card): card is CardInstance => card !== undefined);
 
-  
+  for (const card of fieldCards) {
+    const context: EffectContext = {
+      game,
+      source: card,
+      actor,
+      opponent,
+      event,
+    };
+
+    const effects = card.card.effects.filter(
+      (effect) => effect.trigger === trigger
+    );
+
+    for (const effect of effects) {
+      if (!this.canUseOncePerTurnEffect(context, effect)) {
+        continue;
+      }
+      if (!this.checkConditions(context, effect)) {
+        continue;
+      }
+      this.markOncePerTurnEffectUsed(context, effect);
+      this.executeActions(context, effect);
+    }
+  }
+}
+private static canUseOncePerTurnEffect(
+  context: EffectContext,
+  effect: Effect
+): boolean {
+  if (!effect.oncePerTurn) {
+    return true;
+  }
+
+  if (!effect.id) {
+    throw new Error("oncePerTurn effect must have id.");
+  }
+
+  if (effect.oncePerTurn.scope === "instance") {
+    return !context.source.usedEffectIdsThisTurn.has(effect.id);
+  }
+
+  throw new Error(`Unsupported oncePerTurn scope: ${effect.oncePerTurn.scope}`);
+}
+private static markOncePerTurnEffectUsed(
+  context: EffectContext,
+  effect: Effect
+): void {
+  if (!effect.oncePerTurn) {
+    return;
+  }
+
+  if (!effect.id) {
+    throw new Error("oncePerTurn effect must have id.");
+  }
+
+  if (effect.oncePerTurn.scope === "instance") {
+    context.source.usedEffectIdsThisTurn.add(effect.id);
+    return;
+  }
+
+  throw new Error(`Unsupported oncePerTurn scope: ${effect.oncePerTurn.scope}`);
+}
 }

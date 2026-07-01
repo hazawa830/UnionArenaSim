@@ -1,0 +1,50 @@
+{
+  "id": "EX13BT-GIM-2-070",
+  "name": "夏を満喫するわよ！",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "event",
+  "requiredEnergy": {
+    "red": 4
+  },
+  "actionPointCost": 1,
+  "generatedEnergy": {},
+  "triggerType": "none",
+  "effects": [
+    {
+      "trigger": "onUse",
+      "conditions": [
+        {
+          "type": "hasCharacterNamesOnField",
+          "names": [
+            "花海 咲季",
+            "月村 手毬",
+            "藤田 ことね"
+          ],
+          "mode": "all"
+        }
+      ],
+      "actions": [
+        {
+          "type": "destroy",
+          "target": {
+            "side": "opponent",
+            "zone": "frontLine",
+            "cardType": "character",
+            "maxCount": 1,
+            "maxBp": 5000
+          }
+        },
+        {
+          "type": "modifyBpThisTurn",
+          "amount": 1000,
+          "target": {
+            "side": "own",
+            "zone": "field",
+            "cardType": "character",
+            "maxCount": 1
+          }
+        }
+      ]
+    }
+  ]
+}

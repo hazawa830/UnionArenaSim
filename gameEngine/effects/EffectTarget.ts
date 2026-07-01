@@ -5,4 +5,5 @@ export type EffectTarget = {
   excludeSelf?: boolean;
   maxCount?: number;
   nameFilter?: string[];
+  maxBp?: number;
 };

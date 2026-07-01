@@ -7,4 +7,8 @@ export type EffectCondition =
   | {
       type: "isOnLine";
       line: "frontLine" | "energyLine";
+    }
+  | {
+      type: "attackerNameIs";
+      names: string[];
     };

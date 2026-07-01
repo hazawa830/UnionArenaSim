@@ -1,15 +1,13 @@
-import { Game } from "../../core/Game";
-import { CardInstance } from "../../cards/CardInstance";
 import { EffectAction } from "../EffectAction";
+import { EffectContext } from "../EffectContext";
 
 type DrawAction = Extract<EffectAction, { type: "draw" }>;
 
 export class DrawEffectAction {
   public static execute(
-    game: Game,
-    _source: CardInstance,
+    context: EffectContext,
     action: DrawAction
   ): void {
-    game.getCurrentPlayer().board.draw(action.count);
+    context.actor.board.draw(action.count);
   }
 }

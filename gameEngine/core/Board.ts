@@ -144,5 +144,15 @@ public clearTemporaryBpBonus(): void {
     }
   }
 }
+public clearUsedEffectIdsThisTurn(): void {
+  for (const slot of [...this.frontLine, ...this.energyLine]) {
+    const card = slot.getCard();
 
+    if (!card) {
+      continue;
+    }
+
+    card.usedEffectIdsThisTurn.clear();
+  }
+}
 }

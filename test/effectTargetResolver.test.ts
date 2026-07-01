@@ -24,8 +24,13 @@ describe("EffectTargetResolver", () => {
 
     player.board.frontLine[0].setCard(saki);
     player.board.energyLine[0].setCard(temari);
-
-    const candidates = EffectTargetResolver.resolveCandidates(game, source, {
+    const context = {
+  game,
+  source,
+  actor: player,
+  opponent: game.getOpponentPlayer(),
+};
+    const candidates = EffectTargetResolver.resolveCandidates(context, {
       side: "own",
       zone: "field",
       cardType: "character",
@@ -50,8 +55,13 @@ describe("EffectTargetResolver", () => {
 
     player.board.frontLine[0].setCard(source);
     player.board.frontLine[1].setCard(saki);
-
-    const candidates = EffectTargetResolver.resolveCandidates(game, source, {
+    const context = {
+  game,
+  source,
+  actor: player,
+  opponent: game.getOpponentPlayer(),
+};
+    const candidates = EffectTargetResolver.resolveCandidates(context, {
       side: "own",
       zone: "field",
       cardType: "character",
@@ -82,8 +92,13 @@ describe("EffectTargetResolver", () => {
     player.board.frontLine[0].setCard(source);
     player.board.frontLine[1].setCard(saki);
     player.board.energyLine[0].setCard(other);
-
-    const candidates = EffectTargetResolver.resolveCandidates(game, source, {
+    const context = {
+  game,
+  source,
+  actor: player,
+  opponent: game.getOpponentPlayer(),
+};
+    const candidates = EffectTargetResolver.resolveCandidates(context, {
       side: "own",
       zone: "field",
       cardType: "character",
@@ -110,8 +125,13 @@ describe("EffectTargetResolver", () => {
 
     player.board.frontLine[0].setCard(source);
     player.board.energyLine[0].setCard(other);
-
-    const candidates = EffectTargetResolver.resolveCandidates(game, source, {
+    const context = {
+  game,
+  source,
+  actor: player,
+  opponent: game.getOpponentPlayer(),
+};
+    const candidates = EffectTargetResolver.resolveCandidates(context, {
       side: "own",
       zone: "field",
       cardType: "character",

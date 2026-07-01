@@ -8,7 +8,8 @@ import { BoardLine } from "../gameEngine/enum/BoardLine";
 import { Effect } from "../gameEngine/effects/Effect";
 import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
 import { PlayCardAction } from "../gameEngine/actions/PlayCardAction";
-
+import { EffectResolver } from "../gameEngine/effects/EffectResolver";
+import { CardInstance } from "../gameEngine/cards/CardInstance";
 describe("EffectResolver", () => {
   it("登場時、自分の場に指定名称が両方ある場合、カードを1枚引く", () => {
     const game = createTestGame();
@@ -231,4 +232,110 @@ describe("EffectResolver", () => {
     expect(playedCard?.card.name).toBe("藤田 ことね");
     expect(playedCard?.isRest).toBe(true);
   });
+  it("ターン1の効果は同一ターン中に2回発動しない", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+
+  advanceToMainPhase(game);
+
+  const effect: Effect = {
+    id: "drawOnce",
+    trigger: EffectTrigger.OnPlay,
+    oncePerTurn: {
+      scope: "instance",
+    },
+    actions: [
+      {
+        type: "draw",
+        count: 1,
+      },
+    ],
+  };
+
+  const source = TestCardFactory.createCharacter({
+    name: "テストカード",
+    bp: 3000,
+    effects: [effect],
+  });
+
+  const handBefore = player.board.hand.length;
+  const deckBefore = player.board.deck.length;
+
+  // 同じターンに2回呼ぶ
+  EffectResolver.resolve(
+    game,
+    source,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  EffectResolver.resolve(
+    game,
+    source,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  expect(player.board.hand.length).toBe(handBefore + 1);
+  expect(player.board.deck.length).toBe(deckBefore - 1);
+});
+it("ターン終了後はターン1の効果を再度使用できる", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+
+  advanceToMainPhase(game);
+
+  const effect: Effect = {
+    id: "drawOnce",
+    trigger: EffectTrigger.OnPlay,
+    oncePerTurn: {
+      scope: "instance",
+    },
+    actions: [
+      {
+        type: "draw",
+        count: 1,
+      },
+    ],
+  };
+
+  const source = TestCardFactory.createCharacter({
+    name: "ターン1テストカード",
+    bp: 3000,
+    effects: [effect],
+  });
+
+  player.board.frontLine[0].setCard(source);
+
+  const handBefore = player.board.hand.length;
+  const deckBefore = player.board.deck.length;
+
+  EffectResolver.resolve(
+    game,
+    source,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  expect(player.board.hand.length).toBe(handBefore + 1);
+  expect(player.board.deck.length).toBe(deckBefore - 1);
+
+  game.nextPhase(); // Main -> Attack
+  game.nextPhase(); // Attack -> End
+  game.nextPhase(); // End -> 次ターンStart
+
+  EffectResolver.resolve(
+    game,
+    source,
+    EffectTrigger.OnPlay,
+    player,
+    game.getOpponentPlayer()
+  );
+
+  expect(player.board.hand.length).toBe(handBefore + 2);
+  expect(player.board.deck.length).toBe(deckBefore - 2);
+});
 });

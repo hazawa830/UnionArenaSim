@@ -1,10 +1,15 @@
 import { Game } from "../core/Game";
-import { GamePhase } from "../enum/GamePhase";
+import { Player } from "../core/Player";
+import { CardInstance } from "../cards/CardInstance";
 
+import { GamePhase } from "../enum/GamePhase";
+import { PlayerId } from "../enum/PlayerId";
 import { ActionSource } from "../enum/ActionSource";
 import { CardType } from "../enum/CardType";
-import { CharacterCard } from "../cards/CharacterCard";
+
 import { TriggerAction } from "./TriggerAction";
+import { EffectResolver } from "../effects/EffectResolver";
+import { EffectTrigger } from "../effects/EffectTrigger";
 
 export class AttackAction {
   public static execute(
@@ -20,6 +25,22 @@ export class AttackAction {
     const currentPlayer = game.getCurrentPlayer();
     const opponentPlayer = game.getOpponentPlayer();
 
+    const attacker = this.getValidAttacker(currentPlayer, attackerIndex);
+
+    attacker.isRest = true;
+
+    if (blockerIndex !== undefined) {
+      this.resolveBlockedAttack(game, attackerIndex, blockerIndex);
+      return;
+    }
+
+    this.resolveDirectAttack(game, attacker, currentPlayer, opponentPlayer);
+  }
+
+  private static getValidAttacker(
+    currentPlayer: Player,
+    attackerIndex: number
+  ): CardInstance {
     const attackerSlot = currentPlayer.board.frontLine[attackerIndex];
 
     if (!attackerSlot) {
@@ -40,12 +61,32 @@ export class AttackAction {
       throw new Error("Rested card cannot attack.");
     }
 
-    attacker.isRest = true;
+    return attacker;
+  }
 
-    if (blockerIndex !== undefined) {
-      this.resolveBlock(game, attackerIndex, blockerIndex);
-      return;
-    }
+  private static resolveBlockedAttack(
+    game: Game,
+    attackerIndex: number,
+    blockerIndex: number
+  ): void {
+    this.resolveBlock(game, attackerIndex, blockerIndex);
+  }
+
+  private static resolveDirectAttack(
+    game: Game,
+    attacker: CardInstance,
+    currentPlayer: Player,
+    opponentPlayer: Player
+  ): void {
+    EffectResolver.resolveForField(
+      game,
+      EffectTrigger.OnAttackNotBlocked,
+      currentPlayer,
+      opponentPlayer,
+      {
+        attacker,
+      }
+    );
 
     const lifeCard = opponentPlayer.board.lifeArea.pop();
 
@@ -55,12 +96,11 @@ export class AttackAction {
 
     TriggerAction.resolve(game, lifeCard, opponentPlayer, currentPlayer);
 
-    if (!lifeCard) {
-      throw new Error("Opponent has no life.");
-    }
-
     if (opponentPlayer.board.lifeArea.length === 0) {
-      game.winner = game.currentPlayerId;
+      game.winner =
+        game.currentPlayerId === PlayerId.Player1
+          ? PlayerId.Player1
+          : PlayerId.Player2;
     }
   }
 
@@ -72,18 +112,23 @@ export class AttackAction {
     const currentPlayer = game.getCurrentPlayer();
     const opponentPlayer = game.getOpponentPlayer();
 
-    const attacker = currentPlayer.board.frontLine[attackerIndex].getCard();
+    const attackerSlot = currentPlayer.board.frontLine[attackerIndex];
     const blockerSlot = opponentPlayer.board.frontLine[blockerIndex];
 
-    if (!attacker) {
-      throw new Error("Attacker slot is empty.");
+    if (!attackerSlot) {
+      throw new Error(`Invalid attacker slot. index=${attackerIndex}`);
     }
 
     if (!blockerSlot) {
       throw new Error(`Invalid blocker slot. index=${blockerIndex}`);
     }
 
+    const attacker = attackerSlot.getCard();
     const blocker = blockerSlot.getCard();
+
+    if (!attacker) {
+      throw new Error("Attacker slot is empty.");
+    }
 
     if (!blocker) {
       throw new Error("Blocker slot is empty.");
@@ -97,17 +142,14 @@ export class AttackAction {
       throw new Error("Rested card cannot block.");
     }
 
-    const attackerCard = attacker.card as CharacterCard;
-    const blockerCard = blocker.card as CharacterCard;
+    blocker.isRest = true;
 
-    if (attackerCard.bp >= blockerCard.bp) {
+    if (attacker.getCurrentBp() >= blocker.getCurrentBp()) {
       const destroyed = blockerSlot.removeCard();
 
       if (destroyed) {
         opponentPlayer.board.trash.push(destroyed);
       }
-    } else {
-      blocker.isRest = true;
     }
   }
 }

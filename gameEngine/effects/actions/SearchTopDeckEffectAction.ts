@@ -1,19 +1,17 @@
-import { Game } from "../../core/Game";
 import { CardInstance } from "../../cards/CardInstance";
 import { EffectAction } from "../EffectAction";
 import { EffectActionExecutor } from "../EffectActionExecutor";
+import { EffectContext } from "../EffectContext";
 import { CardType } from "../../enum/CardType";
 
 type SearchTopDeckAction = Extract<EffectAction, { type: "searchTopDeck" }>;
 
 export class SearchTopDeckEffectAction {
   public static execute(
-    game: Game,
-    source: CardInstance,
+    context: EffectContext,
     action: SearchTopDeckAction
   ): void {
-    const player = game.getCurrentPlayer();
-    const board = player.board;
+    const board = context.actor.board;
 
     const revealedCards = board.deck.splice(0, action.lookCount);
 
@@ -39,7 +37,7 @@ export class SearchTopDeckEffectAction {
 
     if (takenCards.length > 0 && action.ifTaken) {
       for (const nextAction of action.ifTaken) {
-        EffectActionExecutor.execute(game, source, nextAction);
+        EffectActionExecutor.execute(context, nextAction);
       }
     }
   }

@@ -11,6 +11,7 @@ export class UseEventCardAction {
     }
 
     const player = game.getCurrentPlayer();
+    const opponent = game.getOpponentPlayer();
     const board = player.board;
 
     const cardInstance = board.hand[handIndex];
@@ -39,7 +40,13 @@ export class UseEventCardAction {
 
     board.hand.splice(handIndex, 1);
 
-    EffectResolver.resolve(game, cardInstance, EffectTrigger.OnUse);
+    EffectResolver.resolve(
+      game,
+      cardInstance,
+      EffectTrigger.OnUse,
+      player,
+      opponent
+    );
 
     board.trash.push(cardInstance);
   }

@@ -1,0 +1,35 @@
+
+{
+  "id": "EX13BT-GIM-2-065",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": { "red": 2 },
+  "actionPointCost": 1,
+  "bp": 3000,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "active",
+  "effects": [
+    {
+      "trigger": "onAttackNotBlocked",
+      "oncePerTurn": true,
+      "conditions": [
+        {
+          "type": "isOnLine",
+          "line": "frontLine"
+        },
+        {
+          "type": "attackerNameIs",
+          "names": ["月村 手毬"]
+        }
+      ],
+      "actions": [
+        {
+          "type": "modifyBpThisTurn",
+          "target": "self",
+          "amount": 1000
+        }
+      ]
+    }
+  ]
+}

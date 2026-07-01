@@ -4,5 +4,6 @@ export enum TriggerType {
   Active = "active",
   Get = "get",
   Color = "color",
-  Final = "final"
+  Final = "final",
+  Special = "special",
 }

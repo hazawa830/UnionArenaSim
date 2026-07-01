@@ -132,4 +132,23 @@ describe("TriggerAction", () => {
     expect(defenderPlayer.board.trash).toContain(triggerCard);
     expect(game.winner).toBeUndefined();
   });
+  it("Specialトリガーは相手フロントラインのキャラ1枚を退場させる", () => {
+  const { game, attackerPlayer, defenderPlayer, triggerCard } =
+    setupAttackScenario(TriggerType.Special);
+
+  const target = TestCardFactory.createCharacter({
+    name: "退場対象",
+    bp: 3000,
+  });
+
+  attackerPlayer.board.frontLine[1].setCard(target);
+
+  const attacker = attackerPlayer.board.frontLine[0].getCard();
+  expect(attacker).toBeDefined();
+
+  AttackAction.execute(game, 0);
+
+  expect(attackerPlayer.board.frontLine[0].isEmpty()).toBe(true);
+  expect(attackerPlayer.board.trash).toContain(attacker);
+});
 });

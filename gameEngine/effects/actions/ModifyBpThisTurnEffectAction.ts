@@ -1,7 +1,7 @@
-import { Game } from "../../core/Game";
 import { CardInstance } from "../../cards/CardInstance";
 import { EffectAction } from "../EffectAction";
 import { EffectTargetResolver } from "../EffectTargetResolver";
+import { EffectContext } from "../EffectContext";
 
 type ModifyBpThisTurnAction = Extract<
   EffectAction,
@@ -10,18 +10,16 @@ type ModifyBpThisTurnAction = Extract<
 
 export class ModifyBpThisTurnEffectAction {
   public static execute(
-    game: Game,
-    source: CardInstance,
+    context: EffectContext,
     action: ModifyBpThisTurnAction
   ): void {
     if (typeof action.target === "string") {
-      this.executeStringTarget(source, action);
+      this.executeStringTarget(context.source, action);
       return;
     }
 
     const candidates = EffectTargetResolver.resolveCandidates(
-      game,
-      source,
+      context,
       action.target
     );
 

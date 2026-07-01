@@ -43,6 +43,8 @@ export class TurnManager {
         : PlayerId.Player1;
     game.player1.board.clearTemporaryBpBonus();
     game.player2.board.clearTemporaryBpBonus();
+    game.player1.board.clearUsedEffectIdsThisTurn();
+    game.player2.board.clearUsedEffectIdsThisTurn();
     game.turnCount++;
    
     this.startTurn(game);

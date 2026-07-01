@@ -3,6 +3,9 @@ import { Player } from "../core/Player";
 import { CardInstance } from "../cards/CardInstance";
 import { TriggerType } from "../enum/TriggerType";
 import { CharacterCard } from "../cards/CharacterCard";
+import { DestroyEffectAction } from "../effects/actions/DestroyEffectAction";
+import { EffectAction } from "../effects/EffectAction";
+import { EffectContext } from "../effects/EffectContext";
 
 export class TriggerAction {
   public static resolve(
@@ -30,10 +33,17 @@ export class TriggerAction {
         this.resolveColorTrigger(revealedCard, damagedPlayer, opponentPlayer);
         damagedPlayer.board.trash.push(revealedCard);
         break;
+
+      case TriggerType.Special:
+        this.resolveSpecialTrigger(game, revealedCard, damagedPlayer, opponentPlayer);
+        damagedPlayer.board.trash.push(revealedCard);
+        break;
+
       case TriggerType.Final:
         this.resolveFinalTrigger(damagedPlayer);
         damagedPlayer.board.trash.push(revealedCard);
         break;
+
       case TriggerType.None:
       default:
         damagedPlayer.board.trash.push(revealedCard);
@@ -72,7 +82,7 @@ export class TriggerAction {
         return false;
       }
 
-      return card.card.bp + card.temporaryBpBonus <= 3500;
+      return card.getCurrentBp() <= 3500;
     });
 
     if (targetIndex === -1) {
@@ -85,6 +95,7 @@ export class TriggerAction {
       opponentPlayer.board.hand.push(returned);
     }
   }
+
   private static resolveFinalTrigger(player: Player): void {
     if (player.board.lifeArea.length > 0) {
       return;
@@ -97,5 +108,31 @@ export class TriggerAction {
     }
 
     player.board.lifeArea.push(lifeCard);
+  }
+
+  private static resolveSpecialTrigger(
+    game: Game,
+    revealedCard: CardInstance,
+    damagedPlayer: Player,
+    opponentPlayer: Player
+  ): void {
+    const context: EffectContext = {
+      game,
+      source: revealedCard,
+      actor: damagedPlayer,
+      opponent: opponentPlayer,
+    };
+
+    const action: EffectAction = {
+      type: "destroy",
+      target: {
+        side: "opponent",
+        zone: "frontLine",
+        cardType: "character",
+        maxCount: 1,
+      },
+    };
+
+    DestroyEffectAction.execute(context, action);
   }
 }
