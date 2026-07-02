@@ -33,4 +33,14 @@ export class KeywordResolver {
 
     return baseDamage + damagePlus;
   }
+  public static getImpactDamageForBattle(
+    attacker: CardInstance,
+    blocker: CardInstance
+  ): number {
+    if (blocker.card.hasKeyword("impactNullify")) {
+      return 0;
+    }
+
+    return this.getImpactDamage(attacker);
+  }
 }

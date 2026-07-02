@@ -13,6 +13,13 @@ type CreateTestCharacterOptions = {
   color?: string;
   effects?: Effect[];
   keywords?: Keyword[];
+  generatedEnergy?: {
+    red?: number;
+    blue?: number;
+    green?: number;
+    yellow?: number;
+    purple?: number;
+  };
 };
 
 export class TestCardFactory {
@@ -28,7 +35,7 @@ export class TestCardFactory {
       requiredEnergy: {},
       actionPointCost: 1,
       bp: options.bp ?? 2000,
-      generatedEnergy: { blue: 1 },
+      generatedEnergy: options.generatedEnergy ?? { blue: 1 },
       triggerType,
       color: options.color,
       effects: options.effects ?? [],

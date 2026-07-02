@@ -4,6 +4,7 @@ import { CardType } from "../enum/CardType";
 import { TriggerType } from "../enum/TriggerType";
 import { Effect } from "../effects/Effect";
 import { Keyword } from "./keywords/KeywordAbility";
+import type { RaidCondition } from "../raid/RaidCondition";
 
 export abstract class Card {
     public readonly id: string;
@@ -16,6 +17,9 @@ export abstract class Card {
     public readonly triggerType: TriggerType;
     public readonly color?: string;
     public readonly keywords: Keyword[];
+    public readonly raidConditions: RaidCondition[];
+    public readonly raidEffects: Effect[];
+    public readonly raidKeywords: Keyword[];
 
     constructor(data: CardData) {
         this.id = data.id;
@@ -28,6 +32,9 @@ export abstract class Card {
         this.triggerType = data.triggerType;
         this.color = data.color;
         this.keywords = data.keywords ?? [];
+        this.raidConditions = data.raidConditions ?? [];
+        this.raidEffects = data.raidEffects ?? [];
+        this.raidKeywords = data.raidKeywords ?? [];
     }
     public hasKeyword(type: Keyword["type"]): boolean {
         return this.keywords.some((keyword) => keyword.type === type);

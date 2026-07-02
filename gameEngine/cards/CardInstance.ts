@@ -5,11 +5,11 @@ export class CardInstance {
   public usedEffectIdsThisTurn = new Set<string>();
   public cannotBeBlockedByMinBp?: number;
 
-  /** このターンにアタックした回数 */
   public attackedThisTurnCount: number = 0;
-
-  /** このターンにブロックした回数 */
   public blockedThisTurnCount: number = 0;
+
+  /** レイド登場している場合のレイド元カード */
+  public raidBase?: CardInstance;
 
   constructor(
     public readonly instanceId: number,
@@ -17,6 +17,10 @@ export class CardInstance {
     public isRest: boolean = false,
     public temporaryBpBonus: number = 0
   ) {}
+
+  public isRaid(): boolean {
+    return this.raidBase !== undefined;
+  }
 
   public getCurrentBp(): number {
     if (!(this.card instanceof CharacterCard)) {

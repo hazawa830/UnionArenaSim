@@ -4,6 +4,7 @@ import { CardType } from "../enum/CardType";
 import { TriggerType } from "../enum/TriggerType";
 import { Effect } from "../effects/Effect";
 import { Keyword } from "./keywords/KeywordAbility";
+import type { RaidCondition } from "../raid/RaidCondition";
 
 export type CardData = {
   id: string;
@@ -16,6 +17,9 @@ export type CardData = {
   triggerType: TriggerType;
   color?: string;
   keywords?: Keyword[];
+  raidConditions?: RaidCondition[];
+  raidEffects?: Effect[];
+  raidKeywords?: Keyword[];
 };
 
 export interface CharacterCardData extends CardData {

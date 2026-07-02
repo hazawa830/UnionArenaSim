@@ -1,9 +1,9 @@
 import { Game } from "../core/Game";
 import { Player } from "../core/Player";
 import { CardInstance } from "../cards/CardInstance";
+import { Slot } from "../models/Slot";
 
 import { GamePhase } from "../enum/GamePhase";
-import { PlayerId } from "../enum/PlayerId";
 import { ActionSource } from "../enum/ActionSource";
 import { CardType } from "../enum/CardType";
 
@@ -12,18 +12,27 @@ import { EffectResolver } from "../effects/EffectResolver";
 import { EffectTrigger } from "../effects/EffectTrigger";
 import { ContinuousEffectResolver } from "../effects/ContinuousEffectResolver";
 import { KeywordResolver } from "../keywords/KeywordResolver";
+import { AttackTarget } from "./AttackTarget";
 
 export class AttackAction {
   public static execute(
     game: Game,
     attackerIndex: number,
     blockerIndex?: number,
-    source: ActionSource = ActionSource.PlayerNormal
+    source: ActionSource = ActionSource.PlayerNormal,
+    attackTarget: AttackTarget = { type: "player" }
   ): void {
     if (source === ActionSource.PlayerNormal && game.phase !== GamePhase.Attack) {
       throw new Error("Normal attack is only allowed in attack phase.");
     }
-
+    if (
+      attackTarget.type === "frontLineCharacter" &&
+      blockerIndex !== undefined
+    ) {
+      throw new Error(
+        "Snipe attack cannot specify a blocker."
+      );
+    }
     const currentPlayer = game.getCurrentPlayer();
     const opponentPlayer = game.getOpponentPlayer();
 
@@ -38,8 +47,20 @@ export class AttackAction {
     ) {
       attacker.isRest = false;
     }
+
+    if (attackTarget.type === "frontLineCharacter") {
+      this.resolveSnipeAttack(
+        game,
+        attacker,
+        currentPlayer,
+        opponentPlayer,
+        attackTarget.index
+      );
+      return;
+    }
+
     if (blockerIndex !== undefined) {
-      this.resolveBlockedAttack(game, attackerIndex, blockerIndex);
+      this.resolveBlock(game, attackerIndex, blockerIndex);
       return;
     }
 
@@ -73,14 +94,6 @@ export class AttackAction {
     return attacker;
   }
 
-  private static resolveBlockedAttack(
-    game: Game,
-    attackerIndex: number,
-    blockerIndex: number
-  ): void {
-    this.resolveBlock(game, attackerIndex, blockerIndex);
-  }
-
   private static resolveDirectAttack(
     game: Game,
     attacker: CardInstance,
@@ -96,13 +109,7 @@ export class AttackAction {
     );
 
     const damage = KeywordResolver.getDirectDamage(attacker);
-
-    this.dealLifeDamage(
-      game,
-      opponentPlayer,
-      currentPlayer,
-      damage
-    );
+    this.dealLifeDamage(game, opponentPlayer, currentPlayer, damage);
   }
 
   private static resolveBlock(
@@ -135,6 +142,122 @@ export class AttackAction {
       throw new Error("Blocker slot is empty.");
     }
 
+    this.resolveBattle(
+      game,
+      attacker,
+      blocker,
+      blockerSlot,
+      currentPlayer,
+      opponentPlayer,
+      { isBlock: true }
+    );
+  }
+
+  private static resolveSnipeAttack(
+    game: Game,
+    attacker: CardInstance,
+    currentPlayer: Player,
+    opponentPlayer: Player,
+    targetIndex: number
+  ): void {
+    if (!attacker.card.hasKeyword("snipe")) {
+      throw new Error("Only snipe characters can attack front line characters.");
+    }
+
+    const targetSlot = opponentPlayer.board.frontLine[targetIndex];
+
+    if (!targetSlot) {
+      throw new Error(`Invalid snipe target slot. index=${targetIndex}`);
+    }
+
+    const target = targetSlot.getCard();
+
+    if (!target) {
+      throw new Error("Snipe target slot is empty.");
+    }
+
+    this.resolveBattle(
+      game,
+      attacker,
+      target,
+      targetSlot,
+      currentPlayer,
+      opponentPlayer,
+      { isBlock: false }
+    );
+  }
+
+  private static resolveBattle(
+    game: Game,
+    attacker: CardInstance,
+    battleTarget: CardInstance,
+    battleTargetSlot: Slot,
+    currentPlayer: Player,
+    opponentPlayer: Player,
+    options: {
+      isBlock: boolean;
+    }
+  ): void {
+    if (options.isBlock) {
+      this.validateAndRestBlocker(attacker, battleTarget);
+    }
+
+    const attackerContext = {
+      game,
+      source: attacker,
+      actor: currentPlayer,
+      opponent: opponentPlayer,
+    };
+
+    const targetContext = {
+      game,
+      source: battleTarget,
+      actor: opponentPlayer,
+      opponent: currentPlayer,
+    };
+
+    const attackerBp = ContinuousEffectResolver.getCurrentBp(
+      attackerContext,
+      attacker
+    );
+
+    const targetBp = ContinuousEffectResolver.getCurrentBp(
+      targetContext,
+      battleTarget
+    );
+
+    if (attackerBp < targetBp) {
+      return;
+    }
+
+    EffectResolver.resolveForField(
+      game,
+      EffectTrigger.OnBattleWin,
+      currentPlayer,
+      opponentPlayer,
+      { attacker }
+    );
+
+    const destroyed = battleTargetSlot.removeCard();
+
+    if (destroyed) {
+      opponentPlayer.board.trash.push(destroyed);
+    }
+
+    const impactDamage = KeywordResolver.getImpactDamageForBattle(
+      attacker,
+      battleTarget
+    );
+
+    if (impactDamage > 0) {
+      this.dealLifeDamage(game, opponentPlayer, currentPlayer, impactDamage);
+    }
+  }
+
+  private static validateAndRestBlocker(
+    attacker: CardInstance,
+    blocker: CardInstance
+  ): void {
     if (blocker.card.cardType !== CardType.Character) {
       throw new Error("Only character cards can block.");
     }
@@ -157,51 +280,6 @@ export class AttackAction {
       blocker.card.hasKeyword("doubleBlock")
     ) {
       blocker.isRest = false;
-    }
-    const attackerContext = {
-      game,
-      source: attacker,
-      actor: currentPlayer,
-      opponent: opponentPlayer,
-    };
-
-    const blockerContext = {
-      game,
-      source: blocker,
-      actor: opponentPlayer,
-      opponent: currentPlayer,
-    };
-
-    const attackerBp = ContinuousEffectResolver.getCurrentBp(
-      attackerContext,
-      attacker
-    );
-
-    const blockerBp = ContinuousEffectResolver.getCurrentBp(
-      blockerContext,
-      blocker
-    );
-
-    if (attackerBp >= blockerBp) {
-      EffectResolver.resolveForField(
-        game,
-        EffectTrigger.OnBattleWin,
-        currentPlayer,
-        opponentPlayer,
-        { attacker }
-      );
-
-      const destroyed = blockerSlot.removeCard();
-
-      if (destroyed) {
-        opponentPlayer.board.trash.push(destroyed);
-      }
-
-      const impactDamage = KeywordResolver.getImpactDamage(attacker);
-
-      if (impactDamage > 0) {
-        this.dealLifeDamage(game, opponentPlayer, currentPlayer, impactDamage);
-      }
     }
   }
 

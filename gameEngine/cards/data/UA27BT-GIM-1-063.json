@@ -1,0 +1,56 @@
+{
+  "id": "UA27BT-GIM-1-063",
+  "name": "月村 手毬",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {
+    "red": 4
+  },
+  "actionPointCost": 1,
+  "bp": 4000,
+  "generatedEnergy": {
+    "red": 1
+  },
+  "triggerType": "raid",
+
+  "raidConditions": [
+  {
+    "type": "cardName",
+    "names": ["月村 手毬"]
+  }
+  ],
+
+  "keywords": [],
+
+  "raidKeywords": [
+    {
+      "type": "impact",
+      "value": 1
+    }
+  ],
+
+  "effects": [],
+
+  "raidEffects": [
+    {
+      "id": "raid-draw",
+      "trigger": "onPlay",
+      "conditions": [
+        {
+          "type": "hasCharacterNamesOnField",
+          "names": [
+            "花海 咲季",
+            "藤田 ことね"
+          ],
+          "mode": "all"
+        }
+      ],
+      "actions": [
+        {
+          "type": "draw",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}
