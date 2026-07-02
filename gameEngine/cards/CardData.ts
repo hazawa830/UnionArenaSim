@@ -3,6 +3,8 @@ import { CardType } from "../enum/CardType";
 
 import { TriggerType } from "../enum/TriggerType";
 import { Effect } from "../effects/Effect";
+import { Keyword } from "./keywords/KeywordAbility";
+
 export type CardData = {
   id: string;
   name: string;
@@ -13,6 +15,7 @@ export type CardData = {
   effects?: Effect[];
   triggerType: TriggerType;
   color?: string;
+  keywords?: Keyword[];
 };
 
 export interface CharacterCardData extends CardData {

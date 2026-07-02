@@ -2,6 +2,7 @@ import { CardFactory } from "../../gameEngine/cards/CardFactory";
 import { CardInstance } from "../../gameEngine/cards/CardInstance";
 import { TriggerType } from "../../gameEngine/enum/TriggerType";
 import { Effect } from "../../gameEngine/effects/Effect";
+import { Keyword } from "../../gameEngine/cards/keywords/KeywordAbility";
 let nextTestInstanceId = 900000;
 
 type CreateTestCharacterOptions = {
@@ -11,6 +12,7 @@ type CreateTestCharacterOptions = {
   triggerType?: TriggerType;
   color?: string;
   effects?: Effect[];
+  keywords?: Keyword[];
 };
 
 export class TestCardFactory {
@@ -30,6 +32,7 @@ export class TestCardFactory {
       triggerType,
       color: options.color,
       effects: options.effects ?? [],
+      keywords: options.keywords ?? [],
     });
 
     return new CardInstance(nextTestInstanceId++, card);

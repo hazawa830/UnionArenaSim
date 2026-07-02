@@ -11,6 +11,7 @@ import { TriggerAction } from "./TriggerAction";
 import { EffectResolver } from "../effects/EffectResolver";
 import { EffectTrigger } from "../effects/EffectTrigger";
 import { ContinuousEffectResolver } from "../effects/ContinuousEffectResolver";
+import { KeywordResolver } from "../keywords/KeywordResolver";
 
 export class AttackAction {
   public static execute(
@@ -29,7 +30,14 @@ export class AttackAction {
     const attacker = this.getValidAttacker(currentPlayer, attackerIndex);
 
     attacker.isRest = true;
+    attacker.attackedThisTurnCount++;
 
+    if (
+      attacker.attackedThisTurnCount === 1 &&
+      attacker.card.hasKeyword("doubleAttack")
+    ) {
+      attacker.isRest = false;
+    }
     if (blockerIndex !== undefined) {
       this.resolveBlockedAttack(game, attackerIndex, blockerIndex);
       return;
@@ -84,25 +92,17 @@ export class AttackAction {
       EffectTrigger.OnAttackNotBlocked,
       currentPlayer,
       opponentPlayer,
-      {
-        attacker,
-      }
+      { attacker }
     );
 
-    const lifeCard = opponentPlayer.board.lifeArea.pop();
+    const damage = KeywordResolver.getDirectDamage(attacker);
 
-    if (!lifeCard) {
-      throw new Error("Opponent has no life.");
-    }
-
-    TriggerAction.resolve(game, lifeCard, opponentPlayer, currentPlayer);
-
-    if (opponentPlayer.board.lifeArea.length === 0) {
-      game.winner =
-        game.currentPlayerId === PlayerId.Player1
-          ? PlayerId.Player1
-          : PlayerId.Player2;
-    }
+    this.dealLifeDamage(
+      game,
+      opponentPlayer,
+      currentPlayer,
+      damage
+    );
   }
 
   private static resolveBlock(
@@ -142,12 +142,22 @@ export class AttackAction {
     if (blocker.isRest) {
       throw new Error("Rested card cannot block.");
     }
+
     if (attacker.cannotBeBlockedByMinBp !== undefined) {
       if (blocker.getCurrentBp() >= attacker.cannotBeBlockedByMinBp) {
         throw new Error("This attacker cannot be blocked by this blocker.");
       }
     }
+
     blocker.isRest = true;
+    blocker.blockedThisTurnCount++;
+
+    if (
+      blocker.blockedThisTurnCount === 1 &&
+      blocker.card.hasKeyword("doubleBlock")
+    ) {
+      blocker.isRest = false;
+    }
     const attackerContext = {
       game,
       source: attacker,
@@ -161,23 +171,59 @@ export class AttackAction {
       actor: opponentPlayer,
       opponent: currentPlayer,
     };
-    const attackerBp = ContinuousEffectResolver.getCurrentBp(attackerContext, attacker);
-    const blockerBp = ContinuousEffectResolver.getCurrentBp(blockerContext, blocker);
+
+    const attackerBp = ContinuousEffectResolver.getCurrentBp(
+      attackerContext,
+      attacker
+    );
+
+    const blockerBp = ContinuousEffectResolver.getCurrentBp(
+      blockerContext,
+      blocker
+    );
 
     if (attackerBp >= blockerBp) {
       EffectResolver.resolveForField(
-          game,
-          EffectTrigger.OnBattleWin,
-          currentPlayer,
-          opponentPlayer,
-          {
-              attacker,
-          }
+        game,
+        EffectTrigger.OnBattleWin,
+        currentPlayer,
+        opponentPlayer,
+        { attacker }
       );
+
       const destroyed = blockerSlot.removeCard();
 
       if (destroyed) {
         opponentPlayer.board.trash.push(destroyed);
+      }
+
+      const impactDamage = KeywordResolver.getImpactDamage(attacker);
+
+      if (impactDamage > 0) {
+        this.dealLifeDamage(game, opponentPlayer, currentPlayer, impactDamage);
+      }
+    }
+  }
+
+  private static dealLifeDamage(
+    game: Game,
+    damagedPlayer: Player,
+    attackerPlayer: Player,
+    damage: number
+  ): void {
+    for (let i = 0; i < damage; i++) {
+      const lifeCard = damagedPlayer.board.lifeArea.pop();
+
+      if (!lifeCard) {
+        game.winner = game.currentPlayerId;
+        return;
+      }
+
+      TriggerAction.resolve(game, lifeCard, damagedPlayer, attackerPlayer);
+
+      if (damagedPlayer.board.lifeArea.length === 0) {
+        game.winner = game.currentPlayerId;
+        return;
       }
     }
   }

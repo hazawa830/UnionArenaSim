@@ -146,13 +146,21 @@ public clearTemporaryBpBonus(): void {
 }
 public usedCardNameEffectIdsThisTurn = new Set<string>();
 public clearUsedEffectIdsThisTurn(): void {
+  this.clearTurnState();
+}
+public clearTurnState(): void {
   this.usedCardNameEffectIdsThisTurn.clear();
 
   for (const slot of [...this.frontLine, ...this.energyLine]) {
     const card = slot.getCard();
-    if (!card) continue;
+
+    if (!card) {
+      continue;
+    }
 
     card.usedEffectIdsThisTurn.clear();
+    card.attackedThisTurnCount = 0;
+    card.blockedThisTurnCount = 0;
   }
 }
 }

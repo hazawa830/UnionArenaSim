@@ -6,6 +6,8 @@ import { StageCard } from "./StageCard";
 import { EventCard } from "./EventCard";
 import { TriggerType } from "../enum/TriggerType";
 import { Effect } from "../effects/Effect";
+import { KeywordFactory } from "./keywords/KeywordFactory";
+
 type RawEnergy = Partial<{
   red: number;
   blue: number;
@@ -26,6 +28,7 @@ type RawCardData = {
   color?: string;
   bp?: number;
   generatedEnergy?: RawEnergy;
+  keywords?: {type: string;value?: number;}[];
 };
 
 export class CardFactory {
@@ -41,6 +44,7 @@ export class CardFactory {
         effects: raw.effects ?? [],
         triggerType: (raw.triggerType ?? TriggerType.None) as TriggerType,
         color: raw.color,
+        keywords: KeywordFactory.createMany(raw.keywords),
     };
     
     switch (cardType) {

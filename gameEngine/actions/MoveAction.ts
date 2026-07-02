@@ -31,13 +31,17 @@ export class MoveCardAction {
       throw new Error(`Invalid to slot. line=${toLine}, index=${toIndex}`);
     }
 
-    if (fromSlot.isEmpty()) {
+    const movingCard = fromSlot.getCard();
+
+    if (!movingCard) {
       throw new Error("Source slot is empty.");
     }
 
     if (!toSlot.isEmpty()) {
       throw new Error("Destination slot is not empty.");
     }
+
+    this.validateMove(fromLine, toLine, movingCard.card.hasKeyword("step"));
 
     const card = fromSlot.removeCard();
 
@@ -46,6 +50,32 @@ export class MoveCardAction {
     }
 
     toSlot.setCard(card);
+  }
+
+  private static validateMove(
+    fromLine: BoardLine,
+    toLine: BoardLine,
+    hasStep: boolean
+  ): void {
+    const isEnergyToFront =
+      fromLine === BoardLine.EnergyLine && toLine === BoardLine.FrontLine;
+
+    const isFrontToEnergy =
+      fromLine === BoardLine.FrontLine && toLine === BoardLine.EnergyLine;
+
+    if (isEnergyToFront) {
+      return;
+    }
+
+    if (isFrontToEnergy && hasStep) {
+      return;
+    }
+
+    if (isFrontToEnergy && !hasStep) {
+      throw new Error("Only step characters can move from front line to energy line.");
+    }
+
+    throw new Error("Invalid move.");
   }
 
   private static getSlot(
