@@ -10,6 +10,9 @@ import { CardFactory } from "../../gameEngine/cards/CardFactory";
 import { CardInstance } from "../../gameEngine/cards/CardInstance";
 import { EffectTrigger } from "../../gameEngine/effects/EffectTrigger";
 import { Player } from "../../gameEngine/core/Player";
+import { AttackAction } from "../../gameEngine/actions/AttackAction";
+import { advanceToAttackPhase } from "../helpers/gamePhaseHelper";
+import { GamePhase } from "../../gameEngine/enum/GamePhase";
 
 function createRedEnergy(name: string) {
   return TestCardFactory.createCharacter({
@@ -172,4 +175,109 @@ describe("RaidPlayAction", () => {
     expect(raid.isRest).toBe(false);
     expect(player.board.activeActionPoint).toBe(2);
   });
+  it("レイド登場時、raidEffectsのOnPlay効果が発動する", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+
+  advanceToMainPhase(game);
+
+  player.board.setActionPoint(3);
+  setupRed4Energy(player);
+
+  const base = TestCardFactory.createCharacter({
+    name: "月村 手毬",
+    bp: 1500,
+  });
+
+  const saki = TestCardFactory.createCharacter({
+    name: "花海 咲季",
+    bp: 3000,
+  });
+
+  const kotone = TestCardFactory.createCharacter({
+    name: "藤田 ことね",
+    bp: 3000,
+  });
+
+  const raid = createRaidTemari();
+
+  player.board.frontLine[0].setCard(base);
+  player.board.frontLine[1].setCard(saki);
+  player.board.frontLine[2].setCard(kotone);
+
+  setOnlyHandCard(player, raid);
+
+  const handBefore = player.board.hand.length;
+  const deckBefore = player.board.deck.length;
+
+  RaidPlayAction.execute(game, 0, BoardLine.FrontLine, 0);
+
+  // 手札からレイドカードを1枚使い、raidEffectで1枚引くので手札枚数は変わらない
+  expect(player.board.hand.length).toBe(handBefore);
+  expect(player.board.deck.length).toBe(deckBefore - 1);
+
+  expect(player.board.frontLine[0].getCard()).toBe(raid);
+  expect(raid.isRaid()).toBe(true);
+});
+it("通常登場した場合、raidKeywordsは有効にならない", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+  const opponent = game.getOpponentPlayer();
+
+  advanceToAttackPhase(game);
+
+  const raid = createRaidTemari();
+
+  const blocker = TestCardFactory.createCharacter({
+    name: "ブロッカー",
+    bp: 3000,
+  });
+
+  player.board.frontLine[0].setCard(raid);
+  opponent.board.frontLine[0].setCard(blocker);
+
+  const lifeBefore = opponent.board.lifeArea.length;
+
+  AttackAction.execute(game, 0, 0);
+
+  expect(opponent.board.lifeArea.length).toBe(lifeBefore);
+});
+
+it("レイド登場した場合、raidKeywordsのインパクトが有効になる", () => {
+  const game = createTestGame();
+  const player = game.getCurrentPlayer();
+  const opponent = game.getOpponentPlayer();
+
+  advanceToMainPhase(game);
+  player.board.setActionPoint(3);
+  setupRed4Energy(player);
+
+  const base = TestCardFactory.createCharacter({
+    name: "月村 手毬",
+    bp: 1500,
+  });
+
+  const raid = createRaidTemari();
+
+  player.board.frontLine[0].setCard(base);
+  setOnlyHandCard(player, raid);
+
+  RaidPlayAction.execute(game, 0, BoardLine.FrontLine, 0);
+
+  game.phase = GamePhase.Attack;
+
+  const blocker = TestCardFactory.createCharacter({
+    name: "ブロッカー",
+    bp: 3000,
+  });
+
+  opponent.board.frontLine[0].setCard(blocker);
+
+  const lifeBefore = opponent.board.lifeArea.length;
+
+  AttackAction.execute(game, 0, 0);
+
+  expect(opponent.board.lifeArea.length).toBe(lifeBefore - 1);
+});
+
 });

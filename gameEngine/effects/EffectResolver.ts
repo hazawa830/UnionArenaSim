@@ -154,7 +154,10 @@ private static getResolvedEffects(
   context: EffectContext,
   trigger: EffectTrigger
 ): Effect[] {
-  const baseEffects = context.source.card.effects;
+  const baseEffects = [
+    ...context.source.card.effects,
+    ...(context.source.isRaid() ? context.source.card.raidEffects : []),
+  ];
 
   const grantedEffects = baseEffects.flatMap((effect) => {
     if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {

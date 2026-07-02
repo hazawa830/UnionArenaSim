@@ -6,6 +6,9 @@ import { CharacterCard } from "../cards/CharacterCard";
 import { DestroyEffectAction } from "../effects/actions/DestroyEffectAction";
 import { EffectAction } from "../effects/EffectAction";
 import { EffectContext } from "../effects/EffectContext";
+import { RaidConditionResolver } from "../raid/RaidConditionResolver";
+import { EffectResolver } from "../effects/EffectResolver";
+import { EffectTrigger } from "../effects/EffectTrigger";
 
 export class TriggerAction {
   public static resolve(
@@ -43,7 +46,9 @@ export class TriggerAction {
         this.resolveFinalTrigger(damagedPlayer);
         damagedPlayer.board.trash.push(revealedCard);
         break;
-
+      case TriggerType.Raid:
+        this.resolveRaidTrigger(game, revealedCard, damagedPlayer, opponentPlayer);
+        break;
       case TriggerType.None:
       default:
         damagedPlayer.board.trash.push(revealedCard);
@@ -135,4 +140,61 @@ export class TriggerAction {
 
     DestroyEffectAction.execute(context, action);
   }
+  private static resolveRaidTrigger(
+  game: Game,
+  revealedCard: CardInstance,
+  damagedPlayer: Player,
+  opponentPlayer: Player
+): void {
+  const board = damagedPlayer.board;
+
+  const canPayEnergy = board
+    .getGeneratedEnergy()
+    .canPay(revealedCard.card.requiredEnergy);
+
+  if (!canPayEnergy || revealedCard.card.raidConditions.length === 0) {
+    board.hand.push(revealedCard);
+    return;
+  }
+
+  const slots = [...board.frontLine, ...board.energyLine];
+
+  const baseSlot = slots.find((slot) => {
+    const base = slot.getCard();
+
+    if (!base) {
+      return false;
+    }
+
+    return RaidConditionResolver.canRaidOn(
+      revealedCard.card.raidConditions,
+      base
+    );
+  });
+
+  if (!baseSlot) {
+    board.hand.push(revealedCard);
+    return;
+  }
+
+  const base = baseSlot.removeCard();
+
+  if (!base) {
+    board.hand.push(revealedCard);
+    return;
+  }
+
+  revealedCard.raidBase = base;
+  revealedCard.isRest = false;
+
+  baseSlot.setCard(revealedCard);
+
+  EffectResolver.resolve(
+    game,
+    revealedCard,
+    EffectTrigger.OnPlay,
+    damagedPlayer,
+    opponentPlayer
+  );
+}
 }

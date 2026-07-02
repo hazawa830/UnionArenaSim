@@ -6,4 +6,5 @@ export enum TriggerType {
   Color = "color",
   Final = "final",
   Special = "special",
+  Raid = "raid",
 }
