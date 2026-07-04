@@ -40,7 +40,13 @@ export class AttackAction {
 
     attacker.isRest = true;
     attacker.attackedThisTurnCount++;
-
+    EffectResolver.resolveForField(
+      game,
+      EffectTrigger.OnAttack,
+      currentPlayer,
+      opponentPlayer,
+      { attacker }
+    );
     if (
       attacker.attackedThisTurnCount === 1 &&
       attacker.card.hasKeyword("doubleAttack")

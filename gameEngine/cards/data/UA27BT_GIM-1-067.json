@@ -1,13 +1,18 @@
 {
-  "id": "EX13BT-GIM-1-067",
+  "id": "UA27BT_GIM-1-067",
   "name": "花海 咲季",
-  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "imagePath": "/card-images/UA27BT_GIM-1-067_p1.png",
   "cardType": "character",
   "requiredEnergy": {"red": 3},
   "actionPointCost": 1,
   "generatedEnergy": {"red":2},
   "triggerType": "none",
-  "bp": 4000,
+  "bp": 3000,
+  "keywords": [
+    {
+      "type": "step"
+    }
+  ],
   "effects": [
   {
     "trigger": "onPlay",

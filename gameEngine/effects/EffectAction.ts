@@ -45,6 +45,21 @@ export type EffectAction =
     type: "grantEffect";
     target: "self";
     effect: Effect;
-  };
+  }
+   | {
+      type: "playFromHand";
+      target: {
+        cardType?: "character" | "stage" | "event";
+        names?: string[];
+        color?: string;
+        maxRequiredEnergyTotal?: number;
+        actionPointCost?: number;
+      };
+      destination: "frontLine" | "energyLine";
+      rest?: boolean;
+      maxCount?: number;
+      optional?: boolean;
+    };;
+  
   
     

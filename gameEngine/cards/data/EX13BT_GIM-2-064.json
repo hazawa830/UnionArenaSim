@@ -1,13 +1,13 @@
 {
-  "id": "EX13BT-GIM-2-064",
+  "id": "EX13BT_GIM-2-064",
   "name": "藤田 ことね",
-  "imagePath": "/card-images/EX13BT_GIM-2-064.png",
+  "imagePath": "/card-images/EX13BT_GIM-2-064_p1.png",
   "cardType": "character",
   "requiredEnergy": {
-    "red": 2
+    
   },
   "actionPointCost": 1,
-  "bp": 3000,
+  "bp": 1000,
   "generatedEnergy": {
     "red": 1
   },

@@ -1,0 +1,59 @@
+{
+  "id": "UA27BT_GIM-1-072",
+  "name": "藤田 ことね",
+  "imagePath": "/card-images/UA27BT_GIM-1-072_p1.png",
+  "cardType": "character",
+  "requiredEnergy": { "red": 4 },
+  "actionPointCost": 1,
+  "bp": 4000,
+  "generatedEnergy": { "red": 1 },
+  "triggerType": "raid",
+  "raidConditions": [
+    {
+      "type": "cardName",
+      "names": ["藤田 ことね"]
+    }
+  ],
+  "keywords": [],
+  "raidKeywords": [],
+  "effects": [],
+  "raidEffects": [
+    {
+      "id": "play-saki-or-temari-from-hand",
+      "trigger": "onPlay",
+      "actions": [
+        {
+          "type": "playFromHand",
+          "target": {
+            "cardType": "character",
+            "names": ["花海 咲季", "月村 手毬"],
+            "color": "red",
+            "maxRequiredEnergyTotal": 3,
+            "actionPointCost": 1
+          },
+          "destination": "frontLine",
+          "rest": true,
+          "maxCount": 1,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "draw-if-saki-temari",
+      "trigger": "onPlay",
+      "conditions": [
+        {
+          "type": "hasCharacterNamesOnField",
+          "names": ["花海 咲季", "月村 手毬"],
+          "mode": "all"
+        }
+      ],
+      "actions": [
+        {
+          "type": "draw",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

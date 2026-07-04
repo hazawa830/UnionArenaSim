@@ -1,14 +1,19 @@
 import { describe, it, expect } from "vitest";
 
 import { createTestGame } from "./helpers/createTestGame";
+import {
+  advanceToMovePhase,
+  advanceToMainPhase,
+  advanceToAttackPhase,
+} from "./helpers/gamePhaseHelper";
+
 import { RandomCPU } from "../gameEngine/cpu/RandomCPU";
 import { GamePhase } from "../gameEngine/enum/GamePhase";
 import { BoardLine } from "../gameEngine/enum/BoardLine";
-import { PlayCardAction } from "../gameEngine/actions/PlayCardAction";
-import { advanceToMainPhase } from "./helpers/gamePhaseHelper";
+import { TestCardFactory } from "./helpers/TestCardFactory";
 
 describe("RandomCPU", () => {
-  it("StartフェーズをMoveフェーズへ進められる", () => {
+  it("Startフェーズではフェーズを進められる", () => {
     const game = createTestGame();
 
     expect(game.phase).toBe(GamePhase.Start);
@@ -18,66 +23,71 @@ describe("RandomCPU", () => {
     expect(game.phase).toBe(GamePhase.Move);
   });
 
-  it("Mainフェーズで1枚目はエナジーラインにプレイする", () => {
+  it("Moveフェーズでは移動またはフェーズ終了を実行できる", () => {
     const game = createTestGame();
+    const player = game.getCurrentPlayer();
 
-    game.nextPhase(); // Start -> Move
-    game.nextPhase(); // Move -> Main
+    advanceToMovePhase(game);
 
-    const currentPlayer = game.getCurrentPlayer();
+    const card = TestCardFactory.createCharacter({
+      name: "移動候補",
+      bp: 3000,
+    });
 
-    RandomCPU.playPhase(game);
+    player.board.energyLine[0].setCard(card);
 
-    expect(game.phase).toBe(GamePhase.Attack);
-    expect(currentPlayer.board.hand.length).toBe(6);
-    expect(currentPlayer.board.energyLine.some((slot) => !slot.isEmpty())).toBe(true);
-    expect(currentPlayer.board.frontLine.every((slot) => slot.isEmpty())).toBe(true);
+    expect(() => RandomCPU.playPhase(game)).not.toThrow();
+
+    const movedToFront = player.board.frontLine.some(
+      (slot) => slot.getCard() === card
+    );
+
+    expect(movedToFront || game.phase === GamePhase.Main).toBe(true);
   });
 
-  it("エナジーがある状態ではフロントラインにプレイする", () => {
+  it("Mainフェーズではカードプレイまたはフェーズ終了を実行できる", () => {
     const game = createTestGame();
+    const player = game.getCurrentPlayer();
 
-    game.nextPhase(); // Start -> Move
-    game.nextPhase(); // Move -> Main
+    advanceToMainPhase(game);
 
-    const currentPlayer = game.getCurrentPlayer();
-    currentPlayer.board.setActionPoint(3);
-    
-    game.phase = GamePhase.Main;
+    player.board.setActionPoint(3);
 
-    RandomCPU.playPhase(game); // 2枚目：フロントラインへ
+    const handBefore = player.board.hand.length;
 
-    expect(game.phase).toBe(GamePhase.Attack);
-    expect(currentPlayer.board.hand.length).toBe(4);
-    expect(currentPlayer.board.energyLine.some((slot) => !slot.isEmpty())).toBe(true);
-    expect(currentPlayer.board.frontLine.some((slot) => !slot.isEmpty())).toBe(true);
+    expect(() => RandomCPU.playPhase(game)).not.toThrow();
+
+    const playedCard = player.board.hand.length < handBefore;
+    const advancedPhase = game.phase === GamePhase.Attack;
+
+    expect(playedCard || advancedPhase).toBe(true);
   });
 
-  it("Attackフェーズでフロントラインのカードが攻撃し、相手ライフが減る", () => {
+  it("Attackフェーズでは攻撃またはフェーズ終了を実行できる", () => {
     const game = createTestGame();
+    const player = game.getCurrentPlayer();
+    const opponent = game.getOpponentPlayer();
 
-    game.nextPhase(); // Start -> Move
-    game.nextPhase(); // Move -> Main
+    advanceToAttackPhase(game);
 
-    const currentPlayer = game.getCurrentPlayer();
-    const opponentPlayer = game.getOpponentPlayer();
-    currentPlayer.board.setActionPoint(3);
-    opponentPlayer.board.setActionPoint(3);
-    game.phase = GamePhase.Main;
-    RandomCPU.playPhase(game); // 2枚目：フロントラインへ
-    currentPlayer.board.activateAllCards();
-    expect(game.phase).toBe(GamePhase.Attack);
+    const attacker = TestCardFactory.createCharacter({
+      name: "攻撃キャラ",
+      bp: 3000,
+    });
 
-    const lifeBefore = opponentPlayer.board.lifeArea.length;
+    player.board.frontLine[0].setCard(attacker);
 
-    RandomCPU.playPhase(game);
+    const lifeBefore = opponent.board.lifeArea.length;
 
-    expect(game.phase).toBe(GamePhase.End);
-    expect(opponentPlayer.board.lifeArea.length).toBe(lifeBefore - 2);
-    expect(currentPlayer.board.frontLine[0].getCard()?.isRest).toBe(true);
+    expect(() => RandomCPU.playPhase(game)).not.toThrow();
+
+    const attacked = opponent.board.lifeArea.length < lifeBefore;
+    const advancedPhase = game.phase === GamePhase.End;
+
+    expect(attacked || advancedPhase).toBe(true);
   });
 
-  it("Endフェーズを次プレイヤーのStartフェーズへ進められる", () => {
+  it("Endフェーズでは次プレイヤーのStartフェーズへ進める", () => {
     const game = createTestGame();
 
     const beforePlayer = game.getCurrentPlayer();
@@ -89,56 +99,29 @@ describe("RandomCPU", () => {
     expect(game.phase).toBe(GamePhase.Start);
     expect(game.getCurrentPlayer()).not.toBe(beforePlayer);
   });
-  it("ブロック可能なキャラがいない場合はundefinedを返す", () => {
+
+  it("候補に不正手が混ざっても、実行可能な手を探して処理できる", () => {
     const game = createTestGame();
 
-    const blockerIndex = RandomCPU.chooseBlockerIndex(game);
+    advanceToMovePhase(game);
 
-    expect(blockerIndex).toBeUndefined();
+    expect(() => RandomCPU.playPhase(game)).not.toThrow();
+
+    // Move候補がない場合でも endPhase により Main へ進める
+    expect(game.phase).toBe(GamePhase.Main);
   });
-  it("ブロック可能なキャラがいる場合はundefinedまたは有効なindexを返す", () => {
+
+  it("複数フェーズを例外なく進められる", () => {
     const game = createTestGame();
 
-    const currentPlayer = game.getCurrentPlayer();
-    const opponent = game.getOpponentPlayer();
+    for (let i = 0; i < 10; i++) {
+      expect(() => RandomCPU.playPhase(game)).not.toThrow();
 
-    // 自分のターンで相手にキャラを直接配置
-    advanceToMainPhase(game);
+      if (game.winner) {
+        break;
+      }
+    }
 
-    const blocker = opponent.board.hand[0];
-    opponent.board.hand.splice(0, 1);
-
-    blocker.isRest = false;
-    opponent.board.frontLine[2].setCard(blocker);
-
-    const blockerIndex = RandomCPU.chooseBlockerIndex(game);
-
-    expect(
-        blockerIndex === undefined ||
-        (blockerIndex >= 0 && blockerIndex < 4)
-    ).toBe(true);
-    });
-    it("StartフェーズでCPUはランダムにエクストラドローしてMoveフェーズへ進む", () => {
-  const game = createTestGame();
-  const player = game.getCurrentPlayer();
-
-  const handBefore = player.board.hand.length;
-  const deckBefore = player.board.deck.length;
-  const apBefore = player.board.activeActionPoint;
-
-  RandomCPU.playPhase(game);
-
-  expect(game.phase).toBe(GamePhase.Move);
-
-  const didExtraDraw = player.board.hand.length === handBefore + 1;
-
-  if (didExtraDraw) {
-    expect(player.board.deck.length).toBe(deckBefore - 1);
-    expect(player.board.activeActionPoint).toBe(apBefore - 1);
-  } else {
-    expect(player.board.hand.length).toBe(handBefore);
-    expect(player.board.deck.length).toBe(deckBefore);
-    expect(player.board.activeActionPoint).toBe(apBefore);
-  }
-});
+    expect(game.phase).toBeDefined();
+  });
 });

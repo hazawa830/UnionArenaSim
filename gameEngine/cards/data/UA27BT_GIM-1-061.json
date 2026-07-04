@@ -1,0 +1,39 @@
+{
+  "id": "UA27BT_GIM-1-061",
+  "name": "月村 手毬",
+  "imagePath": "/card-images/UA27BT_GIM-1-061_p1.png",
+  "cardType": "character",
+  "requiredEnergy": {
+    "red": 1
+  },
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": {
+    "red": 1
+  },
+  "triggerType": "active",
+
+  "keywords": [],
+
+  "effects": [
+    {
+        "id": "bp-plus-if-saki-kotone",
+        "trigger": "continuous",
+        "conditions": [
+            {
+            "type": "hasCharacterNamesOnField",
+            "names": ["花海 咲季", "藤田 ことね"],
+            "mode": "all"
+            }
+        ],
+        "actions": [
+            {
+            "type": "modifyBpContinuous",
+            "target": "self",
+            "amount": 1000
+            }
+        ]
+        }
+  ]
+
+}

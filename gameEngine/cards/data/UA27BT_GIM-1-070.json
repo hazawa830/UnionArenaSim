@@ -1,11 +1,11 @@
 {
-  "id": "EX13BT-GIM-1-070",
+  "id": "UA27BT_GIM-1-070",
   "name": "藤田 ことね",
-  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "imagePath": "/card-images/UA27BT_GIM-1-070_p1",
   "cardType": "character",
   "requiredEnergy": { "red": 1 },
   "actionPointCost": 1,
-  "bp": 3000,
+  "bp": 1500,
   "generatedEnergy": { "red": 1 },
   "triggerType": "active",
   "effects": [

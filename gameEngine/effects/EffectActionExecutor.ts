@@ -8,6 +8,7 @@ import { SearchTopDeckEffectAction } from "./actions/SearchTopDeckEffectAction";
 import { DiscardHandEffectAction } from "./actions/DiscardHandEffectAction";
 import { DestroyEffectAction } from "./actions/DestroyEffectAction";
 import { EffectContext } from "./EffectContext";
+import { PlayFromHandEffectAction } from "../actions/PlayFromHandEffectAction";
 
 export class EffectActionExecutor {
   public static execute(
@@ -38,7 +39,9 @@ export class EffectActionExecutor {
       case "destroy":
         DestroyEffectAction.execute(context, action);
         return;
-
+      case "playFromHand":
+        PlayFromHandEffectAction.execute(context, action);
+        return;
       default:
         throw new Error(`Unknown effect action: ${(action as any).type}`);
     }

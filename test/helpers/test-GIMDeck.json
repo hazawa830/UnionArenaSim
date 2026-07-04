@@ -1,0 +1,57 @@
+{
+  "name": "test_GIM_Deck",
+  "cards": [
+    {
+      "cardId": "EX13BT_GIM-2-061",
+      "count": 4
+    },
+    {
+      "cardId": "EX13BT_GIM-2-062",
+      "count": 4
+    },
+    {
+      "cardId": "EX13BT_GIM-2-063",
+      "count": 4
+    },
+    {
+      "cardId": "EX13BT_GIM-2-064",
+      "count": 2
+    },
+    {
+      "cardId": "EX13BT_GIM-2-067",
+      "count": 4
+    },
+    {
+      "cardId": "EX13BT_GIM-2-070",
+      "count": 4
+    },
+    {
+      "cardId": "UA27BT_GIM-1-061",
+      "count": 4
+    },
+    {
+      "cardId": "UA27BT_GIM-1-063",
+      "count": 4
+    },
+    {
+      "cardId": "UA27BT_GIM-1-067",
+      "count": 4
+    },
+    {
+      "cardId": "UA27BT_GIM-1-068",
+      "count": 4
+    },
+    {
+      "cardId": "UA27BT_GIM-1-070",
+      "count": 4
+    },
+    {
+      "cardId": "UA27BT_GIM-1-071",
+      "count": 4
+    },
+    {
+      "cardId": "UA27BT_GIM-1-072",
+      "count": 4
+    }
+  ]
+}

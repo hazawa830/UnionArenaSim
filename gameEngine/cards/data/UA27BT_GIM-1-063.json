@@ -1,5 +1,5 @@
 {
-  "id": "UA27BT-GIM-1-063",
+  "id": "UA27BT_GIM-1-063",
   "name": "月村 手毬",
   "imagePath": "/card-images/UA34BT_CGD-1-041.png",
   "cardType": "character",
@@ -32,25 +32,25 @@
   "effects": [],
 
   "raidEffects": [
-    {
-      "id": "raid-draw",
-      "trigger": "onPlay",
-      "conditions": [
-        {
-          "type": "hasCharacterNamesOnField",
-          "names": [
-            "花海 咲季",
-            "藤田 ことね"
-          ],
-          "mode": "all"
-        }
-      ],
-      "actions": [
-        {
-          "type": "draw",
-          "count": 1
-        }
-      ]
-    }
-  ]
+  {
+    "id": "raid-attack-draw",
+    "trigger": "onAttack",
+    "conditions": [
+      {
+        "type": "attackerIsSelf"
+      },
+      {
+        "type": "hasCharacterNamesOnField",
+        "names": ["花海 咲季", "藤田 ことね"],
+        "mode": "all"
+      }
+    ],
+    "actions": [
+      {
+        "type": "draw",
+        "count": 1
+      }
+    ]
+  }
+]
 }

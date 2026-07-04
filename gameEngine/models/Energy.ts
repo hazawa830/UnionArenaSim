@@ -61,4 +61,7 @@ export class Energy {
   public toString(): string {
     return JSON.stringify(this.amounts);
   }
+  public getTotal(): number {
+  return this.amounts.red + this.amounts.blue + this.amounts.green + this.amounts.yellow + this.amounts.purple;
+}
 }

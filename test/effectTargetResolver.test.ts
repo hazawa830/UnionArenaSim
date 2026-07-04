@@ -6,6 +6,7 @@ import { TestCardFactory } from "./helpers/TestCardFactory";
 import { EffectTargetResolver } from "../gameEngine/effects/EffectTargetResolver";
 import { Effect } from "../gameEngine/effects/Effect";
 import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
+import { ContinuousEffectResolver } from "../gameEngine/effects/ContinuousEffectResolver";
 
 describe("EffectTargetResolver", () => {
   it("own field のキャラ候補を取得できる", () => {
@@ -191,4 +192,43 @@ describe("EffectTargetResolver", () => {
   expect(candidates).not.toContain(target);
   expect(candidates).toHaveLength(0);
 });
+it("continuousのBP上昇効果が適用される", () => {
+  const game = createTestGame();
+
+  const currentPlayer = game.getCurrentPlayer();
+  const opponentPlayer = game.getOpponentPlayer();
+
+  const card = TestCardFactory.createCharacter({
+    name: "テストキャラ",
+    bp: 3000,
+    effects: [
+      {
+        id: "continuous-bp",
+        trigger: EffectTrigger.Continuous,
+        conditions: [],
+        actions: [
+          {
+            type: "modifyBpContinuous",
+            target: "self",
+            amount: 1000,
+          },
+        ],
+      },
+    ],
+  });
+
+  currentPlayer.board.frontLine[0].setCard(card);
+
+  const context = {
+    game,
+    source: card,
+    actor: currentPlayer,
+    opponent: opponentPlayer,
+  };
+
+  expect(
+    ContinuousEffectResolver.getCurrentBp(context, card)
+  ).toBe(4000);
+});
+
 });

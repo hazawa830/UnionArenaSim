@@ -1,0 +1,43 @@
+{
+  "id": "EX13BT_GIM-2-063",
+  "name": "花海 咲季",
+  "imagePath": "/card-images/EX13BT_GIM-2-063_p1.png",
+  "cardType": "character",
+  "requiredEnergy": {
+    "red": 1
+  },
+  "actionPointCost": 1,
+  "bp": 1500,
+  "generatedEnergy": {
+    "red": 1
+  },
+  "triggerType": "none",
+
+  "keywords": [
+    {
+      "type": "impactNullify"
+    }
+  ],
+
+  "effects": [
+    {
+        "id": "EX13BT_GIM-2-063-effect1",
+        "trigger": "duringOwnTurn",
+        "conditions": [
+            {
+            "type": "hasCharacterNamesOnField",
+            "names": ["月村 手毬", "藤田 ことね"],
+            "mode": "all"
+            }
+        ],
+        "actions": [
+            {
+            "type": "modifyBpContinuous",
+            "target": "self",
+            "amount": 1500
+            }
+        ]
+        }
+  ]
+
+}
