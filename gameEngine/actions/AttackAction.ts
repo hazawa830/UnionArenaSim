@@ -13,6 +13,8 @@ import { EffectTrigger } from "../effects/EffectTrigger";
 import { ContinuousEffectResolver } from "../effects/ContinuousEffectResolver";
 import { KeywordResolver } from "../keywords/KeywordResolver";
 import { AttackTarget } from "./AttackTarget";
+import { LogType } from "../enum/LogType";
+import { GameLogger } from "../log/GameLogger";
 
 export class AttackAction {
   public static execute(
@@ -40,6 +42,24 @@ export class AttackAction {
 
     attacker.isRest = true;
     attacker.attackedThisTurnCount++;
+    GameLogger.add(game, {
+      playerId: currentPlayer.id,
+      type: LogType.Attack,
+      message:
+        attackTarget.type === "frontLineCharacter"
+          ? `${attacker.card.name}で相手フロント${attackTarget.index}を狙い撃ち`
+          : `${attacker.card.name}でアタック`,
+      payload: {
+        attackerInstanceId: attacker.instanceId,
+        attackerCardId: attacker.card.id,
+        attackerCardName: attacker.card.name,
+        attackerIndex,
+        attackTarget,
+        blockerIndex,
+        source,
+        attackedThisTurnCount: attacker.attackedThisTurnCount,
+      },
+    });
     EffectResolver.resolveForField(
       game,
       EffectTrigger.OnAttack,
@@ -206,6 +226,20 @@ export class AttackAction {
   ): void {
     if (options.isBlock) {
       this.validateAndRestBlocker(attacker, battleTarget);
+      GameLogger.add(game, {
+        playerId: opponentPlayer.id,
+        type: LogType.Block,
+        message: `${battleTarget.card.name}でブロック`,
+        payload: {
+          blockerInstanceId: battleTarget.instanceId,
+          blockerCardId: battleTarget.card.id,
+          blockerCardName: battleTarget.card.name,
+          attackerInstanceId: attacker.instanceId,
+          attackerCardId: attacker.card.id,
+          isRest: battleTarget.isRest,
+          blockedThisTurnCount: battleTarget.blockedThisTurnCount,
+        },
+      });
     }
 
     const attackerContext = {
@@ -233,9 +267,25 @@ export class AttackAction {
     );
 
     if (attackerBp < targetBp) {
+
       return;
     }
-
+    GameLogger.add(game, {
+        playerId: currentPlayer.id,
+        type: LogType.BattleWin,
+        message: `${attacker.card.name}がバトルに勝利`,
+        payload: {
+          attackerInstanceId: attacker.instanceId,
+          attackerCardId: attacker.card.id,
+          attackerCardName: attacker.card.name,
+          targetInstanceId: battleTarget.instanceId,
+          targetCardId: battleTarget.card.id,
+          targetCardName: battleTarget.card.name,
+          attackerBp,
+          targetBp,
+          isBlock: options.isBlock,
+        },
+      });
     EffectResolver.resolveForField(
       game,
       EffectTrigger.OnBattleWin,
@@ -248,6 +298,18 @@ export class AttackAction {
 
     if (destroyed) {
       opponentPlayer.board.trash.push(destroyed);
+      GameLogger.add(game, {
+        playerId: opponentPlayer.id,
+        type: LogType.Destroy,
+        message: `${destroyed.card.name}が退場`,
+        payload: {
+          destroyedInstanceId: destroyed.instanceId,
+          destroyedCardId: destroyed.card.id,
+          destroyedCardName: destroyed.card.name,
+          byAttackerInstanceId: attacker.instanceId,
+          byAttackerCardId: attacker.card.id,
+        },
+      });
     }
 
     const impactDamage = KeywordResolver.getImpactDamageForBattle(
@@ -297,12 +359,26 @@ export class AttackAction {
   ): void {
     for (let i = 0; i < damage; i++) {
       const lifeCard = damagedPlayer.board.lifeArea.pop();
-
+      
       if (!lifeCard) {
         game.winner = game.currentPlayerId;
         return;
       }
-
+      GameLogger.add(game, {
+        playerId: attackerPlayer.id,
+        type: LogType.LifeDamage,
+        message: `${damagedPlayer.name}に1ダメージ`,
+        payload: {
+          damagedPlayerId: damagedPlayer.id,
+          attackerPlayerId: attackerPlayer.id,
+          damageIndex: i + 1,
+          totalDamage: damage,
+          lifeCardInstanceId: lifeCard.instanceId,
+          lifeCardId: lifeCard.card.id,
+          lifeCardName: lifeCard.card.name,
+          remainingLife: damagedPlayer.board.lifeArea.length,
+        },
+      });
       TriggerAction.resolve(game, lifeCard, damagedPlayer, attackerPlayer);
 
       if (damagedPlayer.board.lifeArea.length === 0) {

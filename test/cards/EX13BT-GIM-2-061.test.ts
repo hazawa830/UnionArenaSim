@@ -8,7 +8,9 @@ import { BoardLine } from "../../gameEngine/enum/BoardLine";
 import { Effect } from "../../gameEngine/effects/Effect";
 import { EffectTrigger } from "../../gameEngine/effects/EffectTrigger";
 import { ActivateMainEffectAction } from "../../gameEngine/actions/ActivateMainEffectAction";
-
+import { LogType } from "../../gameEngine/enum/LogType";
+import { EffectLogType } from "../../gameEngine/enum/EffectLogType";
+import { ModifyBpThisTurnEffectAction } from "../../gameEngine/effects/actions/ModifyBpThisTurnEffectAction";
 function createTemari061() {
   const effects: Effect[] = [
     {
@@ -114,4 +116,52 @@ describe("EX13BT-GIM-2-061 月村 手毬", () => {
 
     expect(temari.temporaryBpBonus).toBe(0);
   });
+
+  it("modifyBpThisTurnでBPを上げるとEffectログが追加される", () => {
+  const game = createTestGame();
+  const actor = game.getCurrentPlayer();
+  const opponent = game.getOpponentPlayer();
+
+  const source = TestCardFactory.createCharacter({
+    name: "効果元",
+    bp: 3000,
+  });
+
+  const context = {
+    game,
+    source,
+    actor,
+    opponent,
+  };
+
+  ModifyBpThisTurnEffectAction.execute(context, {
+    type: "modifyBpThisTurn",
+    target: "self",
+    amount: 1500,
+  });
+
+  expect(source.temporaryBpBonus).toBe(1500);
+  expect(game.logs).toHaveLength(1);
+
+  const log = game.logs[0];
+
+  expect(log.type).toBe(LogType.Effect);
+  expect(log.playerId).toBe(actor.id);
+  expect(log.message).toContain("効果元");
+
+  expect(log.payload).toMatchObject({
+    effectType: EffectLogType.ModifyBpThisTurn,
+
+    sourceInstanceId: source.instanceId,
+    sourceCardId: source.card.id,
+    sourceCardName: source.card.name,
+
+    targetInstanceId: source.instanceId,
+    targetCardId: source.card.id,
+    targetCardName: source.card.name,
+
+    amount: 1500,
+    temporaryBpBonus: 1500,
+  });
+});
 });

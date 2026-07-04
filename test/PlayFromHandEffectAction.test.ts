@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { createTestGame } from "../helpers/createTestGame";
-import { TestCardFactory } from "../helpers/TestCardFactory";
+import { createTestGame } from "./helpers/createTestGame";
+import { TestCardFactory } from "./helpers/TestCardFactory";
 
-import { EffectActionExecutor } from "../../gameEngine/effects/EffectActionExecutor";
-import { EffectContext } from "../../gameEngine/effects/EffectContext";
-import { BoardLine } from "../../gameEngine/enum/BoardLine";
+import { EffectActionExecutor } from "../gameEngine/effects/EffectActionExecutor";
+import { EffectContext } from "../gameEngine/effects/EffectContext";
+import { BoardLine } from "../gameEngine/enum/BoardLine";
+import { LogType } from "../gameEngine/enum/LogType";
+import { EffectLogType } from "../gameEngine/enum/EffectLogType";
+import { PlayFromHandEffectAction } from "../gameEngine/actions/PlayFromHandEffectAction";
+const  game = createTestGame();
 
 describe("playFromHand integration", () => {
   it("EffectActionExecutor経由で、手札の条件一致キャラをレストで登場させる", () => {
@@ -147,4 +151,59 @@ describe("playFromHand integration", () => {
     expect(actor.board.frontLine.some((slot) => slot.getCard()?.card.name === "月村 手毬")).toBe(true);
     expect(actor.board.deck.length).toBe(deckBefore);
   });
+  it("手札から登場した場合、Effectログが追加される", () => {
+  const game = createTestGame();
+  const actor = game.getCurrentPlayer();
+  const opponent = game.getOpponentPlayer();
+
+  const source = TestCardFactory.createCharacter({
+    name: "効果元",
+    bp: 3000,
+  });
+
+  const played = TestCardFactory.createCharacter({
+    name: "花海 咲季",
+    bp: 3000,
+    color: "red",
+  });
+
+  actor.board.hand.splice(0, actor.board.hand.length);
+  actor.board.hand.push(played);
+
+  const context: EffectContext = {
+    game,
+    source,
+    actor,
+    opponent,
+  };
+
+  PlayFromHandEffectAction.execute(context, {
+    type: "playFromHand",
+    target: {
+      cardType: "character",
+      names: ["花海 咲季"],
+      color: "red",
+      maxRequiredEnergyTotal: 3,
+      actionPointCost: 1,
+    },
+    destination: BoardLine.FrontLine,
+    rest: true,
+    maxCount: 1,
+    optional: true,
+  });
+
+  expect(game.logs).toHaveLength(1);
+  expect(game.logs[0]).toMatchObject({
+    type: LogType.Effect,
+    playerId: actor.id,
+  });
+
+  expect(game.logs[0].payload).toMatchObject({
+    effectType: EffectLogType.PlayFromHand,
+    sourceInstanceId: source.instanceId,
+    playedInstanceId: played.instanceId,
+    destination: BoardLine.FrontLine,
+    isRest: true,
+  });
+});
 });

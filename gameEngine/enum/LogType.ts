@@ -1,0 +1,15 @@
+export enum LogType {
+  PlayCard = "playCard",
+  Attack = "attack",
+  Block = "block",
+  BattleWin = "battleWin",
+  Destroy = "destroy",
+  LifeDamage = "lifeDamage",
+  RaidPlay = "raidPlay",
+  Trigger = "trigger",
+TriggerResult = "triggerResult",
+Effect = "effect",
+PhaseChange = "phaseChange",
+TurnStart = "turnStart",
+TurnEnd = "turnEnd",
+}

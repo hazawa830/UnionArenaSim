@@ -4,8 +4,11 @@ import { Slot } from "../models/Slot";
 import { GamePhase } from "../enum/GamePhase";
 import { BoardLine } from "../enum/BoardLine";
 import { ActionSource } from "../enum/ActionSource";
+import { LogType } from "../enum/LogType";
 import { EffectResolver } from "../effects/EffectResolver";
 import { EffectTrigger } from "../effects/EffectTrigger";
+import { GameLogger } from "../log/GameLogger";
+
 export class PlayCardAction {
   public static execute(
     game: Game,
@@ -39,11 +42,30 @@ export class PlayCardAction {
     }
 
     board.payActionPoint(cardInstance.card.actionPointCost);
+
     if (source === ActionSource.PlayerNormal) {
       cardInstance.isRest = true;
     }
+
     board.hand.splice(handIndex, 1);
     targetSlot.setCard(cardInstance);
+
+    GameLogger.add(game, {
+      playerId: player.id,
+      type: LogType.PlayCard,
+      message: `${cardInstance.card.name}を${destination}へ登場`,
+      payload: {
+        instanceId: cardInstance.instanceId,
+        cardId: cardInstance.card.id,
+        cardName: cardInstance.card.name,
+        destination,
+        source,
+        actionPointCost: cardInstance.card.actionPointCost,
+        requiredEnergy: cardInstance.card.requiredEnergy,
+        isRest: cardInstance.isRest,
+      },
+    });
+
     EffectResolver.resolve(game, cardInstance, EffectTrigger.OnPlay);
   }
 

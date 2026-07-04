@@ -76,4 +76,6 @@ describe("Effect data", () => {
 
     expect(card.effects).toEqual([]);
   });
+
+  
 });

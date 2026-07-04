@@ -10,6 +10,8 @@ import { EffectTrigger } from "../effects/EffectTrigger";
 import { EffectResolver } from "../effects/EffectResolver";
 
 import { RaidConditionResolver } from "../raid/RaidConditionResolver";
+import { LogType } from "../enum/LogType";
+import { GameLogger } from "../log/GameLogger";
 
 export class RaidPlayAction {
   public static execute(
@@ -99,7 +101,32 @@ export class RaidPlayAction {
     raidCard.isRest = false;
 
     destinationSlot.setCard(raidCard);
+    const movedFromEnergy = baseLine === BoardLine.EnergyLine;
 
+GameLogger.add(game, {
+  playerId: player.id,
+  type: LogType.RaidPlay,
+  message: `${raidCard.card.name}を${removedBase.card.name}の上にレイド登場`,
+  payload: {
+    raidInstanceId: raidCard.instanceId,
+    raidCardId: raidCard.card.id,
+    raidCardName: raidCard.card.name,
+
+    baseInstanceId: removedBase.instanceId,
+    baseCardId: removedBase.card.id,
+    baseCardName: removedBase.card.name,
+
+    handIndex,
+    baseLine,
+    baseIndex,
+    destinationLine: movedFromEnergy ? BoardLine.FrontLine : baseLine,
+    destinationIndex: movedFromEnergy ? destinationFrontIndex : baseIndex,
+    movedFromEnergy,
+
+    actionPointCost: raidCard.card.actionPointCost,
+    isRest: raidCard.isRest,
+  },
+});
     EffectResolver.resolve(
       game,
       raidCard,

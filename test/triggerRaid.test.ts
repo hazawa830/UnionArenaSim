@@ -8,6 +8,7 @@ import { CardFactory } from "../gameEngine/cards/CardFactory";
 import { CardInstance } from "../gameEngine/cards/CardInstance";
 import { TriggerType } from "../gameEngine/enum/TriggerType";
 import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
+import { LogType } from "../gameEngine/enum/LogType";
 
 function createRedEnergy(name: string) {
   return TestCardFactory.createCharacter({
@@ -194,4 +195,88 @@ describe("TriggerAction Raid", () => {
     expect(damagedPlayer.board.hand.length).toBe(handBefore + 1);
     expect(damagedPlayer.board.deck.length).toBe(deckBefore - 1);
   });
+it("レイドトリガー公開時にTriggerログが追加される", () => {
+  const game = createTestGame();
+  const damagedPlayer = game.getCurrentPlayer();
+  const opponentPlayer = game.getOpponentPlayer();
+
+  setupRed4Energy(damagedPlayer);
+
+  const base = TestCardFactory.createCharacter({
+    name: "月村 手毬",
+    bp: 1500,
+  });
+
+  const raid = createRaidTemari();
+
+  damagedPlayer.board.frontLine[0].setCard(base);
+
+  TriggerAction.resolve(game, raid, damagedPlayer, opponentPlayer);
+
+  expect(game.logs[0]).toMatchObject({
+    type: LogType.Trigger,
+    playerId: damagedPlayer.id,
+  });
+
+  expect(game.logs[0].payload).toMatchObject({
+    cardInstanceId: raid.instanceId,
+    cardId: raid.card.id,
+    cardName: raid.card.name,
+    triggerType: raid.card.triggerType,
+  });
+});
+it("レイドトリガー成功時にTriggerResultログが追加される", () => {
+  const game = createTestGame();
+  const damagedPlayer = game.getCurrentPlayer();
+  const opponentPlayer = game.getOpponentPlayer();
+
+  setupRed4Energy(damagedPlayer);
+
+  const base = TestCardFactory.createCharacter({
+    name: "月村 手毬",
+    bp: 1500,
+  });
+
+  const raid = createRaidTemari();
+
+  damagedPlayer.board.frontLine[0].setCard(base);
+
+  TriggerAction.resolve(game, raid, damagedPlayer, opponentPlayer);
+
+  const resultLog = game.logs.find(
+    (log) => log.type === LogType.TriggerResult
+  );
+
+  expect(resultLog).toBeDefined();
+
+  expect(resultLog?.payload).toMatchObject({
+    result: "raidPlay",
+    cardInstanceId: raid.instanceId,
+    cardId: raid.card.id,
+    baseInstanceId: base.instanceId,
+    baseCardId: base.card.id,
+    isRest: false,
+  });
+});
+it("レイドできない場合は手札に加わりTriggerResultログに理由が残る", () => {
+  const game = createTestGame();
+  const damagedPlayer = game.getCurrentPlayer();
+  const opponentPlayer = game.getOpponentPlayer();
+
+  const raid = createRaidTemari();
+
+  TriggerAction.resolve(game, raid, damagedPlayer, opponentPlayer);
+
+  expect(damagedPlayer.board.hand).toContain(raid);
+
+  const resultLog = game.logs.find(
+    (log) => log.type === LogType.TriggerResult
+  );
+
+  expect(resultLog?.payload).toMatchObject({
+    result: "addToHand",
+    reason: "notEnoughEnergy",
+    cardId: raid.card.id,
+  });
+});
 });

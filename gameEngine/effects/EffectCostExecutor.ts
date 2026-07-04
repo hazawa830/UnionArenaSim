@@ -1,6 +1,8 @@
 import { EffectCost } from "./EffectCost";
 import { EffectContext } from "./EffectContext";
-
+import { GameLogger } from "../log/GameLogger";
+import { LogType } from "../enum/LogType";
+import { EffectLogType } from "../enum/EffectLogType";
 export class EffectCostExecutor {
   public static payCosts(
     context: EffectContext,
@@ -38,6 +40,25 @@ export class EffectCostExecutor {
           }
 
           context.actor.board.trash.push(discarded);
+          GameLogger.add(context.game, {
+            playerId: context.actor.id,
+            type: LogType.Effect,
+            message: `${discarded.card.name}をコストとして捨てた`,
+            payload: {
+              effectType: EffectLogType.DiscardHand,
+
+              sourceInstanceId: context.source.instanceId,
+              sourceCardId: context.source.card.id,
+              sourceCardName: context.source.card.name,
+
+              discardedInstanceId: discarded.instanceId,
+              discardedCardId: discarded.card.id,
+              discardedCardName: discarded.card.name,
+
+              discardIndex: i + 1,
+              discardCount: cost.count,
+            },
+          });
         }
 
         return;

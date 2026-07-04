@@ -9,6 +9,9 @@ import { CardInstance } from "../gameEngine/cards/CardInstance";
 import { UseEventCardAction } from "../gameEngine/actions/UseEventCardAction";
 import { Effect } from "../gameEngine/effects/Effect";
 import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
+import { LogType } from "../gameEngine/enum/LogType";
+import { EffectLogType } from "../gameEngine/enum/EffectLogType";
+import { DestroyEffectAction } from "../gameEngine/effects/actions/DestroyEffectAction";
 
 describe("EX13BT-GIM-2-070 夏を満喫するわよ！", () => {
   it("条件を満たす場合、相手BP5000以下を退場させ、自分のキャラ1枚にBP+1000する", () => {
@@ -287,4 +290,64 @@ describe("EX13BT-GIM-2-070 夏を満喫するわよ！", () => {
     // 退場対象がいなくても、次のBP+1000は実行される想定
     expect(saki.temporaryBpBonus).toBe(1000);
   });
+  it("効果で退場させた場合、Effectログが追加される", () => {
+  const game = createTestGame();
+  const actor = game.getCurrentPlayer();
+  const opponent = game.getOpponentPlayer();
+
+  const source = TestCardFactory.createCharacter({
+    name: "退場効果元",
+    bp: 3000,
+  });
+
+  const target = TestCardFactory.createCharacter({
+    name: "退場対象",
+    bp: 2000,
+  });
+
+  opponent.board.frontLine[0].setCard(target);
+
+  const context = {
+    game,
+    source,
+    actor,
+    opponent,
+  };
+
+  DestroyEffectAction.execute(context, {
+    type: "destroy",
+    target: {
+      side: "opponent",
+      zone: "frontLine",
+      cardType: "character",
+      maxCount: 1,
+    },
+  });
+
+  expect(opponent.board.frontLine[0].isEmpty()).toBe(true);
+  expect(opponent.board.trash).toContain(target);
+
+  expect(game.logs).toHaveLength(1);
+
+  const log = game.logs[0];
+
+  expect(log.type).toBe(LogType.Effect);
+  expect(log.playerId).toBe(opponent.id);
+  expect(log.message).toContain("退場対象");
+
+  expect(log.payload).toMatchObject({
+    effectType: EffectLogType.Destroy,
+
+    sourceInstanceId: source.instanceId,
+    sourceCardId: source.card.id,
+    sourceCardName: source.card.name,
+
+    destroyedInstanceId: target.instanceId,
+    destroyedCardId: target.card.id,
+    destroyedCardName: target.card.name,
+
+    targetSide: "opponent",
+    targetZone: "frontLine",
+  });
+});
 });

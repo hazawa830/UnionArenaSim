@@ -1,11 +1,13 @@
-import { CardInstance } from "../gameEngine/cards/CardInstance";
-import { CharacterCard } from "../gameEngine/cards/CharacterCard";
-import { StageCard } from "../gameEngine/cards/StageCard";
-import { BoardLine } from "../gameEngine/enum/BoardLine";
-import { CardType } from "../gameEngine/enum/CardType";
-import { EffectAction } from "../gameEngine/effects/EffectAction";
-import { EffectContext } from "../gameEngine/effects/EffectContext";
-
+import { CardInstance } from "../../cards/CardInstance";
+import { CharacterCard } from "../../cards/CharacterCard";
+import { StageCard } from "../../cards/StageCard";
+import { BoardLine } from "../../enum/BoardLine";
+import { CardType } from "../../enum/CardType";
+import { EffectAction } from "../EffectAction";
+import { EffectContext } from "../EffectContext";
+import { LogType } from "../../enum/LogType";
+import { EffectLogType } from "../../enum/EffectLogType";
+import { GameLogger } from "../../log/GameLogger";
 type PlayFromHandAction = Extract<EffectAction, { type: "playFromHand" }>;
 
 export class PlayFromHandEffectAction {
@@ -47,6 +49,28 @@ export class PlayFromHandEffectAction {
       card.isRest = action.rest ?? false;
 
       destinationSlot.setCard(card);
+      GameLogger.add(context.game, {
+      playerId: context.actor.id,
+      type: LogType.Effect,
+      message: `${card.card.name}を手札から${action.destination}へ登場`,
+      payload: {
+        effectType: EffectLogType.PlayFromHand,
+
+        sourceInstanceId: context.source.instanceId,
+        sourceCardId: context.source.card.id,
+        sourceCardName: context.source.card.name,
+
+        playedInstanceId: card.instanceId,
+        playedCardId: card.card.id,
+        playedCardName: card.card.name,
+
+        handIndex,
+        destination: action.destination,
+        isRest: card.isRest,
+        countIndex: count + 1,
+        maxCount,
+      },
+    });
     }
   }
 

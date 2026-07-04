@@ -5,7 +5,7 @@ import { TurnManager } from "../rules/TurnManager";
 import { GamePhase } from "../enum/GamePhase";
 import { PlayerId } from "../enum/PlayerId";
 import { StartPhaseAction } from "../actions/StartPhaseAction";
-
+import { GameLog } from "../log/GameLog";
 export class Game {
   public readonly player1: Player;
   public readonly player2: Player;
@@ -16,6 +16,9 @@ export class Game {
   public turnCount: number;
   public firstPlayerId: PlayerId;
   public playerTurnCounts: Record<PlayerId, number>;
+  public logs: GameLog[] = [];
+  public nextLogId = 1;
+
   constructor(player1: Player, player2: Player) {
     this.player1 = player1;
     this.player2 = player2;
@@ -27,9 +30,11 @@ export class Game {
     this.winner = undefined;
     this.turnCount = 1;
     this.firstPlayerId = this.currentPlayerId;
+    this.nextLogId = 1
     this.playerTurnCounts = {
     [PlayerId.Player1]: 0,
     [PlayerId.Player2]: 0,
+    
 };
   }
 

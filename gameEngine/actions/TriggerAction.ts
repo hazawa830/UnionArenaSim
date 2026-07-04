@@ -9,6 +9,50 @@ import { EffectContext } from "../effects/EffectContext";
 import { RaidConditionResolver } from "../raid/RaidConditionResolver";
 import { EffectResolver } from "../effects/EffectResolver";
 import { EffectTrigger } from "../effects/EffectTrigger";
+import { LogType } from "../enum/LogType";
+import { GameLogger } from "../log/GameLogger";
+
+type ActiveTriggerResult =
+  | {
+      success: true;
+      targetInstanceId: number;
+      targetCardId: string;
+      targetCardName: string;
+      amount: number;
+    }
+  | {
+      success: false;
+      reason: "noTarget";
+    };
+
+type ColorTriggerResult =
+  | {
+      success: true;
+      returnedCardInstanceId: number;
+      returnedCardId: string;
+      returnedCardName: string;
+      targetIndex: number;
+    }
+  | {
+      success: false;
+      reason: "notBlue" | "noTarget";
+    };
+
+type FinalTriggerResult =
+  | {
+      success: true;
+      addedLifeInstanceId: number;
+      addedLifeCardId: string;
+      addedLifeCardName: string;
+    }
+  | {
+      success: false;
+      reason: "lifeExists" | "deckEmpty";
+    };
+
+type SpecialTriggerResult = {
+  result: "special";
+};
 
 export class TriggerAction {
   public static resolve(
@@ -17,46 +61,129 @@ export class TriggerAction {
     damagedPlayer: Player,
     opponentPlayer: Player
   ): void {
+    this.logTriggerReveal(game, revealedCard, damagedPlayer, opponentPlayer);
+
     switch (revealedCard.card.triggerType) {
       case TriggerType.Draw:
         damagedPlayer.board.draw(1);
         damagedPlayer.board.trash.push(revealedCard);
-        break;
+        this.logTriggerResult(game, damagedPlayer, revealedCard, {
+          result: "draw",
+          count: 1,
+        });
+        return;
 
       case TriggerType.Get:
         damagedPlayer.board.hand.push(revealedCard);
-        break;
+        this.logTriggerResult(game, damagedPlayer, revealedCard, {
+          result: "get",
+        });
+        return;
 
-      case TriggerType.Active:
-        this.resolveActiveTrigger(damagedPlayer);
+      case TriggerType.Active: {
+        const result = this.resolveActiveTrigger(damagedPlayer);
         damagedPlayer.board.trash.push(revealedCard);
-        break;
+        this.logTriggerResult(game, damagedPlayer, revealedCard, {
+          result: "active",
+          ...result,
+        });
+        return;
+      }
 
-      case TriggerType.Color:
-        this.resolveColorTrigger(revealedCard, damagedPlayer, opponentPlayer);
+      case TriggerType.Color: {
+        const result = this.resolveColorTrigger(
+          revealedCard,
+          damagedPlayer,
+          opponentPlayer
+        );
         damagedPlayer.board.trash.push(revealedCard);
-        break;
+        this.logTriggerResult(game, damagedPlayer, revealedCard, {
+          result: "color",
+          ...result,
+        });
+        return;
+      }
 
-      case TriggerType.Special:
-        this.resolveSpecialTrigger(game, revealedCard, damagedPlayer, opponentPlayer);
+      case TriggerType.Special: {
+        const result = this.resolveSpecialTrigger(
+          game,
+          revealedCard,
+          damagedPlayer,
+          opponentPlayer
+        );
         damagedPlayer.board.trash.push(revealedCard);
-        break;
+        this.logTriggerResult(game, damagedPlayer, revealedCard, result);
+        return;
+      }
 
-      case TriggerType.Final:
-        this.resolveFinalTrigger(damagedPlayer);
+      case TriggerType.Final: {
+        const result = this.resolveFinalTrigger(damagedPlayer);
         damagedPlayer.board.trash.push(revealedCard);
-        break;
+        this.logTriggerResult(game, damagedPlayer, revealedCard, {
+          result: "final",
+          ...result,
+        });
+        return;
+      }
+
       case TriggerType.Raid:
         this.resolveRaidTrigger(game, revealedCard, damagedPlayer, opponentPlayer);
-        break;
+        return;
+
       case TriggerType.None:
       default:
         damagedPlayer.board.trash.push(revealedCard);
-        break;
+        this.logTriggerResult(game, damagedPlayer, revealedCard, {
+          result: "none",
+        });
+        return;
     }
   }
 
-  private static resolveActiveTrigger(player: Player): void {
+  private static logTriggerReveal(
+    game: Game,
+    revealedCard: CardInstance,
+    damagedPlayer: Player,
+    opponentPlayer: Player
+  ): void {
+    GameLogger.add(game, {
+      playerId: damagedPlayer.id,
+      type: LogType.Trigger,
+      message: `${revealedCard.card.name}の${revealedCard.card.triggerType}トリガーを公開`,
+      payload: {
+        cardInstanceId: revealedCard.instanceId,
+        cardId: revealedCard.card.id,
+        cardName: revealedCard.card.name,
+        triggerType: revealedCard.card.triggerType,
+        damagedPlayerId: damagedPlayer.id,
+        opponentPlayerId: opponentPlayer.id,
+      },
+    });
+  }
+
+  private static logTriggerResult(
+    game: Game,
+    player: Player,
+    revealedCard: CardInstance,
+    resultPayload: Record<string, unknown>
+  ): void {
+    GameLogger.add(game, {
+      playerId: player.id,
+      type: LogType.TriggerResult,
+      message: `${revealedCard.card.name}のトリガー結果: ${String(
+        resultPayload.result
+      )}`,
+      payload: {
+        cardInstanceId: revealedCard.instanceId,
+        cardId: revealedCard.card.id,
+        cardName: revealedCard.card.name,
+        triggerType: revealedCard.card.triggerType,
+        ...resultPayload,
+      },
+    });
+  }
+
+  private static resolveActiveTrigger(player: Player): ActiveTriggerResult {
     const targetSlot = player.board.frontLine.find((slot) => {
       const card = slot.getCard();
       return card && card.card instanceof CharacterCard;
@@ -65,19 +192,33 @@ export class TriggerAction {
     const target = targetSlot?.getCard();
 
     if (!target) {
-      return;
+      return {
+        success: false,
+        reason: "noTarget",
+      };
     }
 
     target.temporaryBpBonus += 3000;
+
+    return {
+      success: true,
+      targetInstanceId: target.instanceId,
+      targetCardId: target.card.id,
+      targetCardName: target.card.name,
+      amount: 3000,
+    };
   }
 
   private static resolveColorTrigger(
     revealedCard: CardInstance,
     damagedPlayer: Player,
     opponentPlayer: Player
-  ): void {
+  ): ColorTriggerResult {
     if (revealedCard.card.color !== "blue") {
-      return;
+      return {
+        success: false,
+        reason: "notBlue",
+      };
     }
 
     const targetIndex = opponentPlayer.board.frontLine.findIndex((slot) => {
@@ -91,28 +232,57 @@ export class TriggerAction {
     });
 
     if (targetIndex === -1) {
-      return;
+      return {
+        success: false,
+        reason: "noTarget",
+      };
     }
 
     const returned = opponentPlayer.board.frontLine[targetIndex].removeCard();
 
-    if (returned) {
-      opponentPlayer.board.hand.push(returned);
+    if (!returned) {
+      return {
+        success: false,
+        reason: "noTarget",
+      };
     }
+
+    opponentPlayer.board.hand.push(returned);
+
+    return {
+      success: true,
+      returnedCardInstanceId: returned.instanceId,
+      returnedCardId: returned.card.id,
+      returnedCardName: returned.card.name,
+      targetIndex,
+    };
   }
 
-  private static resolveFinalTrigger(player: Player): void {
+  private static resolveFinalTrigger(player: Player): FinalTriggerResult {
     if (player.board.lifeArea.length > 0) {
-      return;
+      return {
+        success: false,
+        reason: "lifeExists",
+      };
     }
 
     const lifeCard = player.board.deck.pop();
 
     if (!lifeCard) {
-      return;
+      return {
+        success: false,
+        reason: "deckEmpty",
+      };
     }
 
     player.board.lifeArea.push(lifeCard);
+
+    return {
+      success: true,
+      addedLifeInstanceId: lifeCard.instanceId,
+      addedLifeCardId: lifeCard.card.id,
+      addedLifeCardName: lifeCard.card.name,
+    };
   }
 
   private static resolveSpecialTrigger(
@@ -120,7 +290,7 @@ export class TriggerAction {
     revealedCard: CardInstance,
     damagedPlayer: Player,
     opponentPlayer: Player
-  ): void {
+  ): SpecialTriggerResult {
     const context: EffectContext = {
       game,
       source: revealedCard,
@@ -139,62 +309,93 @@ export class TriggerAction {
     };
 
     DestroyEffectAction.execute(context, action);
+
+    return {
+      result: "special",
+    };
   }
+
   private static resolveRaidTrigger(
-  game: Game,
-  revealedCard: CardInstance,
-  damagedPlayer: Player,
-  opponentPlayer: Player
-): void {
-  const board = damagedPlayer.board;
+    game: Game,
+    revealedCard: CardInstance,
+    damagedPlayer: Player,
+    opponentPlayer: Player
+  ): void {
+    const board = damagedPlayer.board;
 
-  const canPayEnergy = board
-    .getGeneratedEnergy()
-    .canPay(revealedCard.card.requiredEnergy);
+    const canPayEnergy = board
+      .getGeneratedEnergy()
+      .canPay(revealedCard.card.requiredEnergy);
 
-  if (!canPayEnergy || revealedCard.card.raidConditions.length === 0) {
-    board.hand.push(revealedCard);
-    return;
-  }
+    if (!canPayEnergy || revealedCard.card.raidConditions.length === 0) {
+      board.hand.push(revealedCard);
 
-  const slots = [...board.frontLine, ...board.energyLine];
+      this.logTriggerResult(game, damagedPlayer, revealedCard, {
+        result: "addToHand",
+        reason: !canPayEnergy ? "notEnoughEnergy" : "noRaidConditions",
+      });
 
-  const baseSlot = slots.find((slot) => {
-    const base = slot.getCard();
-
-    if (!base) {
-      return false;
+      return;
     }
 
-    return RaidConditionResolver.canRaidOn(
-      revealedCard.card.raidConditions,
-      base
+    const slots = [...board.frontLine, ...board.energyLine];
+
+    const baseSlot = slots.find((slot) => {
+      const base = slot.getCard();
+
+      if (!base) {
+        return false;
+      }
+
+      return RaidConditionResolver.canRaidOn(
+        revealedCard.card.raidConditions,
+        base
+      );
+    });
+
+    if (!baseSlot) {
+      board.hand.push(revealedCard);
+
+      this.logTriggerResult(game, damagedPlayer, revealedCard, {
+        result: "addToHand",
+        reason: "noRaidBase",
+      });
+
+      return;
+    }
+
+    const base = baseSlot.removeCard();
+
+    if (!base) {
+      board.hand.push(revealedCard);
+
+      this.logTriggerResult(game, damagedPlayer, revealedCard, {
+        result: "addToHand",
+        reason: "failedToRemoveBase",
+      });
+
+      return;
+    }
+
+    revealedCard.raidBase = base;
+    revealedCard.isRest = false;
+
+    baseSlot.setCard(revealedCard);
+
+    this.logTriggerResult(game, damagedPlayer, revealedCard, {
+      result: "raidPlay",
+      baseInstanceId: base.instanceId,
+      baseCardId: base.card.id,
+      baseCardName: base.card.name,
+      isRest: revealedCard.isRest,
+    });
+
+    EffectResolver.resolve(
+      game,
+      revealedCard,
+      EffectTrigger.OnPlay,
+      damagedPlayer,
+      opponentPlayer
     );
-  });
-
-  if (!baseSlot) {
-    board.hand.push(revealedCard);
-    return;
   }
-
-  const base = baseSlot.removeCard();
-
-  if (!base) {
-    board.hand.push(revealedCard);
-    return;
-  }
-
-  revealedCard.raidBase = base;
-  revealedCard.isRest = false;
-
-  baseSlot.setCard(revealedCard);
-
-  EffectResolver.resolve(
-    game,
-    revealedCard,
-    EffectTrigger.OnPlay,
-    damagedPlayer,
-    opponentPlayer
-  );
-}
 }

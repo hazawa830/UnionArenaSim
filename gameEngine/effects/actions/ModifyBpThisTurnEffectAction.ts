@@ -2,6 +2,9 @@ import { CardInstance } from "../../cards/CardInstance";
 import { EffectAction } from "../EffectAction";
 import { EffectTargetResolver } from "../EffectTargetResolver";
 import { EffectContext } from "../EffectContext";
+import { GameLogger } from "../../log/GameLogger";
+import { LogType } from "../../enum/LogType";
+import { EffectLogType } from "../../enum/EffectLogType";
 
 type ModifyBpThisTurnAction = Extract<
   EffectAction,
@@ -30,6 +33,7 @@ export class ModifyBpThisTurnEffectAction {
     }
 
     target.temporaryBpBonus += action.amount;
+    this.logModifyBp(context, context.source, action.amount);
   }
 
   private static executeStringTarget(
@@ -39,6 +43,7 @@ export class ModifyBpThisTurnEffectAction {
     switch (action.target) {
       case "self":
         context.source.temporaryBpBonus += action.amount;
+        this.logModifyBp(context, context.source, action.amount);
         return;
 
       case "selectedOwnOtherCharacter": {
@@ -62,4 +67,30 @@ export class ModifyBpThisTurnEffectAction {
         );
     }
   }
+  private static logModifyBp(
+    context: EffectContext,
+    target: CardInstance,
+    amount: number
+  ): void {
+    GameLogger.add(context.game, {
+      playerId: context.actor.id,
+      type: LogType.Effect,
+      message: `${target.card.name}のBPをこのターン${amount >= 0 ? "+" : ""}${amount}`,
+      payload: {
+        effectType: EffectLogType.ModifyBpThisTurn,
+
+        sourceInstanceId: context.source.instanceId,
+        sourceCardId: context.source.card.id,
+        sourceCardName: context.source.card.name,
+
+        targetInstanceId: target.instanceId,
+        targetCardId: target.card.id,
+        targetCardName: target.card.name,
+
+        amount,
+        temporaryBpBonus: target.temporaryBpBonus,
+      },
+    });
+  }
+  
 }

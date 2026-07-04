@@ -151,4 +151,6 @@ describe("TriggerAction", () => {
   expect(attackerPlayer.board.frontLine[0].isEmpty()).toBe(true);
   expect(attackerPlayer.board.trash).toContain(attacker);
 });
+
+
 });
