@@ -1,6 +1,6 @@
 import { Game } from "../../gameEngine/core/Game";
-import { GameFactory } from "../../gameEngine/factory/GameFactory";
+import { TestGameFactory } from "./testCameFactory";
 
 export function createTestGame(): Game {
-  return GameFactory.createSampleGame();
+  return TestGameFactory.createSampleGame();
 }

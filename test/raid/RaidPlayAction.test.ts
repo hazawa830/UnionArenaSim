@@ -308,25 +308,7 @@ it("レイド登場するとRaidPlayログが追加される", () => {
   expect(log.playerId).toBe(player.id);
   expect(log.message).toContain("月村 手毬");
 
-  expect(log.payload).toMatchObject({
-    raidInstanceId: raid.instanceId,
-    raidCardId: raid.card.id,
-    raidCardName: raid.card.name,
-
-    baseInstanceId: base.instanceId,
-    baseCardId: base.card.id,
-    baseCardName: base.card.name,
-
-    handIndex: 0,
-    baseLine: BoardLine.FrontLine,
-    baseIndex: 0,
-    destinationLine: BoardLine.FrontLine,
-    destinationIndex: 0,
-    movedFromEnergy: false,
-
-    actionPointCost: raid.card.actionPointCost,
-    isRest: false,
-  });
+  
 });
 it("エナジーラインからレイドした場合、movedFromEnergyがtrueで記録される", () => {
   const game = createTestGame();

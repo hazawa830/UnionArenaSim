@@ -11,23 +11,34 @@ import { PlayCardAction } from "../../gameEngine/actions/PlayCardAction";
 import { MoveCardAction } from "../../gameEngine/actions/MoveAction";
 import { AttackAction } from "../../gameEngine/actions/AttackAction";
 import { ExtraDrawAction } from "../../gameEngine/actions/ExtraDrawAction";
+import { RaidPlayAction } from "../../gameEngine/actions/RaidPlayAction";
 
-import { PlayerView } from "./components/PlayerView";
-import { HandView } from "./components/HandView";
-import { BlockPanel } from "./components/BlockPanel";
 import { WinnerModal } from "./components/WinnerModal";
-import { CompactPlayerInfo } from "./components/CompactPlayerInfo";
+import { OfficialBoardLayout } from "./components/OfficialBoardLayout";
+import { UseEventCardAction } from "../../gameEngine/actions/UseEventCardAction";
 
 function App() {
   const gameRef = useRef<Game>(GameFactory.createSampleGame());
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
+
   const [pendingAttack, setPendingAttack] = useState<number | null>(null);
   const [hoveredCardImage, setHoveredCardImage] = useState<string | null>(null);
+
+  const [pendingRaid, setPendingRaid] = useState<{ handIndex: number } | null>(
+    null
+  );
+
+  const [pendingRaidBase, setPendingRaidBase] = useState<{
+    handIndex: number;
+    baseLine: BoardLine;
+    baseIndex: number;
+  } | null>(null);
 
   const game = gameRef.current;
   const player1 = game.player1;
   const player2 = game.player2;
   const currentPlayer = game.getCurrentPlayer();
+
   const isYourTurn = currentPlayer === player1;
   const isGameOver = game.winner !== undefined;
 
@@ -37,37 +48,42 @@ function App() {
     if (game.winner) return;
     if (currentPlayer !== player2) return;
     if (pendingAttack !== null) return;
+    if (pendingRaid !== null) return;
+    if (pendingRaidBase !== null) return;
 
     const timer = setTimeout(() => {
-      if (game.phase === GamePhase.Attack) {
-        const attackerIndex = player2.board.frontLine.findIndex((slot) => {
-          const card = slot.getCard();
-          return card && !card.isRest;
-        });
-
-        if (attackerIndex !== -1) {
-          setPendingAttack(attackerIndex);
-          return;
-        }
-      }
-
       RandomCPU.playPhase(game);
       refresh();
-    }, 1000);
+    }, 700);
 
     return () => clearTimeout(timer);
-  }, [game.phase, game.currentPlayerId, game.winner, pendingAttack]);
+  }, [
+    game.phase,
+    game.currentPlayerId,
+    game.winner,
+    pendingAttack,
+    pendingRaid,
+    pendingRaidBase,
+  ]);
 
   const handleNewGame = () => {
     gameRef.current = GameFactory.createSampleGame();
     setPendingAttack(null);
+    setPendingRaid(null);
+    setPendingRaidBase(null);
     setHoveredCardImage(null);
     refresh();
   };
 
   const handleNextPhase = () => {
-    game.nextPhase();
-    refresh();
+    if (!isYourTurn) return alert("相手ターンです");
+
+    try {
+      game.nextPhase();
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
   };
 
   const handleExtraDraw = () => {
@@ -75,30 +91,6 @@ function App() {
 
     try {
       ExtraDrawAction.execute(game);
-      refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    }
-  };
-
-  const handleNoBlock = () => {
-    if (pendingAttack === null) return;
-
-    try {
-      AttackAction.execute(game, pendingAttack);
-      setPendingAttack(null);
-      refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    }
-  };
-
-  const handleBlock = (blockerIndex: number) => {
-    if (pendingAttack === null) return;
-
-    try {
-      AttackAction.execute(game, pendingAttack, blockerIndex);
-      setPendingAttack(null);
       refresh();
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
@@ -157,14 +149,113 @@ function App() {
     if (!isYourTurn) return alert("相手ターンです");
 
     try {
-      const blockerIndex = RandomCPU.chooseBlockerIndex(game);
-      AttackAction.execute(game, frontIndex, blockerIndex);
+      AttackAction.execute(game, frontIndex);
       refresh();
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
     }
   };
 
+  const handleNoBlock = () => {
+    if (pendingAttack === null) return;
+
+    try {
+      AttackAction.execute(game, pendingAttack);
+      setPendingAttack(null);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const handleBlock = (blockerIndex: number) => {
+    if (pendingAttack === null) return;
+
+    try {
+      AttackAction.execute(game, pendingAttack, blockerIndex);
+      setPendingAttack(null);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const handleStartRaid = (handIndex: number) => {
+    if (!isYourTurn) return alert("相手ターンです");
+    if (game.phase !== GamePhase.Main) return alert("メインフェーズのみです");
+
+    setPendingRaid({ handIndex });
+    setPendingRaidBase(null);
+  };
+
+  const handleSelectRaidBase = (baseLine: BoardLine, baseIndex: number) => {
+    if (!pendingRaid) return;
+
+    if (baseLine === BoardLine.FrontLine) {
+      try {
+        RaidPlayAction.execute(
+          game,
+          pendingRaid.handIndex,
+          BoardLine.FrontLine,
+          baseIndex
+        );
+
+        setPendingRaid(null);
+        setPendingRaidBase(null);
+        refresh();
+      } catch (e) {
+        alert(e instanceof Error ? e.message : String(e));
+      }
+
+      return;
+    }
+
+    setPendingRaidBase({
+      handIndex: pendingRaid.handIndex,
+      baseLine,
+      baseIndex,
+    });
+  };
+
+  const handleSelectRaidDestination = (
+    destinationLine: BoardLine,
+    destinationIndex: number
+  ) => {
+    if (!pendingRaidBase) return;
+
+    try {
+      RaidPlayAction.execute(
+        game,
+        pendingRaidBase.handIndex,
+        pendingRaidBase.baseLine,
+        pendingRaidBase.baseIndex,
+        destinationIndex,
+        destinationLine
+      );
+
+      setPendingRaid(null);
+      setPendingRaidBase(null);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  const handleCancelRaid = () => {
+    setPendingRaid(null);
+    setPendingRaidBase(null);
+  };
+  const handleUseEvent = (handIndex: number) => {
+    if (!isYourTurn) return alert("相手ターンです");
+    if (game.phase !== GamePhase.Main) return alert("メインフェーズのみです");
+
+    try {
+      UseEventCardAction.execute(game, handIndex);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
   return (
     <div className="app">
       <h1>Union Arena Simulator</h1>
@@ -173,82 +264,72 @@ function App() {
         <WinnerModal winner={game.winner} onNewGame={handleNewGame} />
       )}
 
-      <div className="game-layout">
-        <aside className="side-panel">
-          <CompactPlayerInfo title="Opponent" player={player2} />
-        </aside>
+      {pendingRaid && !pendingRaidBase && (
+        <div className="selection-banner">
+          レイド元を選択してください
+          <button onClick={handleCancelRaid}>Cancel</button>
+        </div>
+      )}
 
-        <main className="battlefield">
-          <PlayerView
-            title="Opponent"
-            player={player2}
-            reverseLines
-            onHoverImage={setHoveredCardImage}
-          />
+      <OfficialBoardLayout
+        game={game}
+        player1={player1}
+        player2={player2}
+        currentPlayer={currentPlayer}
+        isYourTurn={isYourTurn}
+        isGameOver={isGameOver}
+        pendingAttack={pendingAttack}
+        pendingRaid={pendingRaid}
+        pendingRaidBase={pendingRaidBase}
+        hoveredCardImage={hoveredCardImage}
+        onHoverImage={setHoveredCardImage}
+        onNextPhase={handleNextPhase}
+        onExtraDraw={handleExtraDraw}
+        onMoveToFront={handleMoveToFront}
+        onAttack={handleAttack}
+        onPlayToEnergy={handlePlayToEnergy}
+        onPlayToFront={handlePlayToFront}
+        onStartRaid={handleStartRaid}
+        onSelectRaidBase={handleSelectRaidBase}
+        onNoBlock={handleNoBlock}
+        onBlock={handleBlock}
+        onUseEvent={handleUseEvent}
+      />
 
-          <hr />
+      {pendingRaidBase && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h3>レイド登場先を選択</h3>
 
-          {pendingAttack !== null && (
-            <BlockPanel
-              attackerIndex={pendingAttack}
-              player={player1}
-              isGameOver={isGameOver}
-              onNoBlock={handleNoBlock}
-              onBlock={handleBlock}
-            />
-          )}
-
-          <PlayerView
-            title="You"
-            player={player1}
-            isYou
-            onMoveToFront={handleMoveToFront}
-            onAttack={handleAttack}
-            onHoverImage={setHoveredCardImage}
-          />
-
-          <HandView
-            player={player1}
-            isYourTurn={isYourTurn}
-            isGameOver={isGameOver}
-            onPlayToEnergy={handlePlayToEnergy}
-            onPlayToFront={handlePlayToFront}
-            onHoverImage={setHoveredCardImage}
-          />
-        </main>
-
-        <aside className="side-panel">
-          <section className="control-panel">
-            <h2>Game</h2>
-            <div><strong>Phase: {game.phase}</strong></div>
-            <div><strong>Turn: {game.turnCount}</strong></div>
-            <div><strong>Current: {currentPlayer.name}</strong></div>
-            <div><strong>Winner: {game.winner ?? "-"}</strong></div>
-
-            <button onClick={handleNextPhase} disabled={isGameOver}>
-              Next Phase
-            </button>
-
-            {isYourTurn && game.phase === GamePhase.Start && (
-              <button onClick={handleExtraDraw} disabled={isGameOver}>
-                Extra Draw - AP1
+            <div className="raid-destination-buttons">
+              <button
+                onClick={() =>
+                  handleSelectRaidDestination(
+                    BoardLine.EnergyLine,
+                    pendingRaidBase.baseIndex
+                  )
+                }
+              >
+                Energy Lineに登場
               </button>
-            )}
-          </section>
 
-          <CompactPlayerInfo title="You" player={player1} />
+              {player1.board.frontLine.map((slot, index) => (
+                <button
+                  key={index}
+                  disabled={!slot.isEmpty()}
+                  onClick={() =>
+                    handleSelectRaidDestination(BoardLine.FrontLine, index)
+                  }
+                >
+                  Front {index + 1}
+                </button>
+              ))}
+            </div>
 
-          {hoveredCardImage && (
-            <section className="hover-card-preview">
-              <img
-                src={hoveredCardImage}
-                className="card-preview-image"
-                alt="card preview"
-              />
-            </section>
-          )}
-        </aside>
-      </div>
+            <button onClick={handleCancelRaid}>Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

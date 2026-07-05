@@ -1,76 +1,39 @@
-import { Game } from "../../../gameEngine/core/Game";
-import { CardView } from "./CardView";
+import { Player } from "../../../gameEngine/core/Player";
+import { BoardLine } from "../../../gameEngine/enum/BoardLine";
+import { BoardLineView } from "./BoardLineView";
 
-type Player = ReturnType<Game["getCurrentPlayer"]>;
+type Props = {
+  title: string;
+  player: Player;
+  isYou?: boolean;
+  reverseLines?: boolean;
+  isRaidBaseSelecting?: boolean;
+  onSelectRaidBase?: (line: BoardLine, index: number) => void;
+  onMoveToFront?: (energyIndex: number) => void;
+  onAttack?: (frontIndex: number) => void;
+  onHoverImage?: (imagePath: string | null) => void;
+};
 
 export function PlayerView({
   title,
   player,
   isYou = false,
   reverseLines = false,
+  isRaidBaseSelecting = false,
+  onSelectRaidBase,
   onMoveToFront,
   onAttack,
   onHoverImage,
-}: {
-  title: string;
-  player: Player;
-  isYou?: boolean;
-  reverseLines?: boolean;
-  onMoveToFront?: (energyIndex: number) => void;
-  onAttack?: (frontIndex: number) => void;
-  onHoverImage?: (imagePath: string) => void;
-}) {
-  const frontLineView = (
-    <>
-      <h3>Front Line</h3>
-      <div className="line">
-        {player.board.frontLine.map((slot, index) => {
-          const card = slot.getCard();
-
-          return (
-            <div className={`slot ${card?.isRest ? "rest" : "active"}`} key={index}>
-              <CardView card={card} />
-
-              {card && isYou && (
-                <button onClick={() => onAttack?.(index)}>Attack</button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-
-  const energyLineView = (
-    <>
-      <h3>Energy Line</h3>
-      <div className="line">
-        {player.board.energyLine.map((slot, index) => {
-          const card = slot.getCard();
-
-          return (
-            <div className={`slot ${card?.isRest ? "rest" : "active"}`} key={index}>
-              <CardView card={card} onHoverImage={onHoverImage}/>
-
-              {card && isYou && (
-                <button onClick={() => onMoveToFront?.(index)}>
-                  Move to Front
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-
+}: Props) {
   return (
-    <section className="player">
-      <h2>
-        {title}: {player.name}
-      </h2>
+    <section className="player-view official-player-view">
+      <div className="player-header">
+        <strong>
+          {title}: {player.name}
+        </strong>
+      </div>
 
-      <div className="status">
+      <div className="player-stats-row">
         <span>Hand: {player.board.hand.length}</span>
         <span>Deck: {player.board.deck.length}</span>
         <span>Life: {player.board.lifeArea.length}</span>
@@ -81,13 +44,43 @@ export function PlayerView({
 
       {reverseLines ? (
         <>
-          {energyLineView}
-          {frontLineView}
+          <BoardLineView
+            player={player}
+            line={BoardLine.FrontLine}
+            title="Front Line"
+            reverse
+            onHoverImage={onHoverImage}
+          />
+          <BoardLineView
+            player={player}
+            line={BoardLine.EnergyLine}
+            title="Energy Line"
+            reverse
+            onHoverImage={onHoverImage}
+          />
         </>
       ) : (
         <>
-          {frontLineView}
-          {energyLineView}
+          <BoardLineView
+            player={player}
+            line={BoardLine.FrontLine}
+            title="Front Line"
+            isYou={isYou}
+            isRaidBaseSelecting={isRaidBaseSelecting}
+            onSelectRaidBase={onSelectRaidBase}
+            onAttack={onAttack}
+            onHoverImage={onHoverImage}
+          />
+          <BoardLineView
+            player={player}
+            line={BoardLine.EnergyLine}
+            title="Energy Line"
+            isYou={isYou}
+            isRaidBaseSelecting={isRaidBaseSelecting}
+            onSelectRaidBase={onSelectRaidBase}
+            onMoveToFront={onMoveToFront}
+            onHoverImage={onHoverImage}
+          />
         </>
       )}
     </section>

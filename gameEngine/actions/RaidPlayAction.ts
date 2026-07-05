@@ -19,7 +19,8 @@ export class RaidPlayAction {
     handIndex: number,
     baseLine: BoardLine,
     baseIndex: number,
-    destinationFrontIndex?: number
+    destinationIndex?: number,
+    destinationLine: BoardLine = BoardLine.FrontLine
   ): void {
     if (game.phase !== GamePhase.Main) {
       throw new Error("Raid play is only allowed in main phase.");
@@ -51,16 +52,22 @@ export class RaidPlayAction {
 
     const baseCard = baseSlot.getCard();
     const destinationSlot =
-    baseLine === BoardLine.EnergyLine
-        ? this.getSlot(board, BoardLine.FrontLine, destinationFrontIndex ?? -1)
-        : baseSlot;
+    baseLine === BoardLine.FrontLine
+      ? baseSlot
+      : destinationLine === BoardLine.EnergyLine
+        ? baseSlot
+        : this.getSlot(board, BoardLine.FrontLine, destinationIndex ?? -1);
 
     if (!destinationSlot) {
     throw new Error("Invalid raid destination slot.");
     }
 
-    if (baseLine === BoardLine.EnergyLine && !destinationSlot.isEmpty()) {
-    throw new Error("Raid destination slot is not empty.");
+    if (
+      baseLine === BoardLine.EnergyLine &&
+      destinationLine === BoardLine.FrontLine &&
+      !destinationSlot.isEmpty()
+    ) {
+      throw new Error("Raid destination slot is not empty.");
     }
     if (!baseCard) {
       throw new Error("Raid base slot is empty.");
@@ -101,7 +108,9 @@ export class RaidPlayAction {
     raidCard.isRest = false;
 
     destinationSlot.setCard(raidCard);
-    const movedFromEnergy = baseLine === BoardLine.EnergyLine;
+    const movedFromEnergy =
+    baseLine === BoardLine.EnergyLine &&
+    destinationLine === BoardLine.FrontLine;
 
 GameLogger.add(game, {
   playerId: player.id,
@@ -119,8 +128,11 @@ GameLogger.add(game, {
     handIndex,
     baseLine,
     baseIndex,
-    destinationLine: movedFromEnergy ? BoardLine.FrontLine : baseLine,
-    destinationIndex: movedFromEnergy ? destinationFrontIndex : baseIndex,
+    destinationLine,
+    destinationIndex:
+      destinationLine === BoardLine.EnergyLine
+        ? baseIndex
+        : destinationIndex,
     movedFromEnergy,
 
     actionPointCost: raidCard.card.actionPointCost,

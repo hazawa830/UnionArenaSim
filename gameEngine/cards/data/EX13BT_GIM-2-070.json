@@ -1,14 +1,14 @@
 {
   "id": "EX13BT_GIM-2-070",
   "name": "夏を満喫するわよ！",
-  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "imagePath": "/card-images/EX13BT_GIM-2-070.png",
   "cardType": "event",
   "requiredEnergy": {
     "red": 4
   },
   "actionPointCost": 1,
   "generatedEnergy": {},
-  "triggerType": "none",
+  "triggerType": "special",
   "effects": [
     {
       "trigger": "onUse",

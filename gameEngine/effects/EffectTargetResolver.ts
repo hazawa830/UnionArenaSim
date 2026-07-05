@@ -9,6 +9,9 @@ export class EffectTargetResolver {
     context: EffectContext,
     target: EffectTarget
   ): CardInstance[] {
+    if (context.event?.selectedTargets && context.event.selectedTargets.length > 0) {
+      return context.event.selectedTargets;
+    }
     const board =
       target.side === "own" ? context.actor.board : context.opponent.board;
 

@@ -1,10 +1,9 @@
 {
   "id": "EX13BT_GIM-2-063",
   "name": "花海 咲季",
-  "imagePath": "/card-images/EX13BT_GIM-2-063_p1.png",
+  "imagePath": "/card-images/EX13BT_GIM-2-063_p1.png", 
   "cardType": "character",
   "requiredEnergy": {
-    "red": 1
   },
   "actionPointCost": 1,
   "bp": 1500,

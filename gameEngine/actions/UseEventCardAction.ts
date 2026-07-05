@@ -3,9 +3,9 @@ import { GamePhase } from "../enum/GamePhase";
 import { CardType } from "../enum/CardType";
 import { EffectTrigger } from "../effects/EffectTrigger";
 import { EffectResolver } from "../effects/EffectResolver";
-
+import { CardInstance } from "../cards/CardInstance";
 export class UseEventCardAction {
-  public static execute(game: Game, handIndex: number): void {
+  public static execute(game: Game, handIndex: number,selectedTargets?: CardInstance[]): void {
     if (game.phase !== GamePhase.Main) {
       throw new Error("Event card can only be used in main phase.");
     }
@@ -45,7 +45,10 @@ export class UseEventCardAction {
       cardInstance,
       EffectTrigger.OnUse,
       player,
-      opponent
+      opponent,
+      {
+        selectedTargets,
+      }
     );
 
     board.trash.push(cardInstance);

@@ -40,7 +40,7 @@
 
 .slot,
 .card {
-  border: 1px solid #4caf50;
+  border: 3px solid black;
   width: 150px;
   min-height: 200px;
   padding: 6px;
@@ -125,4 +125,283 @@
 .control-panel strong {
     font-weight: bold;
     color: #222;
+}
+.official-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(820px, 1fr) 260px;
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.official-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.official-board {
+  background: white;
+    border: 2px solid #d22;
+}
+
+.official-player-area {
+  border: 2px solid #ef4444;
+  border-radius: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.opponent-area {
+  transform: rotate(180deg);
+}
+
+.opponent-area .card,
+.opponent-area button,
+.opponent-area .zone-label {
+  transform: rotate(180deg);
+}
+
+.official-center-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px;
+  border: 2px solid #dc2626;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.official-block-panel {
+  padding: 10px;
+  border: 2px dashed #f97316;
+  border-radius: 10px;
+  background: #fff7ed;
+}
+
+.official-hand-area {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.official-hand-area .hand-view,
+.official-hand-area .hand {
+  background: transparent !important;
+  border: none !important;
+}
+
+.hand {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: visible;
+  padding: 4px 0;
+}
+
+.hand-card {
+  width: 118px;
+  flex: 0 0 118px;
+  border: 2px solid #111;
+  background: #fffaf0;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hand-card .card {
+  border: none;
+  width: auto;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.hand-card .card-image {
+  width: 108px;
+  cursor: zoom-in;
+}
+
+.hand-card-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.hand-disabled-message {
+  text-align: center;
+  margin: 4px 0;
+}
+
+.official-hand-area .zone-label {
+  display: none;
+}
+
+.official-log-panel {
+  max-height: 460px;
+  overflow: hidden;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px;
+}
+
+.log-list {
+  max-height: 390px;
+  overflow-y: auto;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.log-item {
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.log-id {
+  color: #777;
+  font-family: monospace;
+}
+
+.log-message {
+  color: #111;
+}
+
+.card-preview-image {
+  width: 100%;
+  max-width: 260px;
+  border-radius: 8px;
+}
+
+@media (max-width: 1100px) {
+  .official-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .official-side {
+    order: 2;
+  }
+
+  .official-board {
+    order: 1;
+  }
+}
+.card-slot {
+    background: white;
+    border: 2px solid #222;   /* 黒 */
+    border-radius: 4px;
+}
+.official-board {
+  background: #9f1239;
+}
+
+.official-player-area {
+  background: #ffffff;
+  border: 2px solid #7f1d1d;
+}
+
+.official-player-view {
+  background: #ffffff;
+}
+
+.player-header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.player-stats-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.board-line-section {
+  background: #fff3dc;
+  border: 2px solid #111;
+  border-radius: 6px;
+  padding: 6px;
+  margin: 6px 0;
+}
+
+.board-line-title {
+  text-align: center;
+  font-weight: 700;
+  color: #7f1d1d;
+  margin-bottom: 6px;
+}
+
+.board-line-slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.official-card-slot {
+  min-height: 138px;
+  border: 2px solid #111;
+  border-radius: 4px;
+  background: #fffaf0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.official-card-slot.has-card {
+  background: #f9fafb;
+}
+
+.official-card-image {
+  max-width: 100%;
+  max-height: 118px;
+  object-fit: contain;
+}
+
+.rest-card {
+  transform: rotate(90deg);
+}
+
+.empty-slot-label {
+  color: #999;
+}
+
+.slot-card-name {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  right: 2px;
+  font-size: 10px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.slot-actions {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  gap: 2px;
+}
+
+.slot-actions button {
+  font-size: 10px;
+  padding: 2px 4px;
+}
+button {
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.raid-base-selectable {
+  outline: 4px solid #22c55e;
+  cursor: pointer;
 }
