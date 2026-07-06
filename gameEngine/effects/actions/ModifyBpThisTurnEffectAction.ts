@@ -39,7 +39,7 @@ export class ModifyBpThisTurnEffectAction {
     }
 
     target.temporaryBpBonus += action.amount;
-    this.logModifyBp(context, context.source, action.amount);
+    this.logModifyBp(context, target, action.amount);
   }
 
   private static executeStringTarget(
