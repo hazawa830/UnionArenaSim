@@ -860,7 +860,8 @@ const handleSelectPlayFromHandDestination = (destinationLine: BoardLine) => {
       pendingPlayDestination.sourceCard,
       pendingPlayDestination.playedCard,
       destinationLine,
-      pendingPlayDestination.rest
+      pendingPlayDestination.rest,
+      pendingPlayDestination.playerId
     );
 
     setPendingPlayDestination(null);
@@ -931,6 +932,10 @@ const handleSelectRaidTriggerDestination = (
   destinationIndex?: number
 ) => {
   if (!pendingRaidTriggerBase) return;
+  if (!game.pendingRaidTrigger) return;
+
+  const raidTriggerPlayerId = game.pendingRaidTrigger.playerId;
+
   try {
     const raidCard = ResolveRaidTriggerAction.execute(
       game,
@@ -945,7 +950,7 @@ const handleSelectRaidTriggerDestination = (
     setIsSelectingRaidTriggerBase(false);
     setPendingRaidTriggerBase(null);
 
-    if (raidCard && startPlayFromHandChoice(raidCard, game.pendingRaidTrigger?.playerId ?? player1.id)) {
+    if (raidCard && startPlayFromHandChoice(raidCard, raidTriggerPlayerId)) {
       refresh();
       return;
     }
