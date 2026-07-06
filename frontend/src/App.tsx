@@ -808,12 +808,15 @@ const startModifyBpTargetSelection = (sourceCard: CardInstance): boolean => {
       refresh();
       return;
     }
-
+    if (!pendingCardChoice.context?.sourceCard) {
+      alert("効果元カードが見つかりません");
+      return;
+    }
     setPendingPlayDestination({
-      sourceCard: pendingCardChoice.context!.sourceCard,
-      playedCard: selected,
-      allowedLines: [BoardLine.FrontLine, BoardLine.EnergyLine],
-      rest: true,
+    sourceCard: pendingCardChoice.context.sourceCard,
+    playedCard: selected,
+    allowedLines: [BoardLine.FrontLine, BoardLine.EnergyLine],
+    rest: true,
     });
   }
   setPendingCardChoice(null);
