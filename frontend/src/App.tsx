@@ -21,6 +21,7 @@ import type { PendingCardChoice } from "./components/CardChoicePanel";
 import { CardType } from "../../gameEngine/enum/CardType";
 import { ActivateMainEffectAction } from "../../gameEngine/actions/ActivateMainEffectAction";
 import { ResolveSelectedEffectAction } from "../../gameEngine/actions/ResolveSelectedEffectAction";
+import { CompletePlayFromHandAction } from "../../gameEngine/actions/CompletePlayFromHandAction";
 
 type PendingSelection = {
   source: "event" | "activateMain" | "trigger" | "effect";
@@ -55,6 +56,12 @@ function App() {
     useState<PendingSelection | null>(null);
   const [pendingCardChoice, setPendingCardChoice] =
     useState<PendingCardChoice | null>(null);
+  const [pendingPlayDestination, setPendingPlayDestination] = useState<{
+    sourceCard: CardInstance;
+    playedCard: CardInstance;
+    allowedLines: BoardLine[];
+    rest: boolean;
+  } | null>(null);
   const game = gameRef.current;
   const player1 = game.player1;
   const player2 = game.player2;
@@ -74,6 +81,7 @@ function App() {
     if (pendingSelection !== null) return;
     if (pendingCardChoice !== null) return;
     if (pendingActivateMain !== null) return;
+    if (pendingPlayDestination !== null) return;
 
     const timer = setTimeout(() => {
       if (game.phase === GamePhase.Attack) {
@@ -102,6 +110,7 @@ function App() {
     pendingSelection,
     pendingCardChoice,
     pendingActivateMain,
+    pendingPlayDestination,
   ]);
 
   const handleNewGame = () => {
@@ -114,6 +123,7 @@ function App() {
     refresh();
     setPendingCardChoice(null);
     setPendingActivateMain(null);
+    setPendingPlayDestination(null);
   };
 
   const handleNextPhase = () => {
@@ -791,33 +801,43 @@ const startModifyBpTargetSelection = (sourceCard: CardInstance): boolean => {
     return;
   }
   if (pendingCardChoice.source === "playFromHand") {
-    const selectedCards = pendingCardChoice.selectedCards;
+    const selected = pendingCardChoice.selectedCards[0];
 
-    for (const selected of selectedCards) {
-      player1.board.hand = player1.board.hand.filter(
-        (handCard) => handCard !== selected
-      );
-
-      selected.isRest = true;
-
-      const destinationSlot = player1.board.getEmptyFrontSlot();
-
-      if (!destinationSlot) {
-        alert("フロントラインに空きがありません");
-        return;
-      }
-
-      destinationSlot.setCard(selected);
+    if (!selected) {
+      setPendingCardChoice(null);
+      refresh();
+      return;
     }
 
-    setPendingCardChoice(null);
-    refresh();
-    return;
+    setPendingPlayDestination({
+      sourceCard: pendingCardChoice.context!.sourceCard,
+      playedCard: selected,
+      allowedLines: [BoardLine.FrontLine, BoardLine.EnergyLine],
+      rest: true,
+    });
   }
   setPendingCardChoice(null);
   refresh();
+  return;
 };
-  
+const handleSelectPlayFromHandDestination = (destinationLine: BoardLine) => {
+  if (!pendingPlayDestination) return;
+
+  try {
+    CompletePlayFromHandAction.execute(
+      game,
+      pendingPlayDestination.sourceCard,
+      pendingPlayDestination.playedCard,
+      destinationLine,
+      pendingPlayDestination.rest
+    );
+
+    setPendingPlayDestination(null);
+    refresh();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+};
 const handleStartActivateMain = (
   sourceLine: BoardLine,
   sourceIndex: number
@@ -968,6 +988,37 @@ const handleStartActivateMain = (
           </div>
         </div>
       )}
+      {pendingPlayDestination && (
+  <div className="modal-backdrop">
+    <div className="modal">
+      <h3>登場先を選択</h3>
+
+      <div className="raid-destination-buttons">
+        {pendingPlayDestination.allowedLines.includes(BoardLine.FrontLine) && (
+          <button
+            disabled={!player1.board.getEmptyFrontSlot()}
+            onClick={() =>
+              handleSelectPlayFromHandDestination(BoardLine.FrontLine)
+            }
+          >
+            Front Lineに登場
+          </button>
+        )}
+
+        {pendingPlayDestination.allowedLines.includes(BoardLine.EnergyLine) && (
+          <button
+            disabled={!player1.board.getEmptyEnergySlot()}
+            onClick={() =>
+              handleSelectPlayFromHandDestination(BoardLine.EnergyLine)
+            }
+          >
+            Energy Lineに登場
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
