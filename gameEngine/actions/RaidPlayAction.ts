@@ -20,8 +20,11 @@ export class RaidPlayAction {
     baseLine: BoardLine,
     baseIndex: number,
     destinationIndex?: number,
-    destinationLine: BoardLine = BoardLine.FrontLine
-  ): void {
+    destinationLine: BoardLine = BoardLine.FrontLine,
+    options?: {
+      skipPlayFromHand?: boolean;
+    }
+  ): CardInstance {
     if (game.phase !== GamePhase.Main) {
       throw new Error("Raid play is only allowed in main phase.");
     }
@@ -144,8 +147,12 @@ GameLogger.add(game, {
       raidCard,
       EffectTrigger.OnPlay,
       player,
-      opponent
+      opponent,
+      {
+        skipPlayFromHand: options?.skipPlayFromHand,
+      }
     );
+    return raidCard;
   }
 
   private static getSlot(

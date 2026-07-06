@@ -3,6 +3,7 @@
   "name": "月村 手毬",
   "imagePath": "/card-images/EX13BT_GIM-2-062_p2.png",
   "cardType": "character",
+  "color": "red",
   "requiredEnergy": { "red": 3 },
   "actionPointCost": 1,
   "bp": 3000,

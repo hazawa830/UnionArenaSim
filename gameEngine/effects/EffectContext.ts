@@ -6,6 +6,7 @@ export type EffectEvent = {
   attacker?: CardInstance;
   target?: CardInstance;
   selectedTargets?: CardInstance[];
+  skipPlayFromHand?: boolean;
 };
 
 export type EffectContext = {

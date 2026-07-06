@@ -81,4 +81,36 @@ describe("ExtraDrawAction", () => {
     deckAfter: deckBefore - 1,
   });
 });
+it("ターンが変わると再びエクストラドローを使用できる", () => {
+  const game = createTestGame();
+  const firstPlayer = game.getCurrentPlayer();
+
+  ExtraDrawAction.execute(game);
+
+  expect(firstPlayer.board.hasUsedExtraDrawThisTurn).toBe(true);
+
+  // 自分 Start -> Move -> Main -> Attack -> End -> 相手 Start
+  game.nextPhase();
+  game.nextPhase();
+  game.nextPhase();
+  game.nextPhase();
+  game.nextPhase();
+
+  // 相手 Start -> Move -> Main -> Attack -> End -> 自分 Start
+  game.nextPhase();
+  game.nextPhase();
+  game.nextPhase();
+  game.nextPhase();
+  game.nextPhase();
+
+  expect(game.getCurrentPlayer()).toBe(firstPlayer);
+  expect(game.phase).toBe(GamePhase.Start);
+  expect(firstPlayer.board.hasUsedExtraDrawThisTurn).toBe(false);
+
+  expect(() => {
+    ExtraDrawAction.execute(game);
+  }).not.toThrow();
+
+  expect(firstPlayer.board.hasUsedExtraDrawThisTurn).toBe(true);
+});
 });

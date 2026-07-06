@@ -1,5 +1,6 @@
 import { Game } from "../../../gameEngine/core/Game";
 import { Player } from "../../../gameEngine/core/Player";
+import { CardInstance } from "../../../gameEngine/cards/CardInstance";
 import { BoardLine } from "../../../gameEngine/enum/BoardLine";
 import { GamePhase } from "../../../gameEngine/enum/GamePhase";
 
@@ -7,6 +8,9 @@ import { PlayerView } from "./PlayerView";
 import { HandView } from "./HandView";
 import { CompactPlayerInfo } from "./CompactPlayerInfo";
 import { BlockPanel } from "./BlockPanel";
+import {
+  CardChoicePanel} from "./CardChoicePanel";
+import type { PendingCardChoice } from "./CardChoicePanel";
 
 type PendingRaid = {
   handIndex: number;
@@ -16,6 +20,15 @@ type PendingRaidBase = {
   handIndex: number;
   baseLine: BoardLine;
   baseIndex: number;
+} | null;
+
+type PendingSelection = {
+  source: "event" | "activateMain" | "trigger" | "effect";
+  handIndex?: number;
+  requiredCount: number;
+  selectedTargets: CardInstance[];
+  allowedSide: "own" | "opponent" | "both";
+  allowedLines: BoardLine[];
 } | null;
 
 type Props = {
@@ -28,7 +41,9 @@ type Props = {
   pendingAttack: number | null;
   pendingRaid: PendingRaid;
   pendingRaidBase: PendingRaidBase;
+  pendingSelection: PendingSelection;
   hoveredCardImage: string | null;
+  
 
   onHoverImage: (imagePath: string | null) => void;
   onNextPhase: () => void;
@@ -40,8 +55,18 @@ type Props = {
   onUseEvent: (handIndex: number) => void;
   onStartRaid: (handIndex: number) => void;
   onSelectRaidBase: (line: BoardLine, index: number) => void;
+  onSelectTarget: (
+    side: "own" | "opponent",
+    line: BoardLine,
+    index: number
+  ) => void;
   onNoBlock: () => void;
   onBlock: (blockerIndex: number) => void;
+  pendingCardChoice: PendingCardChoice | null;
+  onToggleChoiceCard: (card: CardInstance) => void;
+  onConfirmCardChoice: () => void;
+  onCancelCardChoice: () => void;
+  onStartActivateMain: (line: BoardLine, index: number) => void;
 };
 
 export function OfficialBoardLayout({
@@ -54,6 +79,7 @@ export function OfficialBoardLayout({
   pendingAttack,
   pendingRaid,
   pendingRaidBase,
+  pendingSelection,
   hoveredCardImage,
   onHoverImage,
   onNextPhase,
@@ -65,14 +91,34 @@ export function OfficialBoardLayout({
   onUseEvent,
   onStartRaid,
   onSelectRaidBase,
+  onSelectTarget,
   onNoBlock,
   onBlock,
+  pendingCardChoice,
+  onToggleChoiceCard,
+  onConfirmCardChoice,
+  onCancelCardChoice,
+  onStartActivateMain,
 }: Props) {
+  const isTargetSelecting = pendingSelection !== null;
+
   return (
     <div className="official-layout">
       <aside className="official-side official-side-left">
-        <CompactPlayerInfo title="Opponent" player={player2} />
-        <CompactPlayerInfo title="You" player={player1} />
+        <CardChoicePanel
+          choice={pendingCardChoice}
+          onToggleCard={onToggleChoiceCard}
+          onConfirm={onConfirmCardChoice}
+          onCancel={onCancelCardChoice}
+          onHoverImage={onHoverImage}
+        />
+
+        {!pendingCardChoice && (
+          <>
+            <CompactPlayerInfo title="Opponent" player={player2} />
+            <CompactPlayerInfo title="You" player={player1} />
+          </>
+        )}
       </aside>
 
       <main className="official-board">
@@ -82,6 +128,9 @@ export function OfficialBoardLayout({
             title="Opponent"
             player={player2}
             reverseLines
+            isTargetSelecting={isTargetSelecting}
+            targetSide="opponent"
+            onSelectTarget={onSelectTarget}
             onHoverImage={onHoverImage}
           />
         </section>
@@ -103,6 +152,13 @@ export function OfficialBoardLayout({
 
           {pendingRaidBase && (
             <div className="selection-hint">登場先選択中</div>
+          )}
+
+          {pendingSelection && (
+            <div className="selection-hint">
+              対象選択中 {pendingSelection.selectedTargets.length}/
+              {pendingSelection.requiredCount}
+            </div>
           )}
 
           <button onClick={onNextPhase} disabled={isGameOver}>
@@ -134,11 +190,17 @@ export function OfficialBoardLayout({
             title="You"
             player={player1}
             isYou
-            isRaidBaseSelecting={pendingRaid !== null && pendingRaidBase === null}
+            isRaidBaseSelecting={
+              pendingRaid !== null && pendingRaidBase === null
+            }
+            isTargetSelecting={isTargetSelecting}
+            targetSide="own"
             onSelectRaidBase={onSelectRaidBase}
+            onSelectTarget={onSelectTarget}
             onMoveToFront={onMoveToFront}
             onAttack={onAttack}
             onHoverImage={onHoverImage}
+            onStartActivateMain={onStartActivateMain}
           />
         </section>
 

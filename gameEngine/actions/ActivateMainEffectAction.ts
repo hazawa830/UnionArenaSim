@@ -52,7 +52,9 @@ export class ActivateMainEffectAction {
     line: BoardLine,
     index: number
   ) {
-    if (index < 0 || index >= 4) return undefined;
+    if (index < 0 || index >= 4) {
+      return undefined;
+    }
 
     return line === BoardLine.FrontLine
       ? board.frontLine[index]

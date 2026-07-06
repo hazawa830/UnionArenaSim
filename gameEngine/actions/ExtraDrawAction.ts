@@ -19,12 +19,17 @@ export class ExtraDrawAction {
 
     const player = game.getCurrentPlayer();
 
+    if (player.board.hasUsedExtraDrawThisTurn) {
+      throw new Error("Extra draw can only be used once per turn.");
+    }
+
     const apBefore = player.board.activeActionPoint;
     const handBefore = player.board.hand.length;
     const deckBefore = player.board.deck.length;
 
     player.board.payActionPoint(1);
     player.board.draw(1);
+    player.board.hasUsedExtraDrawThisTurn = true;
 
     GameLogger.add(game, {
       playerId: player.id,
@@ -32,15 +37,11 @@ export class ExtraDrawAction {
       message: "エクストラドロー",
       payload: {
         effectType: EffectLogType.ExtraDraw,
-
         actionSource: source,
-
         apBefore,
         apAfter: player.board.activeActionPoint,
-
         handBefore,
         handAfter: player.board.hand.length,
-
         deckBefore,
         deckAfter: player.board.deck.length,
       },

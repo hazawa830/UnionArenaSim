@@ -8,6 +8,7 @@ import { LogType } from "../enum/LogType";
 import { EffectResolver } from "../effects/EffectResolver";
 import { EffectTrigger } from "../effects/EffectTrigger";
 import { GameLogger } from "../log/GameLogger";
+import { CardInstance } from "../cards/CardInstance";
 
 export class PlayCardAction {
   public static execute(
@@ -15,7 +16,7 @@ export class PlayCardAction {
     handIndex: number,
     destination: BoardLine,
     source: ActionSource = ActionSource.PlayerNormal
-  ): void {
+  ): CardInstance {
     if (source === ActionSource.PlayerNormal && game.phase !== GamePhase.Main) {
       throw new Error("Normal play is only allowed in main phase.");
     }
@@ -67,6 +68,7 @@ export class PlayCardAction {
     });
 
     EffectResolver.resolve(game, cardInstance, EffectTrigger.OnPlay);
+    return cardInstance;
   }
 
   private static getTargetSlot(

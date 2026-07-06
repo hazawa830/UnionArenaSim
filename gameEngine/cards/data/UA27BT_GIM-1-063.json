@@ -3,6 +3,7 @@
   "name": "月村 手毬",
   "imagePath": "/card-images/UA27BT_GIM-1-063_p1.png",
   "cardType": "character",
+  "color": "red",
   "requiredEnergy": {
     "red": 4
   },

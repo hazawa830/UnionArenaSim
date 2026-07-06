@@ -5,6 +5,7 @@
   "cardType": "character",
   "requiredEnergy": { "red": 4 },
   "actionPointCost": 1,
+  "color": "red",
   "bp": 4000,
   "generatedEnergy": { "red": 1 },
   "triggerType": "raid",

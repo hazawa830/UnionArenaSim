@@ -4,6 +4,7 @@ import "./App.css";
 import { GameFactory } from "../../gameEngine/factory/GameFactory";
 import { RandomCPU } from "../../gameEngine/cpu/RandomCPU";
 import { Game } from "../../gameEngine/core/Game";
+import { CardInstance } from "../../gameEngine/cards/CardInstance";
 import { BoardLine } from "../../gameEngine/enum/BoardLine";
 import { GamePhase } from "../../gameEngine/enum/GamePhase";
 
@@ -12,10 +13,22 @@ import { MoveCardAction } from "../../gameEngine/actions/MoveAction";
 import { AttackAction } from "../../gameEngine/actions/AttackAction";
 import { ExtraDrawAction } from "../../gameEngine/actions/ExtraDrawAction";
 import { RaidPlayAction } from "../../gameEngine/actions/RaidPlayAction";
+import { UseEventCardAction } from "../../gameEngine/actions/UseEventCardAction";
 
 import { WinnerModal } from "./components/WinnerModal";
 import { OfficialBoardLayout } from "./components/OfficialBoardLayout";
-import { UseEventCardAction } from "../../gameEngine/actions/UseEventCardAction";
+import type { PendingCardChoice } from "./components/CardChoicePanel";
+import { CardType } from "../../gameEngine/enum/CardType";
+import { ActivateMainEffectAction } from "../../gameEngine/actions/ActivateMainEffectAction";
+
+type PendingSelection = {
+  source: "event" | "activateMain" | "trigger" | "effect";
+  handIndex?: number;
+  requiredCount: number;
+  selectedTargets: CardInstance[];
+  allowedSide: "own" | "opponent" | "both";
+  allowedLines: BoardLine[];
+};
 
 function App() {
   const gameRef = useRef<Game>(GameFactory.createSampleGame());
@@ -24,16 +37,22 @@ function App() {
   const [pendingAttack, setPendingAttack] = useState<number | null>(null);
   const [hoveredCardImage, setHoveredCardImage] = useState<string | null>(null);
 
-  const [pendingRaid, setPendingRaid] = useState<{ handIndex: number } | null>(
-    null
-  );
+  const [pendingRaid, setPendingRaid] = useState<{ handIndex: number } | null>(null);
 
   const [pendingRaidBase, setPendingRaidBase] = useState<{
     handIndex: number;
     baseLine: BoardLine;
     baseIndex: number;
   } | null>(null);
+  const [pendingActivateMain, setPendingActivateMain] = useState<{
+  sourceLine: BoardLine;
+  sourceIndex: number;
+} | null>(null);
 
+  const [pendingSelection, setPendingSelection] =
+    useState<PendingSelection | null>(null);
+  const [pendingCardChoice, setPendingCardChoice] =
+    useState<PendingCardChoice | null>(null);
   const game = gameRef.current;
   const player1 = game.player1;
   const player2 = game.player2;
@@ -50,8 +69,22 @@ function App() {
     if (pendingAttack !== null) return;
     if (pendingRaid !== null) return;
     if (pendingRaidBase !== null) return;
+    if (pendingSelection !== null) return;
+    if (pendingCardChoice !== null) return;
+    if (pendingActivateMain !== null) return;
 
     const timer = setTimeout(() => {
+      if (game.phase === GamePhase.Attack) {
+        const attackerIndex = player2.board.frontLine.findIndex((slot) => {
+          const card = slot.getCard();
+          return card && !card.isRest;
+        });
+
+        if (attackerIndex !== -1) {
+          setPendingAttack(attackerIndex);
+          return;
+        }
+      }
       RandomCPU.playPhase(game);
       refresh();
     }, 700);
@@ -64,6 +97,9 @@ function App() {
     pendingAttack,
     pendingRaid,
     pendingRaidBase,
+    pendingSelection,
+    pendingCardChoice,
+    pendingActivateMain,
   ]);
 
   const handleNewGame = () => {
@@ -71,8 +107,11 @@ function App() {
     setPendingAttack(null);
     setPendingRaid(null);
     setPendingRaidBase(null);
+    setPendingSelection(null);
     setHoveredCardImage(null);
     refresh();
+    setPendingCardChoice(null);
+    setPendingActivateMain(null);
   };
 
   const handleNextPhase = () => {
@@ -101,8 +140,17 @@ function App() {
     if (!isYourTurn) return alert("相手ターンです");
 
     try {
-      PlayCardAction.execute(game, handIndex, BoardLine.EnergyLine);
-      refresh();
+      const playedCard = PlayCardAction.execute(
+        game,
+        handIndex,
+        BoardLine.EnergyLine
+      );
+
+      const startedSearch = startSearchTopDeckChoice(playedCard);
+
+      if (!startedSearch) {
+        refresh();
+      }
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
     }
@@ -112,8 +160,17 @@ function App() {
     if (!isYourTurn) return alert("相手ターンです");
 
     try {
-      PlayCardAction.execute(game, handIndex, BoardLine.FrontLine);
-      refresh();
+      const playedCard = PlayCardAction.execute(
+      game,
+        handIndex,
+        BoardLine.FrontLine
+      );
+
+      const startedSearch = startSearchTopDeckChoice(playedCard);
+
+      if (!startedSearch) {
+        refresh();
+      }
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
     }
@@ -186,20 +243,38 @@ function App() {
 
     setPendingRaid({ handIndex });
     setPendingRaidBase(null);
+    setPendingSelection(null);
   };
+  const findSearchTopDeckAction = (sourceCard: CardInstance) => {
+  for (const effect of sourceCard.card.effects) {
+    for (const action of effect.actions) {
+      if (action.type === "searchTopDeck") {
+        return action;
+      }
+    }
+  }
 
+  return undefined;
+};
   const handleSelectRaidBase = (baseLine: BoardLine, baseIndex: number) => {
     if (!pendingRaid) return;
 
     if (baseLine === BoardLine.FrontLine) {
       try {
-        RaidPlayAction.execute(
+        const raidCard =RaidPlayAction.execute(
           game,
           pendingRaid.handIndex,
           BoardLine.FrontLine,
-          baseIndex
+          baseIndex,
+          undefined,
+          undefined,
+          { skipPlayFromHand: true }
         );
+        const startedChoice = startPlayFromHandChoice(raidCard);
 
+        if (!startedChoice) {
+          refresh();
+        }
         setPendingRaid(null);
         setPendingRaidBase(null);
         refresh();
@@ -224,15 +299,20 @@ function App() {
     if (!pendingRaidBase) return;
 
     try {
-      RaidPlayAction.execute(
+      const raidCard = RaidPlayAction.execute(
         game,
         pendingRaidBase.handIndex,
         pendingRaidBase.baseLine,
         pendingRaidBase.baseIndex,
         destinationIndex,
-        destinationLine
+        destinationLine,
+        { skipPlayFromHand: true }
       );
+      const startedChoice = startPlayFromHandChoice(raidCard);
 
+      if (!startedChoice) {
+        refresh();
+      }
       setPendingRaid(null);
       setPendingRaidBase(null);
       refresh();
@@ -245,16 +325,465 @@ function App() {
     setPendingRaid(null);
     setPendingRaidBase(null);
   };
+
+  const getEventRequiredTargetCount = (handIndex: number): number => {
+      const card = player1.board.hand[handIndex];
+
+      if (!card) return 0;
+
+      const targetActions = card.card.effects.flatMap((effect) =>
+        effect.actions.filter((action: any) => {
+          const target = action.target;
+          if (!target) return false;
+          if (target.zone === "ap") return false;
+
+          return (
+            target.zone === "frontLine" ||
+            target.zone === "energyLine" ||
+            target.zone === "field"
+          );
+        })
+      );
+
+      return targetActions.length;
+    };
+    const startPlayFromHandChoice = (sourceCard: CardInstance): boolean => {
+      const playFromHandAction = sourceCard.card.raidEffects
+        .flatMap((effect) => effect.actions)
+        .find((action: any) => action.type === "playFromHand");
+
+      if (!playFromHandAction || playFromHandAction.type !== "playFromHand") {
+        return false;
+      }
+
+      const candidates = player1.board.hand.filter((card) => {
+        const target = playFromHandAction.target;
+
+        if (target.names && target.names.length > 0) {
+          if (!target.names.includes(card.card.name)) return false;
+        }
+
+        if (target.color && card.card.color !== target.color) {
+          return false;
+        }
+
+        if (target.actionPointCost !== undefined) {
+          if (card.card.actionPointCost !== target.actionPointCost) return false;
+        }
+
+        if (target.maxRequiredEnergyTotal !== undefined) {
+          if (card.card.requiredEnergy.getTotal() > target.maxRequiredEnergyTotal) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      if (candidates.length === 0) {
+        return false;
+      }
+
+      setPendingCardChoice({
+        source: "playFromHand",
+        title: `${sourceCard.card.name}: 手札から登場させるカードを選択`,
+        cards: candidates,
+        minCount: 0,
+        maxCount: playFromHandAction.maxCount ?? 1,
+        selectedCards: [],
+        context: {
+          sourceCard,
+        },
+      });
+
+      return true;
+    };
+    const startSearchTopDeckChoice = (
+  sourceCard: CardInstance,
+  options?: {
+    handIndex?: number;
+  }
+): boolean => {
+  const action = findSearchTopDeckAction(sourceCard);
+
+  if (!action || action.type !== "searchTopDeck") {
+    return false;
+  }
+
+  const topCards = player1.board.deck.slice(-action.lookCount).reverse();
+
+  const selectableCards = topCards.filter((card) => {
+    const target = action.target;
+
+    if (target.cardType === "character") {
+      if (card.card.cardType !== CardType.Character) {
+        return false;
+      }
+    }
+
+    if (target.nameFilter && target.nameFilter.length > 0) {
+      if (!target.nameFilter.includes(card.card.name)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  setPendingCardChoice({
+    source: "searchTopDeck",
+    title: `${sourceCard.card.name}: 山札上${action.lookCount}枚から${action.takeCount}枚選択`,
+    cards: topCards, // selectableCards ではなく topCards
+    minCount: 0,
+    maxCount: action.takeCount,
+    selectedCards: [],
+    context: {
+      sourceCard,
+      handIndex: options?.handIndex,
+    },
+  });
+
+  return true;
+};
   const handleUseEvent = (handIndex: number) => {
     if (!isYourTurn) return alert("相手ターンです");
     if (game.phase !== GamePhase.Main) return alert("メインフェーズのみです");
+    const eventCard = player1.board.hand[handIndex];
+
+    if (!eventCard) {
+      alert("カードがありません");
+      return;
+    }
+
+
+    const requiredCount = getEventRequiredTargetCount(handIndex);
+
+    if (requiredCount > 0) {
+      setPendingSelection({
+        source: "event",
+        handIndex,
+        requiredCount,
+        selectedTargets: [],
+        allowedSide: "both",
+        allowedLines: [BoardLine.FrontLine, BoardLine.EnergyLine],
+      });
+      return;
+    }
 
     try {
+      const startedSearch = startSearchTopDeckChoice(eventCard, {handIndex,});
+
+      if (startedSearch) {
+        return;
+      }
       UseEventCardAction.execute(game, handIndex);
       refresh();
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
     }
+  };
+  const findOwnCardPosition = (
+    target: CardInstance
+  ): { line: BoardLine; index: number } | undefined => {
+    for (let i = 0; i < player1.board.frontLine.length; i++) {
+      if (player1.board.frontLine[i].getCard() === target) {
+        return {
+          line: BoardLine.FrontLine,
+          index: i,
+        };
+      }
+    }
+
+    for (let i = 0; i < player1.board.energyLine.length; i++) {
+      if (player1.board.energyLine[i].getCard() === target) {
+        return {
+          line: BoardLine.EnergyLine,
+          index: i,
+        };
+      }
+    }
+
+    return undefined;
+  };
+  const handleSelectTarget = (
+    side: "own" | "opponent",
+    line: BoardLine,
+    index: number
+  ) => {
+    if (!pendingSelection) return;
+
+    if (
+      pendingSelection.allowedSide !== "both" &&
+      pendingSelection.allowedSide !== side
+    ) {
+      alert("選択できない対象です");
+      return;
+    }
+
+    if (!pendingSelection.allowedLines.includes(line)) {
+      alert("選択できないラインです");
+      return;
+    }
+
+    const targetPlayer = side === "own" ? player1 : player2;
+    const slots =
+      line === BoardLine.FrontLine
+        ? targetPlayer.board.frontLine
+        : targetPlayer.board.energyLine;
+
+    const selected = slots[index]?.getCard();
+
+    if (!selected) {
+      alert("対象カードがありません");
+      return;
+    }
+
+    const nextSelectedTargets = [
+      ...pendingSelection.selectedTargets,
+      selected,
+    ];
+
+    if (nextSelectedTargets.length < pendingSelection.requiredCount) {
+      setPendingSelection({
+        ...pendingSelection,
+        selectedTargets: nextSelectedTargets,
+      });
+      return;
+    }
+
+    try {
+  if (pendingSelection.source === "event") {
+    if (pendingSelection.handIndex === undefined) {
+      throw new Error("Event handIndex is missing.");
+    }
+
+    UseEventCardAction.execute(
+      game,
+      pendingSelection.handIndex,
+      nextSelectedTargets
+    );
+  }
+
+  if (pendingSelection.source === "activateMain") {
+      if (!pendingActivateMain) {
+        throw new Error("ActivateMain source is missing.");
+      }
+
+      const selectedTarget = nextSelectedTargets[0];
+
+      const targetPosition = findOwnCardPosition(selectedTarget);
+
+      if (!targetPosition) {
+        throw new Error("Selected target position not found.");
+      }
+
+      ActivateMainEffectAction.execute(
+        game,
+        pendingActivateMain.sourceLine,
+        pendingActivateMain.sourceIndex,
+        targetPosition.line,
+        targetPosition.index
+      );
+
+      setPendingActivateMain(null);
+    }
+
+    setPendingSelection(null);
+    refresh();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+  };
+  
+  const handleCancelSelection = () => {
+    setPendingSelection(null);
+  };
+  const handleToggleChoiceCard = (card: CardInstance) => {
+  if (!pendingCardChoice) return;
+
+  const alreadySelected = pendingCardChoice.selectedCards.includes(card);
+
+  const nextSelectedCards = alreadySelected
+    ? pendingCardChoice.selectedCards.filter((c) => c !== card)
+    : pendingCardChoice.selectedCards.length < pendingCardChoice.maxCount
+      ? [...pendingCardChoice.selectedCards, card]
+      : pendingCardChoice.selectedCards;
+
+  setPendingCardChoice({
+    ...pendingCardChoice,
+    selectedCards: nextSelectedCards,
+  });
+};
+
+  const handleConfirmCardChoice = () => {
+  if (!pendingCardChoice) return;
+
+  const selectedCount = pendingCardChoice.selectedCards.length;
+
+  if (
+    selectedCount < pendingCardChoice.minCount ||
+    selectedCount > pendingCardChoice.maxCount
+  ) {
+    alert("選択枚数が正しくありません");
+    return;
+  }
+
+  if (pendingCardChoice.source === "searchTopDeck") {
+    const selectedCards = pendingCardChoice.selectedCards;
+    const shownCards = pendingCardChoice.cards;
+
+    for (const selected of selectedCards) {
+      player1.board.hand.push(selected);
+    }
+
+    player1.board.deck = player1.board.deck.filter(
+      (deckCard) => !shownCards.includes(deckCard)
+    );
+
+    const restCards = shownCards.filter(
+      (card) => !selectedCards.includes(card)
+    );
+
+    player1.board.deck.unshift(...restCards);
+
+    if (selectedCards.length > 0) {
+      setPendingCardChoice({
+        source: "discardHand",
+        title: "手札を1枚捨ててください",
+        cards: [...player1.board.hand],
+        minCount: 1,
+        maxCount: 1,
+        selectedCards: [],
+        context: pendingCardChoice.context,
+      });
+      refresh();
+      return;
+    }
+
+    setPendingCardChoice(null);
+    refresh();
+    return;
+  }
+  if (pendingCardChoice.source === "discardHand") {
+    const discardedCards = pendingCardChoice.selectedCards;
+
+    for (const discarded of discardedCards) {
+      player1.board.hand = player1.board.hand.filter(
+        (handCard) => handCard !== discarded
+      );
+
+      player1.board.trash.push(discarded);
+    }
+
+    if (pendingActivateMain) {
+      try {
+        ActivateMainEffectAction.execute(
+          game,
+          pendingActivateMain.sourceLine,
+          pendingActivateMain.sourceIndex
+        );
+
+        setPendingActivateMain(null);
+        setPendingCardChoice(null);
+        refresh();
+      } catch (e) {
+        alert(e instanceof Error ? e.message : String(e));
+      }
+
+      return;
+    }
+
+    setPendingCardChoice(null);
+    refresh();
+    return;
+  }
+  if (pendingCardChoice.source === "playFromHand") {
+    const selectedCards = pendingCardChoice.selectedCards;
+
+    for (const selected of selectedCards) {
+      player1.board.hand = player1.board.hand.filter(
+        (handCard) => handCard !== selected
+      );
+
+      selected.isRest = true;
+
+      const destinationSlot = player1.board.getEmptyFrontSlot();
+
+      if (!destinationSlot) {
+        alert("フロントラインに空きがありません");
+        return;
+      }
+
+      destinationSlot.setCard(selected);
+    }
+
+    setPendingCardChoice(null);
+    refresh();
+    return;
+  }
+  setPendingCardChoice(null);
+  refresh();
+};
+  
+const handleStartActivateMain = (
+  sourceLine: BoardLine,
+  sourceIndex: number
+) => {
+  if (!isYourTurn) return alert("相手ターンです");
+  if (game.phase !== GamePhase.Main) return alert("メインフェーズのみです");
+
+  const sourceSlot =
+    sourceLine === BoardLine.FrontLine
+      ? player1.board.frontLine[sourceIndex]
+      : player1.board.energyLine[sourceIndex];
+
+  const sourceCard = sourceSlot.getCard();
+
+  if (!sourceCard) {
+    alert("カードがありません");
+    return;
+  }
+
+  const activateMainEffect = sourceCard.card.effects.find(
+    (effect) => effect.trigger === "activateMain"
+  );
+
+  if (!activateMainEffect) {
+    alert("起動メイン効果がありません");
+    return;
+  }
+
+  const needsSelectedOwnOtherCharacter = activateMainEffect.actions.some(
+    (action: any) => action.target === "selectedOwnOtherCharacter"
+  );
+
+  if (needsSelectedOwnOtherCharacter) {
+    setPendingActivateMain({
+      sourceLine,
+      sourceIndex,
+    });
+
+    setPendingSelection({
+      source: "activateMain",
+      requiredCount: 1,
+      selectedTargets: [],
+      allowedSide: "own",
+      allowedLines: [BoardLine.FrontLine, BoardLine.EnergyLine],
+    });
+
+    return;
+  }
+
+  try {
+    ActivateMainEffectAction.execute(game, sourceLine, sourceIndex);
+    refresh();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+};
+
+  const handleCancelCardChoice = () => {
+    setPendingCardChoice(null);
   };
   return (
     <div className="app">
@@ -271,6 +800,15 @@ function App() {
         </div>
       )}
 
+      {pendingSelection && (
+        <div className="selection-banner">
+          対象を選択してください：
+          {pendingSelection.selectedTargets.length}/
+          {pendingSelection.requiredCount}
+          <button onClick={handleCancelSelection}>Cancel</button>
+        </div>
+      )}
+      
       <OfficialBoardLayout
         game={game}
         player1={player1}
@@ -281,6 +819,7 @@ function App() {
         pendingAttack={pendingAttack}
         pendingRaid={pendingRaid}
         pendingRaidBase={pendingRaidBase}
+        pendingSelection={pendingSelection}
         hoveredCardImage={hoveredCardImage}
         onHoverImage={setHoveredCardImage}
         onNextPhase={handleNextPhase}
@@ -294,6 +833,12 @@ function App() {
         onNoBlock={handleNoBlock}
         onBlock={handleBlock}
         onUseEvent={handleUseEvent}
+        onSelectTarget={handleSelectTarget}
+        pendingCardChoice={pendingCardChoice}
+        onToggleChoiceCard={handleToggleChoiceCard}
+        onConfirmCardChoice={handleConfirmCardChoice}
+        onCancelCardChoice={handleCancelCardChoice}
+        onStartActivateMain={handleStartActivateMain}
       />
 
       {pendingRaidBase && (

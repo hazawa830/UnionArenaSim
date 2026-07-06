@@ -3,6 +3,7 @@
   "name": "お母さんか！",
   "imagePath": "/card-images/EX13BT_GIM-2-067.png",
   "cardType": "event",
+  "color": "red",
   "requiredEnergy": { "red": 3 },
   "actionPointCost": 1,
   "generatedEnergy": {},

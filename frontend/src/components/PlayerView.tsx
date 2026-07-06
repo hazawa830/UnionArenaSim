@@ -2,46 +2,49 @@ import { Player } from "../../../gameEngine/core/Player";
 import { BoardLine } from "../../../gameEngine/enum/BoardLine";
 import { BoardLineView } from "./BoardLineView";
 
+type TargetSide = "own" | "opponent";
+
 type Props = {
   title: string;
   player: Player;
   isYou?: boolean;
   reverseLines?: boolean;
+
   isRaidBaseSelecting?: boolean;
+  isTargetSelecting?: boolean;
+  targetSide?: TargetSide;
+
   onSelectRaidBase?: (line: BoardLine, index: number) => void;
+  onSelectTarget?: (
+    side: TargetSide,
+    line: BoardLine,
+    index: number
+  ) => void;
+
   onMoveToFront?: (energyIndex: number) => void;
   onAttack?: (frontIndex: number) => void;
   onHoverImage?: (imagePath: string | null) => void;
+  onStartActivateMain?: (line: BoardLine, index: number) => void;
 };
 
 export function PlayerView({
-  title,
   player,
   isYou = false,
   reverseLines = false,
+
   isRaidBaseSelecting = false,
+  isTargetSelecting = false,
+  targetSide,
+
   onSelectRaidBase,
+  onSelectTarget,
   onMoveToFront,
   onAttack,
   onHoverImage,
+  onStartActivateMain
 }: Props) {
   return (
     <section className="player-view official-player-view">
-      <div className="player-header">
-        <strong>
-          {title}: {player.name}
-        </strong>
-      </div>
-
-      <div className="player-stats-row">
-        <span>Hand: {player.board.hand.length}</span>
-        <span>Deck: {player.board.deck.length}</span>
-        <span>Life: {player.board.lifeArea.length}</span>
-        <span>
-          AP: {player.board.activeActionPoint}/{player.board.maxActionPoint}
-        </span>
-      </div>
-
       {reverseLines ? (
         <>
           <BoardLineView
@@ -49,14 +52,23 @@ export function PlayerView({
             line={BoardLine.FrontLine}
             title="Front Line"
             reverse
+            isTargetSelecting={isTargetSelecting}
+            targetSide={targetSide}
+            onSelectTarget={onSelectTarget}
             onHoverImage={onHoverImage}
+            onStartActivateMain={onStartActivateMain}
           />
+
           <BoardLineView
             player={player}
             line={BoardLine.EnergyLine}
             title="Energy Line"
             reverse
+            isTargetSelecting={isTargetSelecting}
+            targetSide={targetSide}
+            onSelectTarget={onSelectTarget}
             onHoverImage={onHoverImage}
+            onStartActivateMain={onStartActivateMain}
           />
         </>
       ) : (
@@ -67,19 +79,28 @@ export function PlayerView({
             title="Front Line"
             isYou={isYou}
             isRaidBaseSelecting={isRaidBaseSelecting}
+            isTargetSelecting={isTargetSelecting}
+            targetSide={targetSide}
             onSelectRaidBase={onSelectRaidBase}
+            onSelectTarget={onSelectTarget}
             onAttack={onAttack}
             onHoverImage={onHoverImage}
+            onStartActivateMain={onStartActivateMain}
           />
+
           <BoardLineView
             player={player}
             line={BoardLine.EnergyLine}
             title="Energy Line"
             isYou={isYou}
             isRaidBaseSelecting={isRaidBaseSelecting}
+            isTargetSelecting={isTargetSelecting}
+            targetSide={targetSide}
             onSelectRaidBase={onSelectRaidBase}
+            onSelectTarget={onSelectTarget}
             onMoveToFront={onMoveToFront}
             onHoverImage={onHoverImage}
+            onStartActivateMain={onStartActivateMain}
           />
         </>
       )}

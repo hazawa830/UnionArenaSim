@@ -128,7 +128,7 @@
 }
 .official-layout {
   display: grid;
-  grid-template-columns: 180px minmax(820px, 1fr) 260px;
+  grid-template-columns: 280px minmax(820px,1fr) 260px;
   gap: 10px;
   align-items: start;
   width: 100%;
@@ -404,4 +404,73 @@ button {
 .raid-base-selectable {
   outline: 4px solid #22c55e;
   cursor: pointer;
+}
+.target-selectable {
+  outline: 4px solid #3b82f6;
+  cursor: pointer;
+}
+.card-choice-panel {
+  border: 2px solid #2563eb;
+  border-radius: 10px;
+  background: #eff6ff;
+  padding: 10px;
+  width:270px;
+}
+
+.card-choice-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-choice-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.card-choice-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.card-choice-item {
+  width: 92px;
+  flex: 0 0 92px;
+  border: 2px solid #999;
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px;
+}
+
+.card-choice-item.selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
+}
+
+.card-choice-item .card {
+  border: none;
+  width: auto;
+  min-height: 0;
+  padding: 0;
+}
+
+.card-choice-item .card-image {
+  width: 78px;
+}
+
+.card-choice-name {
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.card-choice-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-choice-actions button {
+  flex: 1;
 }

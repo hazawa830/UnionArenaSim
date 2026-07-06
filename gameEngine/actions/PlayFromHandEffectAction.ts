@@ -19,7 +19,9 @@ export class PlayFromHandEffectAction {
   ): void {
     const board = context.actor.board;
     const maxCount = action.maxCount ?? 1;
-
+    if (context.event?.skipPlayFromHand) {
+      return;
+    }
     for (let count = 0; count < maxCount; count++) {
       const handIndex = board.hand.findIndex((card) =>
         this.matchesTarget(card, action)

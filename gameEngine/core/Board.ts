@@ -8,14 +8,15 @@ export class Board {
   public readonly frontLine: Slot[];
   public readonly energyLine: Slot[];
 
-  public readonly hand: CardInstance[];
-  public readonly deck: CardInstance[];
+  public  hand: CardInstance[];
+  public  deck: CardInstance[];
   public readonly lifeArea: CardInstance[];
   public readonly actionPoints: CardInstance[];
   public readonly trash: CardInstance[];
   public readonly removeArea: CardInstance[];
   public maxActionPoint: number;
   public activeActionPoint: number;
+  public hasUsedExtraDrawThisTurn: boolean;
 
   constructor(deck: CardInstance[] = []) {
     this.frontLine = [
@@ -40,6 +41,7 @@ export class Board {
     this.removeArea = [];
     this.maxActionPoint = 0;
     this.activeActionPoint = 0;
+    this.hasUsedExtraDrawThisTurn = false;
   }
 
   public draw(count: number = 1): CardInstance[] {
@@ -149,6 +151,7 @@ public clearUsedEffectIdsThisTurn(): void {
   this.clearTurnState();
 }
 public clearTurnState(): void {
+  this.hasUsedExtraDrawThisTurn = false;
   this.usedCardNameEffectIdsThisTurn.clear();
 
   for (const slot of [...this.frontLine, ...this.energyLine]) {

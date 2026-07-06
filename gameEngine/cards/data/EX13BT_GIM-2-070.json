@@ -3,6 +3,7 @@
   "name": "夏を満喫するわよ！",
   "imagePath": "/card-images/EX13BT_GIM-2-070.png",
   "cardType": "event",
+  "color": "red",
   "requiredEnergy": {
     "red": 4
   },

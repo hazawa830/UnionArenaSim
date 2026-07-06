@@ -3,6 +3,7 @@
   "name": "藤田 ことね",
   "imagePath": "/card-images/UA27BT_GIM-1-071_p1.png",
   "cardType": "character",
+  "color": "red",
   "requiredEnergy": { "red": 2 },
   "actionPointCost": 1,
   "bp": 2000,

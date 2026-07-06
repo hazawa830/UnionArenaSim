@@ -3,6 +3,7 @@
   "name": "花海 咲季",
   "imagePath": "/card-images/UA27BT_GIM-1-067_p1.png",
   "cardType": "character",
+  "color": "red",
   "requiredEnergy": {"red": 3},
   "actionPointCost": 1,
   "generatedEnergy": {"red":2},
