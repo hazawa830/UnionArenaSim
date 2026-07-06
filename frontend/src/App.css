@@ -474,3 +474,12 @@ button {
 .card-choice-actions button {
   flex: 1;
 }
+.card-choice-item.not-selectable {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.8);
+}
+
+.card-choice-item.not-selectable:hover {
+  box-shadow: none;
+}

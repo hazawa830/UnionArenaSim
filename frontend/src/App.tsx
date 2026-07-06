@@ -513,7 +513,8 @@ const startModifyBpTargetSelection = (sourceCard: CardInstance): boolean => {
   setPendingCardChoice({
     source: "searchTopDeck",
     title: `${sourceCard.card.name}: 山札上${action.lookCount}枚から${action.takeCount}枚選択`,
-    cards: topCards, // selectableCards ではなく topCards
+    cards: topCards,
+    selectableCards,
     minCount: 0,
     maxCount: action.takeCount,
     selectedCards: [],

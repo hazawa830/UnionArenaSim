@@ -16,6 +16,7 @@ export type PendingCardChoice = {
   minCount: number;
   maxCount: number;
   selectedCards: CardInstance[];
+  selectableCards?: CardInstance[];
   context?: {
     sourceCard: CardInstance;
     handIndex?: number;
@@ -58,13 +59,23 @@ export function CardChoicePanel({
 
       <div className="card-choice-list">
         {choice.cards.map((card) => {
+          const selectableCards = choice.selectableCards ?? choice.cards;
+          const selectable = selectableCards.includes(card);
           const selected = choice.selectedCards.includes(card);
 
           return (
             <button
               key={card.instanceId}
-              className={`card-choice-item ${selected ? "selected" : ""}`}
-              onClick={() => onToggleCard(card)}
+              className={[
+                "card-choice-item",
+                selected ? "selected" : "",
+                !selectable ? "not-selectable" : "",
+              ].join(" ")}
+              disabled={!selectable}
+              onClick={() => {
+                if (!selectable) return;
+                onToggleCard(card);
+              }}
               onMouseEnter={() => onHoverImage?.(card.card.imagePath ?? null)}
               onMouseLeave={() => onHoverImage?.(null)}
             >
