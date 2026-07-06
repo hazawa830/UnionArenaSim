@@ -329,73 +329,38 @@ export class TriggerAction {
 
     if (!canPayEnergy || revealedCard.card.raidConditions.length === 0) {
       board.hand.push(revealedCard);
-
       this.logTriggerResult(game, damagedPlayer, revealedCard, {
         result: "addToHand",
         reason: !canPayEnergy ? "notEnoughEnergy" : "noRaidConditions",
       });
-
       return;
     }
 
-    const slots = [...board.frontLine, ...board.energyLine];
-
-    const baseSlot = slots.find((slot) => {
+    const hasRaidBase = [...board.frontLine, ...board.energyLine].some((slot) => {
       const base = slot.getCard();
-
-      if (!base) {
-        return false;
-      }
-
-      return RaidConditionResolver.canRaidOn(
-        revealedCard.card.raidConditions,
-        base
+      return (
+        base &&
+        RaidConditionResolver.canRaidOn(revealedCard.card.raidConditions, base)
       );
     });
 
-    if (!baseSlot) {
+    if (!hasRaidBase) {
       board.hand.push(revealedCard);
-
       this.logTriggerResult(game, damagedPlayer, revealedCard, {
         result: "addToHand",
         reason: "noRaidBase",
       });
-
       return;
     }
 
-    const base = baseSlot.removeCard();
-
-    if (!base) {
-      board.hand.push(revealedCard);
-
-      this.logTriggerResult(game, damagedPlayer, revealedCard, {
-        result: "addToHand",
-        reason: "failedToRemoveBase",
-      });
-
-      return;
-    }
-
-    revealedCard.raidBase = base;
-    revealedCard.isRest = false;
-
-    baseSlot.setCard(revealedCard);
+    game.pendingRaidTrigger = {
+      revealedCard,
+      playerId: damagedPlayer.id,
+      opponentPlayerId: opponentPlayer.id,
+    };
 
     this.logTriggerResult(game, damagedPlayer, revealedCard, {
-      result: "raidPlay",
-      baseInstanceId: base.instanceId,
-      baseCardId: base.card.id,
-      baseCardName: base.card.name,
-      isRest: revealedCard.isRest,
+      result: "pendingRaidChoice",
     });
-
-    EffectResolver.resolve(
-      game,
-      revealedCard,
-      EffectTrigger.OnPlay,
-      damagedPlayer,
-      opponentPlayer
-    );
   }
 }

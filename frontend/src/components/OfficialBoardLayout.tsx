@@ -43,6 +43,7 @@ type Props = {
   pendingRaidBase: PendingRaidBase;
   pendingSelection: PendingSelection;
   hoveredCardImage: string | null;
+  isRaidTriggerBaseSelecting: boolean;
   
 
   onHoverImage: (imagePath: string | null) => void;
@@ -101,6 +102,7 @@ export function OfficialBoardLayout({
   onCancelCardChoice,
   onStartActivateMain,
   canCancelCardChoice = true,
+  isRaidTriggerBaseSelecting,
 }: Props) {
   const isTargetSelecting = pendingSelection !== null;
 
@@ -194,7 +196,8 @@ export function OfficialBoardLayout({
             player={player1}
             isYou
             isRaidBaseSelecting={
-              pendingRaid !== null && pendingRaidBase === null
+              (pendingRaid !== null && pendingRaidBase === null) ||
+              isRaidTriggerBaseSelecting
             }
             isTargetSelecting={isTargetSelecting}
             targetSide="own"

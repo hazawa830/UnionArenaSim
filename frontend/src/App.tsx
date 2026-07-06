@@ -22,6 +22,7 @@ import { CardType } from "../../gameEngine/enum/CardType";
 import { ActivateMainEffectAction } from "../../gameEngine/actions/ActivateMainEffectAction";
 import { ResolveSelectedEffectAction } from "../../gameEngine/actions/ResolveSelectedEffectAction";
 import { CompletePlayFromHandAction } from "../../gameEngine/actions/CompletePlayFromHandAction";
+import { ResolveRaidTriggerAction } from "../../gameEngine/actions/ResolveRaidTriggerAction";
 
 type PendingSelection = {
   source: "event" | "activateMain" | "trigger" | "effect";
@@ -44,6 +45,13 @@ function App() {
 
   const [pendingRaidBase, setPendingRaidBase] = useState<{
     handIndex: number;
+    baseLine: BoardLine;
+    baseIndex: number;
+  } | null>(null);
+  const [isSelectingRaidTriggerBase, setIsSelectingRaidTriggerBase] =
+    useState(false);
+
+  const [pendingRaidTriggerBase, setPendingRaidTriggerBase] = useState<{
     baseLine: BoardLine;
     baseIndex: number;
   } | null>(null);
@@ -82,6 +90,9 @@ function App() {
     if (pendingCardChoice !== null) return;
     if (pendingActivateMain !== null) return;
     if (pendingPlayDestination !== null) return;
+    if (game.pendingRaidTrigger) return;
+    if (isSelectingRaidTriggerBase) return;
+    if (pendingRaidTriggerBase !== null) return;
 
     const timer = setTimeout(() => {
       if (game.phase === GamePhase.Attack) {
@@ -111,6 +122,9 @@ function App() {
     pendingCardChoice,
     pendingActivateMain,
     pendingPlayDestination,
+    game.pendingRaidTrigger,
+    isSelectingRaidTriggerBase,
+    pendingRaidTriggerBase,
   ]);
 
   const handleNewGame = () => {
@@ -124,6 +138,8 @@ function App() {
     setPendingCardChoice(null);
     setPendingActivateMain(null);
     setPendingPlayDestination(null);
+    setIsSelectingRaidTriggerBase(false);
+    setPendingRaidTriggerBase(null);
   };
 
   const handleNextPhase = () => {
@@ -286,7 +302,10 @@ function App() {
 };
   const handleSelectRaidBase = (baseLine: BoardLine, baseIndex: number) => {
     if (!pendingRaid) return;
-
+    if (game.pendingRaidTrigger && isSelectingRaidTriggerBase) {
+      handleSelectRaidTriggerBase(baseLine, baseIndex);
+      return;
+    }
     if (baseLine === BoardLine.FrontLine) {
       try {
         const raidCard =RaidPlayAction.execute(
@@ -845,6 +864,92 @@ const handleSelectPlayFromHandDestination = (destinationLine: BoardLine) => {
     alert(e instanceof Error ? e.message : String(e));
   }
 };
+const handleDeclineRaidTrigger = () => {
+  try {
+    ResolveRaidTriggerAction.execute(game, false);
+
+    setIsSelectingRaidTriggerBase(false);
+    setPendingRaidTriggerBase(null);
+    refresh();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+};
+
+const handleStartRaidTrigger = () => {
+  setIsSelectingRaidTriggerBase(true);
+};
+
+const handleSelectRaidTriggerBase = (
+  baseLine: BoardLine,
+  baseIndex: number
+) => {
+  if (!game.pendingRaidTrigger) return;
+
+  if (baseLine === BoardLine.FrontLine) {
+    try {
+      const raidCard = ResolveRaidTriggerAction.execute(
+        game,
+        true,
+        BoardLine.FrontLine,
+        baseIndex,
+        BoardLine.FrontLine,
+        undefined,
+        { skipPlayFromHand: true }
+      );
+
+      setIsSelectingRaidTriggerBase(false);
+      setPendingRaidTriggerBase(null);
+
+      if (raidCard && startPlayFromHandChoice(raidCard)) {
+        refresh();
+        return;
+      }
+
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+
+    return;
+  }
+
+  setPendingRaidTriggerBase({
+    baseLine,
+    baseIndex,
+  });
+};
+
+const handleSelectRaidTriggerDestination = (
+  destinationLine: BoardLine,
+  destinationIndex?: number
+) => {
+  if (!pendingRaidTriggerBase) return;
+
+  try {
+    const raidCard = ResolveRaidTriggerAction.execute(
+      game,
+      true,
+      pendingRaidTriggerBase.baseLine,
+      pendingRaidTriggerBase.baseIndex,
+      destinationLine,
+      destinationIndex,
+      { skipPlayFromHand: true }
+    );
+
+    setIsSelectingRaidTriggerBase(false);
+    setPendingRaidTriggerBase(null);
+
+    if (raidCard && startPlayFromHandChoice(raidCard)) {
+      refresh();
+      return;
+    }
+
+    refresh();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+};
 const handleStartActivateMain = (
   sourceLine: BoardLine,
   sourceIndex: number
@@ -872,7 +977,7 @@ const handleStartActivateMain = (
     alert("起動メイン効果がありません");
     return;
   }
-
+  
   const needsSelectedOwnOtherCharacter = activateMainEffect.actions.some(
     (action: any) => action.target === "selectedOwnOtherCharacter"
   );
@@ -962,6 +1067,7 @@ const handleStartActivateMain = (
         canCancelCardChoice={
           pendingCardChoice?.source !== "discardHand" 
         }
+        isRaidTriggerBaseSelecting={isSelectingRaidTriggerBase}
       />
 
       {pendingRaidBase && (
@@ -998,6 +1104,51 @@ const handleStartActivateMain = (
           </div>
         </div>
       )}
+      {game.pendingRaidTrigger && !isSelectingRaidTriggerBase && (
+      <div className="selection-banner">
+        レイドトリガーが公開されました
+        <button onClick={handleStartRaidTrigger}>レイドする</button>
+        <button onClick={handleDeclineRaidTrigger}>手札に加える</button>
+      </div>
+    )}
+
+    {game.pendingRaidTrigger && isSelectingRaidTriggerBase && !pendingRaidTriggerBase && (
+      <div className="selection-banner">
+        レイド元を選択してください
+      </div>
+    )}
+    {pendingRaidTriggerBase && (
+  <div className="modal-backdrop">
+    <div className="modal">
+      <h3>レイドトリガー登場先を選択</h3>
+
+      <div className="raid-destination-buttons">
+        <button
+          onClick={() =>
+            handleSelectRaidTriggerDestination(
+              BoardLine.EnergyLine,
+              pendingRaidTriggerBase.baseIndex
+            )
+          }
+        >
+          Energy Lineに登場
+        </button>
+
+        {player1.board.frontLine.map((slot, index) => (
+          <button
+            key={index}
+            disabled={!slot.isEmpty()}
+            onClick={() =>
+              handleSelectRaidTriggerDestination(BoardLine.FrontLine, index)
+            }
+          >
+            Front {index + 1}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
       {pendingPlayDestination && (
   <div className="modal-backdrop">
     <div className="modal">

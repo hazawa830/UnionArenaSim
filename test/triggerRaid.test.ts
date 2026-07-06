@@ -65,7 +65,7 @@ function createRaidTemari(): CardInstance {
 }
 
 describe("TriggerAction Raid", () => {
-  it("レイド可能なら自動でレイド登場する", () => {
+  it("レイド可能ならpendingRaidTriggerが設定される", () => {
     const game = createTestGame();
     const damagedPlayer = game.getCurrentPlayer();
     const opponentPlayer = game.getOpponentPlayer();
@@ -79,20 +79,22 @@ describe("TriggerAction Raid", () => {
 
     const raid = createRaidTemari();
 
-    damagedPlayer.board.frontLine[0].setCard(base);
-
-    TriggerAction.resolve(
+      TriggerAction.resolve(
       game,
       raid,
       damagedPlayer,
       opponentPlayer
     );
 
-    expect(damagedPlayer.board.frontLine[0].getCard()).toBe(raid);
-    expect(raid.raidBase).toBe(base);
-    expect(raid.isRaid()).toBe(true);
-    expect(raid.isRest).toBe(false);
-    expect(damagedPlayer.board.hand).not.toContain(raid);
+    expect(game.pendingRaidTrigger).toEqual({
+      revealedCard: raid,
+      playerId: damagedPlayer.id,
+      opponentPlayerId: opponentPlayer.id,
+    });
+
+    // まだ自動レイドしない
+    expect(damagedPlayer.board.frontLine[0].getCard()).toBe(base);
+    expect(raid.raidBase).toBeUndefined();
   });
 
   it("レイド条件を満たさない場合は手札に加える", () => {

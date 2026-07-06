@@ -6,6 +6,7 @@ import { GamePhase } from "../enum/GamePhase";
 import { PlayerId } from "../enum/PlayerId";
 import { StartPhaseAction } from "../actions/StartPhaseAction";
 import { GameLog } from "../log/GameLog";
+import { CardInstance } from "../cards/CardInstance";
 export class Game {
   public readonly player1: Player;
   public readonly player2: Player;
@@ -18,7 +19,11 @@ export class Game {
   public playerTurnCounts: Record<PlayerId, number>;
   public logs: GameLog[] = [];
   public nextLogId = 1;
-
+  public pendingRaidTrigger?: {
+    revealedCard: CardInstance;
+    playerId: string;
+    opponentPlayerId: string;
+  };
   constructor(player1: Player, player2: Player) {
     this.player1 = player1;
     this.player2 = player2;
