@@ -67,6 +67,7 @@ type Props = {
   onConfirmCardChoice: () => void;
   onCancelCardChoice: () => void;
   onStartActivateMain: (line: BoardLine, index: number) => void;
+  canCancelCardChoice?: boolean;
 };
 
 export function OfficialBoardLayout({
@@ -99,6 +100,7 @@ export function OfficialBoardLayout({
   onConfirmCardChoice,
   onCancelCardChoice,
   onStartActivateMain,
+  canCancelCardChoice = true,
 }: Props) {
   const isTargetSelecting = pendingSelection !== null;
 
@@ -111,6 +113,7 @@ export function OfficialBoardLayout({
           onConfirm={onConfirmCardChoice}
           onCancel={onCancelCardChoice}
           onHoverImage={onHoverImage}
+          canCancel={canCancelCardChoice}
         />
 
         {!pendingCardChoice && (

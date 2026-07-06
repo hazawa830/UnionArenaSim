@@ -958,6 +958,9 @@ const handleStartActivateMain = (
         onConfirmCardChoice={handleConfirmCardChoice}
         onCancelCardChoice={handleCancelCardChoice}
         onStartActivateMain={handleStartActivateMain}
+        canCancelCardChoice={
+          pendingCardChoice?.source !== "discardHand" 
+        }
       />
 
       {pendingRaidBase && (

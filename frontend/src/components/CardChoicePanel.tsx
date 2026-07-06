@@ -28,6 +28,7 @@ type Props = {
   onConfirm: () => void;
   onCancel: () => void;
   onHoverImage?: (imagePath: string | null) => void;
+  canCancel?: boolean;
 };
 
 export function CardChoicePanel({
@@ -36,6 +37,7 @@ export function CardChoicePanel({
   onConfirm,
   onCancel,
   onHoverImage,
+  canCancel = true,
 }: Props) {
   if (!choice) {
     return null;
@@ -77,7 +79,9 @@ export function CardChoicePanel({
         <button onClick={onConfirm} disabled={!canConfirm}>
           決定
         </button>
-        <button onClick={onCancel}>キャンセル</button>
+        {canCancel && (
+          <button onClick={onCancel}>キャンセル</button>
+        )}
       </div>
     </section>
   );
