@@ -16,6 +16,12 @@ export class ModifyBpThisTurnEffectAction {
     context: EffectContext,
     action: ModifyBpThisTurnAction
   ): void {
+    if (
+  context.event?.skipSelectableModifyBp &&
+      typeof action.target !== "string"
+    ) {
+      return;
+    }
     if (typeof action.target === "string") {
       this.executeStringTarget(context, action);
       return;

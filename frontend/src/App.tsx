@@ -20,6 +20,7 @@ import { OfficialBoardLayout } from "./components/OfficialBoardLayout";
 import type { PendingCardChoice } from "./components/CardChoicePanel";
 import { CardType } from "../../gameEngine/enum/CardType";
 import { ActivateMainEffectAction } from "../../gameEngine/actions/ActivateMainEffectAction";
+import { ResolveSelectedEffectAction } from "../../gameEngine/actions/ResolveSelectedEffectAction";
 
 type PendingSelection = {
   source: "event" | "activateMain" | "trigger" | "effect";
@@ -28,6 +29,7 @@ type PendingSelection = {
   selectedTargets: CardInstance[];
   allowedSide: "own" | "opponent" | "both";
   allowedLines: BoardLine[];
+  sourceCard?: CardInstance;
 };
 
 function App() {
@@ -143,8 +145,16 @@ function App() {
       const playedCard = PlayCardAction.execute(
         game,
         handIndex,
-        BoardLine.EnergyLine
+        BoardLine.EnergyLine,
+        undefined,
+        {
+          skipSelectableModifyBp: true,
+        }
       );
+
+      if (startModifyBpTargetSelection(playedCard)) {
+        return;
+      }
 
       const startedSearch = startSearchTopDeckChoice(playedCard);
 
@@ -161,10 +171,18 @@ function App() {
 
     try {
       const playedCard = PlayCardAction.execute(
-      game,
+        game,
         handIndex,
-        BoardLine.FrontLine
+        BoardLine.FrontLine,
+        undefined,
+        {
+          skipSelectableModifyBp: true,
+        }
       );
+
+      if (startModifyBpTargetSelection(playedCard)) {
+        return;
+      }
 
       const startedSearch = startSearchTopDeckChoice(playedCard);
 
@@ -398,6 +416,58 @@ function App() {
 
       return true;
     };
+    const findSelectableModifyBpAction = (sourceCard: CardInstance) => {
+  for (const effect of sourceCard.card.effects) {
+    for (const action of effect.actions) {
+      if (action.type !== "modifyBpThisTurn") {
+        continue;
+      }
+
+      if (typeof action.target === "string") {
+        continue;
+      }
+
+      return action;
+    }
+  }
+
+  return undefined;
+};
+
+const startModifyBpTargetSelection = (sourceCard: CardInstance): boolean => {
+    const action = findSelectableModifyBpAction(sourceCard);
+
+    if (!action || action.type !== "modifyBpThisTurn") {
+      return false;
+    }
+
+    if (typeof action.target === "string") {
+      return false;
+    }
+
+    const target = action.target;
+
+    setPendingSelection({
+      source: "effect",
+      sourceCard,
+      requiredCount: target.maxCount ?? 1,
+      selectedTargets: [],
+      allowedSide:
+        target.side === "own"
+          ? "own"
+          : target.side === "opponent"
+            ? "opponent"
+            : "both",
+      allowedLines:
+        target.zone === "frontLine"
+          ? [BoardLine.FrontLine]
+          : target.zone === "energyLine"
+            ? [BoardLine.EnergyLine]
+            : [BoardLine.FrontLine, BoardLine.EnergyLine],
+    });
+
+    return true;
+  };
     const startSearchTopDeckChoice = (
   sourceCard: CardInstance,
   options?: {
@@ -563,7 +633,30 @@ function App() {
       nextSelectedTargets
     );
   }
+  if (pendingSelection.source === "effect") {
+    if (!pendingSelection.sourceCard) {
+      throw new Error("Effect source card is missing.");
+    }
 
+    const effectAction = findSelectableModifyBpAction(
+      pendingSelection.sourceCard
+    );
+
+    if (!effectAction) {
+      throw new Error("Selectable effect action is missing.");
+    }
+
+    ResolveSelectedEffectAction.execute(
+      game,
+      pendingSelection.sourceCard,
+      effectAction,
+      nextSelectedTargets
+    );
+
+    setPendingSelection(null);
+    refresh();
+    return;
+  }
   if (pendingSelection.source === "activateMain") {
       if (!pendingActivateMain) {
         throw new Error("ActivateMain source is missing.");

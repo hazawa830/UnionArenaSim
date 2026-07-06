@@ -15,7 +15,10 @@ export class PlayCardAction {
     game: Game,
     handIndex: number,
     destination: BoardLine,
-    source: ActionSource = ActionSource.PlayerNormal
+    source: ActionSource = ActionSource.PlayerNormal,
+    options?: {
+      skipSelectableModifyBp?: boolean;
+    }
   ): CardInstance {
     if (source === ActionSource.PlayerNormal && game.phase !== GamePhase.Main) {
       throw new Error("Normal play is only allowed in main phase.");
@@ -67,7 +70,11 @@ export class PlayCardAction {
       },
     });
 
-    EffectResolver.resolve(game, cardInstance, EffectTrigger.OnPlay);
+    EffectResolver.resolve(game, cardInstance, EffectTrigger.OnPlay,undefined,
+    undefined,
+    {
+      skipSelectableModifyBp: options?.skipSelectableModifyBp,
+    });
     return cardInstance;
   }
 
