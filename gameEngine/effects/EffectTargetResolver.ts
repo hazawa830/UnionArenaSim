@@ -5,13 +5,10 @@ import { EffectContext } from "./EffectContext";
 import { ContinuousEffectResolver } from "./ContinuousEffectResolver";
 
 export class EffectTargetResolver {
-  public static resolveCandidates(
+    private static resolveCandidatesWithoutSelectedTargets(
     context: EffectContext,
     target: EffectTarget
   ): CardInstance[] {
-    if (context.event?.selectedTargets && context.event.selectedTargets.length > 0) {
-      return context.event.selectedTargets;
-    }
     const board =
       target.side === "own" ? context.actor.board : context.opponent.board;
 
@@ -69,5 +66,24 @@ export class EffectTargetResolver {
 
         return true;
       });
+  }
+    public static resolveCandidates(
+    context: EffectContext,
+    target: EffectTarget
+  ): CardInstance[] {
+    const candidates = this.resolveCandidatesWithoutSelectedTargets(
+      context,
+      target
+    );
+
+    const selectedTargets = context.event?.selectedTargets;
+
+    if (!selectedTargets || selectedTargets.length === 0) {
+      return candidates;
+    }
+
+    return selectedTargets.filter((selected) =>
+      candidates.includes(selected)
+    );
   }
 }

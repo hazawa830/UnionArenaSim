@@ -7,7 +7,28 @@ import { EffectTargetResolver } from "../gameEngine/effects/EffectTargetResolver
 import { Effect } from "../gameEngine/effects/Effect";
 import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
 import { ContinuousEffectResolver } from "../gameEngine/effects/ContinuousEffectResolver";
-
+import { CardFactory } from "../gameEngine/cards/CardFactory";
+import { CardInstance } from "../gameEngine/cards/CardInstance";
+function createCharacterInstance(
+  instanceId: number,
+  id: string,
+  name: string
+): CardInstance {
+  return new CardInstance(
+    instanceId,
+    CardFactory.create({
+      id,
+      name,
+      cardType: "character",
+      requiredEnergy: {},
+      actionPointCost: 1,
+      bp: 1000,
+      generatedEnergy: { red: 1 },
+      triggerType: "none",
+      effects: [],
+    })
+  );
+}
 describe("EffectTargetResolver", () => {
   it("own field のキャラ候補を取得できる", () => {
     const game = createTestGame();
@@ -230,5 +251,71 @@ it("continuousのBP上昇効果が適用される", () => {
     ContinuousEffectResolver.getCurrentBp(context, card)
   ).toBe(4000);
 });
+it("selectedTargets が指定されていても target.zone=frontLine の条件を満たさないカードは候補から除外される", () => {
+  const game = createTestGame();
+  const actor = game.getCurrentPlayer();
+  const opponent = game.getOpponentPlayer();
 
+  const source = createCharacterInstance(1000, "SOURCE", "効果元");
+  const opponentFrontCard = createCharacterInstance(1001, "FRONT", "相手フロント");
+  const opponentEnergyCard = createCharacterInstance(1002, "ENERGY", "相手エナジー");
+
+  actor.board.frontLine[0].setCard(source);
+  opponent.board.frontLine[0].setCard(opponentFrontCard);
+  opponent.board.energyLine[0].setCard(opponentEnergyCard);
+
+  const candidates = EffectTargetResolver.resolveCandidates(
+    {
+      game,
+      source,
+      actor,
+      opponent,
+      event: {
+        selectedTargets: [opponentEnergyCard],
+      },
+    },
+    {
+      side: "opponent",
+      zone: "frontLine",
+      cardType: "character",
+      maxCount: 1,
+    }
+  );
+
+  expect(candidates).toEqual([]);
+});
+
+it("selectedTargets が target.zone=frontLine の条件を満たす場合は候補に残る", () => {
+  const game = createTestGame();
+  const actor = game.getCurrentPlayer();
+  const opponent = game.getOpponentPlayer();
+
+  const source = createCharacterInstance(1003, "SOURCE", "効果元");
+  const opponentFrontCard = createCharacterInstance(1004, "FRONT", "相手フロント");
+  const opponentEnergyCard = createCharacterInstance(1005, "ENERGY", "相手エナジー");
+
+  actor.board.frontLine[0].setCard(source);
+  opponent.board.frontLine[0].setCard(opponentFrontCard);
+  opponent.board.energyLine[0].setCard(opponentEnergyCard);
+
+  const candidates = EffectTargetResolver.resolveCandidates(
+    {
+      game,
+      source,
+      actor,
+      opponent,
+      event: {
+        selectedTargets: [opponentFrontCard],
+      },
+    },
+    {
+      side: "opponent",
+      zone: "frontLine",
+      cardType: "character",
+      maxCount: 1,
+    }
+  );
+
+  expect(candidates).toEqual([opponentFrontCard]);
+});
 });
