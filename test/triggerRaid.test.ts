@@ -9,7 +9,8 @@ import { CardInstance } from "../gameEngine/cards/CardInstance";
 import { TriggerType } from "../gameEngine/enum/TriggerType";
 import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
 import { LogType } from "../gameEngine/enum/LogType";
-
+import { ResolveRaidTriggerAction } from "../gameEngine/actions/ResolveRaidTriggerAction";
+import { BoardLine } from "../gameEngine/enum/BoardLine";
 function createRedEnergy(name: string) {
   return TestCardFactory.createCharacter({
     name,
@@ -79,12 +80,9 @@ describe("TriggerAction Raid", () => {
 
     const raid = createRaidTemari();
 
-      TriggerAction.resolve(
-      game,
-      raid,
-      damagedPlayer,
-      opponentPlayer
-    );
+    damagedPlayer.board.frontLine[0].setCard(base);
+
+    TriggerAction.resolve(game, raid, damagedPlayer, opponentPlayer);
 
     expect(game.pendingRaidTrigger).toEqual({
       revealedCard: raid,
@@ -92,7 +90,6 @@ describe("TriggerAction Raid", () => {
       opponentPlayerId: opponentPlayer.id,
     });
 
-    // まだ自動レイドしない
     expect(damagedPlayer.board.frontLine[0].getCard()).toBe(base);
     expect(raid.raidBase).toBeUndefined();
   });
@@ -113,13 +110,9 @@ describe("TriggerAction Raid", () => {
 
     damagedPlayer.board.frontLine[0].setCard(base);
 
-    TriggerAction.resolve(
-      game,
-      raid,
-      damagedPlayer,
-      opponentPlayer
-    );
+    TriggerAction.resolve(game, raid, damagedPlayer, opponentPlayer);
 
+    expect(game.pendingRaidTrigger).toBeUndefined();
     expect(damagedPlayer.board.frontLine[0].getCard()).toBe(base);
     expect(damagedPlayer.board.hand).toContain(raid);
     expect(raid.isRaid()).toBe(false);
@@ -215,9 +208,10 @@ it("レイドトリガー公開時にTriggerログが追加される", () => {
 
   TriggerAction.resolve(game, raid, damagedPlayer, opponentPlayer);
 
-  expect(game.logs[0]).toMatchObject({
-    type: LogType.Trigger,
-    playerId: damagedPlayer.id,
+  expect(resultLog?.payload).toMatchObject({
+    result: "pendingRaidChoice",
+    cardInstanceId: raid.instanceId,
+    cardId: raid.card.id,
   });
 
   expect(game.logs[0].payload).toMatchObject({

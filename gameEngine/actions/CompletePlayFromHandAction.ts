@@ -13,10 +13,18 @@ export class CompletePlayFromHandAction {
     sourceCard: CardInstance,
     playedCard: CardInstance,
     destinationLine: BoardLine,
-    rest: boolean
+    rest: boolean,
+    actorPlayerId?: string
   ): void {
-    const player = game.getCurrentPlayer();
-    const opponent = game.getOpponentPlayer();
+    const player =
+    actorPlayerId === game.player1.id
+      ? game.player1
+      : actorPlayerId === game.player2.id
+        ? game.player2
+        : game.getCurrentPlayer();
+
+  const opponent =
+    player === game.player1 ? game.player2 : game.player1;
     const board = player.board;
 
     const handIndex = board.hand.findIndex((card) => card === playedCard);

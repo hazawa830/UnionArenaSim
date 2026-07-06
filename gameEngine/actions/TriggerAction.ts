@@ -7,8 +7,7 @@ import { DestroyEffectAction } from "../effects/actions/DestroyEffectAction";
 import { EffectAction } from "../effects/EffectAction";
 import { EffectContext } from "../effects/EffectContext";
 import { RaidConditionResolver } from "../raid/RaidConditionResolver";
-import { EffectResolver } from "../effects/EffectResolver";
-import { EffectTrigger } from "../effects/EffectTrigger";
+
 import { LogType } from "../enum/LogType";
 import { GameLogger } from "../log/GameLogger";
 

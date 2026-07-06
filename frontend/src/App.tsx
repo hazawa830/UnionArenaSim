@@ -69,6 +69,7 @@ function App() {
     playedCard: CardInstance;
     allowedLines: BoardLine[];
     rest: boolean;
+    playerId: string;
   } | null>(null);
   const game = gameRef.current;
   const player1 = game.player1;
@@ -301,11 +302,12 @@ function App() {
   return undefined;
 };
   const handleSelectRaidBase = (baseLine: BoardLine, baseIndex: number) => {
-    if (!pendingRaid) return;
+    
     if (game.pendingRaidTrigger && isSelectingRaidTriggerBase) {
       handleSelectRaidTriggerBase(baseLine, baseIndex);
       return;
     }
+    if (!pendingRaid) return;
     if (baseLine === BoardLine.FrontLine) {
       try {
         const raidCard =RaidPlayAction.execute(
@@ -317,8 +319,8 @@ function App() {
           undefined,
           { skipPlayFromHand: true }
         );
-        const startedChoice = startPlayFromHandChoice(raidCard);
-
+        const startedChoice = startPlayFromHandChoice(raidCard, game.pendingRaidTrigger?.playerId ?? player1.id);
+        
         if (!startedChoice) {
           refresh();
         }
@@ -394,7 +396,7 @@ function App() {
 
       return targetActions.length;
     };
-    const startPlayFromHandChoice = (sourceCard: CardInstance): boolean => {
+    const startPlayFromHandChoice = (sourceCard: CardInstance,playerId: string = player1.id): boolean => {
       const playFromHandAction = sourceCard.card.raidEffects
         .flatMap((effect) => effect.actions)
         .find((action: any) => action.type === "playFromHand");
@@ -402,8 +404,9 @@ function App() {
       if (!playFromHandAction || playFromHandAction.type !== "playFromHand") {
         return false;
       }
+      const choicePlayer =playerId === player1.id ? player1 : player2;
 
-      const candidates = player1.board.hand.filter((card) => {
+      const candidates = choicePlayer.board.hand.filter((card) => {
         const target = playFromHandAction.target;
 
         if (target.names && target.names.length > 0) {
@@ -440,6 +443,7 @@ function App() {
         selectedCards: [],
         context: {
           sourceCard,
+          playerId,
         },
       });
 
@@ -839,6 +843,7 @@ const startModifyBpTargetSelection = (sourceCard: CardInstance): boolean => {
     playedCard: selected,
     allowedLines: [BoardLine.FrontLine, BoardLine.EnergyLine],
     rest: true,
+    playerId: pendingCardChoice.context.playerId ?? player1.id,
   });
 
   setPendingCardChoice(null);
@@ -867,7 +872,7 @@ const handleSelectPlayFromHandDestination = (destinationLine: BoardLine) => {
 const handleDeclineRaidTrigger = () => {
   try {
     ResolveRaidTriggerAction.execute(game, false);
-
+    
     setIsSelectingRaidTriggerBase(false);
     setPendingRaidTriggerBase(null);
     refresh();
@@ -888,6 +893,7 @@ const handleSelectRaidTriggerBase = (
 
   if (baseLine === BoardLine.FrontLine) {
     try {
+      const raidTriggerPlayerId = game.pendingRaidTrigger.playerId;
       const raidCard = ResolveRaidTriggerAction.execute(
         game,
         true,
@@ -901,7 +907,7 @@ const handleSelectRaidTriggerBase = (
       setIsSelectingRaidTriggerBase(false);
       setPendingRaidTriggerBase(null);
 
-      if (raidCard && startPlayFromHandChoice(raidCard)) {
+      if (raidCard && startPlayFromHandChoice(raidCard, raidTriggerPlayerId)) {
         refresh();
         return;
       }
@@ -925,7 +931,6 @@ const handleSelectRaidTriggerDestination = (
   destinationIndex?: number
 ) => {
   if (!pendingRaidTriggerBase) return;
-
   try {
     const raidCard = ResolveRaidTriggerAction.execute(
       game,
@@ -940,7 +945,7 @@ const handleSelectRaidTriggerDestination = (
     setIsSelectingRaidTriggerBase(false);
     setPendingRaidTriggerBase(null);
 
-    if (raidCard && startPlayFromHandChoice(raidCard)) {
+    if (raidCard && startPlayFromHandChoice(raidCard, game.pendingRaidTrigger?.playerId ?? player1.id)) {
       refresh();
       return;
     }
