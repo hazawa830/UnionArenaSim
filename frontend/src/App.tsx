@@ -80,12 +80,16 @@ function App() {
 
   const isYourTurn = currentPlayer === player1;
   const isGameOver = game.winner !== undefined;
+  const [cpuTick, setCpuTick] = useState(0);
 
   const refresh = () => forceUpdate();
 
   useEffect(() => {
     if (game.winner) return;
-    if (currentPlayer !== player2) return;
+    const hasCpuPendingChoice =
+  game.pendingRaidTrigger?.playerId === player2.id ||
+  game.pendingTriggerChoice?.playerId === player2.id;
+    if (currentPlayer !== player2 && !hasCpuPendingChoice) return;
     if (pendingAttack !== null) return;
     if (pendingRaid !== null) return;
     if (pendingRaidBase !== null) return;
@@ -97,9 +101,13 @@ function App() {
     if (game.pendingTriggerChoice?.playerId === player1.id) return;
     if (isSelectingRaidTriggerBase) return;
     if (pendingRaidTriggerBase !== null) return;
-    if (game.pendingTriggerChoice) return;
 
     const timer = setTimeout(() => {
+      if (RandomCPU.resolvePendingChoices(game)) {
+        refresh();
+        setCpuTick((x) => x + 1);
+        return;
+      }
       if (game.phase === GamePhase.Attack) {
         const attackerIndex = player2.board.frontLine.findIndex((slot) => {
           const card = slot.getCard();
@@ -111,12 +119,10 @@ function App() {
           return;
         }
       }
-      if (RandomCPU.resolvePendingChoices(game)) {
-        refresh();
-        return;
-      }
+      
       RandomCPU.playPhase(game);
       refresh();
+      setCpuTick((x) => x + 1);
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -135,6 +141,7 @@ function App() {
     isSelectingRaidTriggerBase,
     pendingRaidTriggerBase,
     game.pendingTriggerChoice,
+    cpuTick,
     
   ]);
 

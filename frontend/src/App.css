@@ -117,18 +117,14 @@
   text-align: center;
 }
 
-.card-preview-image {
-  width: 350px;
-  max-width: 100%;
-  height: auto;
-}
+
 .control-panel strong {
     font-weight: bold;
     color: #222;
 }
 .official-layout {
   display: grid;
-  grid-template-columns: 280px minmax(820px,1fr) 260px;
+  grid-template-columns: 520px minmax(820px, 1fr) 260px;
   gap: 10px;
   align-items: start;
   width: 100%;
@@ -273,8 +269,8 @@
 }
 
 .card-preview-image {
-  width: 100%;
-  max-width: 260px;
+  width: 150%;
+  max-width: 1000px;
   border-radius: 8px;
 }
 
@@ -409,12 +405,14 @@ button {
   outline: 4px solid #3b82f6;
   cursor: pointer;
 }
+
 .card-choice-panel {
   border: 2px solid #2563eb;
   border-radius: 10px;
   background: #eff6ff;
   padding: 10px;
-  width:270px;
+  width: 500px;
+  box-sizing: border-box;
 }
 
 .card-choice-header {
@@ -437,8 +435,8 @@ button {
 }
 
 .card-choice-item {
-  width: 92px;
-  flex: 0 0 92px;
+  width: 150px;
+  flex: 0 0 150px;
   border: 2px solid #999;
   border-radius: 6px;
   background: #fff;
@@ -458,7 +456,7 @@ button {
 }
 
 .card-choice-item .card-image {
-  width: 78px;
+  width: 120px;
 }
 
 .card-choice-name {

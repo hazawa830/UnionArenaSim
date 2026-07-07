@@ -1,7 +1,7 @@
 import { Game } from "../core/Game";
 import { CpuActionGenerator } from "./CpuActionGenerator";
 import { CpuActionExecutor } from "./CpuActionExecutor";
-import { CpuAction } from "./CpuAction";
+
 
 import { ResolveTriggerChoiceAction } from "../actions/ResolveTriggerChoiceAction";
 import { ResolveRaidTriggerAction } from "../actions/ResolveRaidTriggerAction";
@@ -15,36 +15,18 @@ export class RandomCPU {
       return;
     }
 
-    let guard = 0;
+    const actions = CpuActionGenerator.generate(game);
 
-    while (!game.winner && guard < 20) {
-      const actions = CpuActionGenerator.generate(game);
+    if (actions.length === 0) {
+      return;
+    }
 
-      if (actions.length === 0) {
+    const shuffled = this.shuffle(actions);
+
+    for (const action of shuffled) {
+      if (CpuActionExecutor.tryExecute(game, action)) {
         return;
       }
-
-      const shuffled = this.shuffle(actions);
-
-      let executed = false;
-
-      for (const action of shuffled) {
-        if (CpuActionExecutor.tryExecute(game, action)) {
-          executed = true;
-
-          if (action.type === "endPhase") {
-            return;
-          }
-
-          break;
-        }
-      }
-
-      if (!executed) {
-        return;
-      }
-
-      guard++;
     }
   }
 
