@@ -137,6 +137,8 @@ export function OfficialBoardLayout({
             targetSide="opponent"
             onSelectTarget={onSelectTarget}
             onHoverImage={onHoverImage}
+            opponent={player1}
+            game={game}
           />
         </section>
 
@@ -207,6 +209,8 @@ export function OfficialBoardLayout({
             onAttack={onAttack}
             onHoverImage={onHoverImage}
             onStartActivateMain={onStartActivateMain}
+            opponent={player2}
+            game={game}
           />
         </section>
 

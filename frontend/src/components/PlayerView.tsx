@@ -1,6 +1,7 @@
 import { Player } from "../../../gameEngine/core/Player";
 import { BoardLine } from "../../../gameEngine/enum/BoardLine";
 import { BoardLineView } from "./BoardLineView";
+import { Game } from "../../../gameEngine/core/Game";
 
 type TargetSide = "own" | "opponent";
 
@@ -25,6 +26,8 @@ type Props = {
   onAttack?: (frontIndex: number) => void;
   onHoverImage?: (imagePath: string | null) => void;
   onStartActivateMain?: (line: BoardLine, index: number) => void;
+  game: Game;
+  opponent: Player;
 };
 
 export function PlayerView({
@@ -41,7 +44,9 @@ export function PlayerView({
   onMoveToFront,
   onAttack,
   onHoverImage,
-  onStartActivateMain
+  onStartActivateMain,
+  game,
+  opponent,
 }: Props) {
   return (
     <section className="player-view official-player-view">
@@ -57,6 +62,9 @@ export function PlayerView({
             onSelectTarget={onSelectTarget}
             onHoverImage={onHoverImage}
             onStartActivateMain={onStartActivateMain}
+            game={game}
+            actor={player}
+            opponent={opponent}
           />
 
           <BoardLineView
@@ -69,6 +77,9 @@ export function PlayerView({
             onSelectTarget={onSelectTarget}
             onHoverImage={onHoverImage}
             onStartActivateMain={onStartActivateMain}
+            game={game}
+            actor={player}
+            opponent={opponent}
           />
         </>
       ) : (
@@ -86,6 +97,9 @@ export function PlayerView({
             onAttack={onAttack}
             onHoverImage={onHoverImage}
             onStartActivateMain={onStartActivateMain}
+            game={game}
+            actor={player}
+            opponent={opponent}
           />
 
           <BoardLineView
@@ -101,6 +115,9 @@ export function PlayerView({
             onMoveToFront={onMoveToFront}
             onHoverImage={onHoverImage}
             onStartActivateMain={onStartActivateMain}
+            game={game}
+            actor={player}
+            opponent={opponent}
           />
         </>
       )}

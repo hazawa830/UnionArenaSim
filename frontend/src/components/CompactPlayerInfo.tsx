@@ -2,7 +2,6 @@ import { Game } from "../../../gameEngine/core/Game";
 
 type Player = ReturnType<Game["getCurrentPlayer"]>;
 
-
 export function CompactPlayerInfo({
   title,
   player,
@@ -38,20 +37,22 @@ export function CompactPlayerInfo({
         </strong>
       </div>
 
-      <div className="trash-preview">
-        <div className="info-row">
-          <span>Trash</span>
-          <strong>{player.board.trash.length}</strong>
+      <div className="trash-zone">
+        <div className="trash-zone-title">TRASH</div>
+
+        <div className="trash-card-frame">
+          {lastTrash ? (
+            <img
+              src={lastTrash.card.imagePath}
+              alt={lastTrash.card.name}
+              className="trash-preview-image"
+            />
+          ) : (
+            <span className="trash-empty">EMPTY</span>
+          )}
         </div>
 
-        {lastTrash && (
-          <img
-            src={lastTrash.card.imagePath}
-            alt={lastTrash.card.name}
-            className="trash-preview-image"
-            onMouseEnter={() => {}}
-          />
-        )}
+        <div className="trash-count">{player.board.trash.length}枚</div>
       </div>
     </section>
   );

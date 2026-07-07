@@ -509,3 +509,70 @@ button {
   border: 1px solid #222;
   border-radius: 4px;
 }
+.trash-zone {
+  margin-top: 12px;
+  padding: 8px;
+  border: 2px solid #333;
+  border-radius: 6px;
+  background: #f3f4f6;
+  text-align: center;
+}
+
+.trash-zone-title {
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.trash-card-frame {
+  width: 92px;
+  height: 128px;
+  margin: 0 auto;
+  border: 2px dashed #666;
+  border-radius: 4px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trash-preview-image {
+  width: 86px;
+  max-height: 122px;
+  object-fit: contain;
+}
+
+.trash-empty {
+  font-size: 11px;
+  color: #777;
+  font-weight: 700;
+}
+
+.trash-count {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.temporary-bp-badge {
+  top: 4px;
+  left: 4px;
+}
+
+.continuous-bp-badge {
+  top: 28px;
+  left: 4px;
+}
+
+.bp-bonus-badge {
+  position: absolute;
+  z-index: 4;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #111;
+  font-size: 11px;
+  font-weight: 700;
+  color: #dc2626;
+}

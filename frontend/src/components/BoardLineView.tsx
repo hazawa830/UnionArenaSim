@@ -1,8 +1,9 @@
 import { BoardLine } from "../../../gameEngine/enum/BoardLine";
 import { Player } from "../../../gameEngine/core/Player";
 import { CardInstance } from "../../../gameEngine/cards/CardInstance";
-
+import { Game } from "../../../gameEngine/core/Game";
 type TargetSide = "own" | "opponent";
+import { ContinuousEffectResolver } from "../../../gameEngine/effects/ContinuousEffectResolver";
 
 type Props = {
   player: Player;
@@ -26,6 +27,9 @@ type Props = {
   onAttack?: (frontIndex: number) => void;
   onStartActivateMain?: (line: BoardLine, index: number) => void;
   onHoverImage?: (imagePath: string | null) => void;
+  game: Game;
+  actor: Player;
+  opponent: Player;
 };
 
 export function BoardLineView({
@@ -45,6 +49,9 @@ export function BoardLineView({
     onAttack,
     onStartActivateMain,
     onHoverImage,
+    game,
+  actor,
+  opponent
   }: Props) {
   const slots =
     line === BoardLine.FrontLine
@@ -81,6 +88,9 @@ export function BoardLineView({
               onAttack={onAttack}
               onStartActivateMain={onStartActivateMain}
               onHoverImage={onHoverImage}
+              game={game}
+              actor={actor}
+              opponent={opponent}
             />
           );
         })}
@@ -110,7 +120,10 @@ type CardSlotProps = {
   onAttack?: (frontIndex: number) => void;
   onStartActivateMain?: (line: BoardLine, index: number) => void;
   onHoverImage?: (imagePath: string | null) => void;
-};
+  game: Game;
+  actor: Player;
+  opponent: Player;
+  };
 
 function CardSlotView({
   card,
@@ -128,6 +141,9 @@ function CardSlotView({
   onAttack,
   onStartActivateMain,
   onHoverImage,
+  game,
+  actor,
+  opponent,
 }: CardSlotProps) {
   const canMoveToFront = Boolean(
     isYou && line === BoardLine.EnergyLine && card
@@ -145,7 +161,17 @@ function CardSlotView({
 
   const canSelectRaidBase = Boolean(isYou && isRaidBaseSelecting && card);
   const canSelectTarget = Boolean(isTargetSelecting && targetSide && card);
+  const continuousBpBonus =
+    card
+      ? ContinuousEffectResolver.getBpBonus({
+          game,
+          source: card,
+          actor,
+          opponent,
+        })
+      : 0;
 
+  const temporaryBpBonus = card?.temporaryBpBonus ?? 0;
   const isSelecting = isRaidBaseSelecting || isTargetSelecting;
 
   const handleClick = () => {
@@ -179,12 +205,12 @@ function CardSlotView({
             className={`official-card-image ${card.isRest ? "rest-card" : ""}`}
             alt={card.card.name}
           />
-          {card.temporaryBpBonus !== 0 && (
-            <div className="bp-bonus-badge">
-              {card.temporaryBpBonus > 0 ? "+" : ""}
-              {card.temporaryBpBonus}
-            </div>
-          )}
+          {temporaryBpBonus !== 0 && (
+          <div className="bp-bonus-badge temporary-bp-badge">
+            {temporaryBpBonus > 0 ? "+" : ""}
+            {temporaryBpBonus + continuousBpBonus}
+          </div>
+        )}
 
           <div className="slot-card-name">{card.card.name}</div>
 
