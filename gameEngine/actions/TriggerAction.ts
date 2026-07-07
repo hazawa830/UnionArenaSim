@@ -80,12 +80,17 @@ export class TriggerAction {
         return;
 
       case TriggerType.Active: {
-        const result = this.resolveActiveTrigger(damagedPlayer);
-        damagedPlayer.board.trash.push(revealedCard);
+        game.pendingTriggerChoice = {
+          revealedCard,
+          playerId: damagedPlayer.id,
+          opponentPlayerId: opponentPlayer.id,
+          triggerType: TriggerType.Active,
+        };
+
         this.logTriggerResult(game, damagedPlayer, revealedCard, {
-          result: "active",
-          ...result,
+          result: "pendingActiveChoice",
         });
+
         return;
       }
 
@@ -104,14 +109,17 @@ export class TriggerAction {
       }
 
       case TriggerType.Special: {
-        const result = this.resolveSpecialTrigger(
-          game,
+        game.pendingTriggerChoice = {
           revealedCard,
-          damagedPlayer,
-          opponentPlayer
-        );
-        damagedPlayer.board.trash.push(revealedCard);
-        this.logTriggerResult(game, damagedPlayer, revealedCard, result);
+          playerId: damagedPlayer.id,
+          opponentPlayerId: opponentPlayer.id,
+          triggerType: TriggerType.Special,
+        };
+
+        this.logTriggerResult(game, damagedPlayer, revealedCard, {
+          result: "pendingSpecialChoice",
+        });
+
         return;
       }
 

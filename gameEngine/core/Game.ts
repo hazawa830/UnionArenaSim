@@ -7,6 +7,7 @@ import { PlayerId } from "../enum/PlayerId";
 import { StartPhaseAction } from "../actions/StartPhaseAction";
 import { GameLog } from "../log/GameLog";
 import { CardInstance } from "../cards/CardInstance";
+import { TriggerType } from "../enum/TriggerType";
 export class Game {
   public readonly player1: Player;
   public readonly player2: Player;
@@ -23,6 +24,12 @@ export class Game {
     revealedCard: CardInstance;
     playerId: string;
     opponentPlayerId: string;
+  };
+  public pendingTriggerChoice?: {
+    revealedCard: CardInstance;
+    playerId: string;
+    opponentPlayerId: string;
+    triggerType: TriggerType;
   };
   constructor(player1: Player, player2: Player) {
     this.player1 = player1;

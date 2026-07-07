@@ -23,6 +23,8 @@ import { ActivateMainEffectAction } from "../../gameEngine/actions/ActivateMainE
 import { ResolveSelectedEffectAction } from "../../gameEngine/actions/ResolveSelectedEffectAction";
 import { CompletePlayFromHandAction } from "../../gameEngine/actions/CompletePlayFromHandAction";
 import { ResolveRaidTriggerAction } from "../../gameEngine/actions/ResolveRaidTriggerAction";
+import { ResolveTriggerChoiceAction } from "../../gameEngine/actions/ResolveTriggerChoiceAction";
+import { TriggerType } from "../../gameEngine/enum/TriggerType";
 
 type PendingSelection = {
   source: "event" | "activateMain" | "trigger" | "effect";
@@ -94,6 +96,7 @@ function App() {
     if (game.pendingRaidTrigger) return;
     if (isSelectingRaidTriggerBase) return;
     if (pendingRaidTriggerBase !== null) return;
+    if (game.pendingTriggerChoice) return;
 
     const timer = setTimeout(() => {
       if (game.phase === GamePhase.Attack) {
@@ -126,6 +129,7 @@ function App() {
     game.pendingRaidTrigger,
     isSelectingRaidTriggerBase,
     pendingRaidTriggerBase,
+    game.pendingTriggerChoice,
   ]);
 
   const handleNewGame = () => {
@@ -714,7 +718,13 @@ const startModifyBpTargetSelection = (sourceCard: CardInstance): boolean => {
 
       setPendingActivateMain(null);
     }
+    if (pendingSelection.source === "trigger") {
+      ResolveTriggerChoiceAction.execute(game, nextSelectedTargets);
 
+      setPendingSelection(null);
+      refresh();
+      return;
+    }
     setPendingSelection(null);
     refresh();
   } catch (e) {
@@ -869,6 +879,34 @@ const handleSelectPlayFromHandDestination = (destinationLine: BoardLine) => {
   } catch (e) {
     alert(e instanceof Error ? e.message : String(e));
   }
+};
+const handleStartTriggerChoice = () => {
+  const pending = game.pendingTriggerChoice;
+  if (!pending) return;
+
+  if (pending.triggerType === TriggerType.Active) {
+    setPendingSelection({
+      source: "trigger",
+      requiredCount: 1,
+      selectedTargets: [],
+      allowedSide: "own",
+      allowedLines: [BoardLine.FrontLine],
+    });
+    return;
+  }
+
+  if (pending.triggerType === TriggerType.Special) {
+    setPendingSelection({
+      source: "trigger",
+      requiredCount: 1,
+      selectedTargets: [],
+      allowedSide: "opponent",
+      allowedLines: [BoardLine.FrontLine],
+    });
+    return;
+  }
+
+  alert("未対応のトリガー選択です");
 };
 const handleDeclineRaidTrigger = () => {
   try {
@@ -1121,7 +1159,12 @@ const handleStartActivateMain = (
         <button onClick={handleDeclineRaidTrigger}>手札に加える</button>
       </div>
     )}
-
+    {game.pendingTriggerChoice && !pendingSelection && (
+      <div className="selection-banner">
+        トリガー効果の対象を選択してください
+        <button onClick={handleStartTriggerChoice}>対象を選ぶ</button>
+      </div>
+    )}
     {game.pendingRaidTrigger && isSelectingRaidTriggerBase && !pendingRaidTriggerBase && (
       <div className="selection-banner">
         レイド元を選択してください

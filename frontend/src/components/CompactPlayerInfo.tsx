@@ -2,6 +2,7 @@ import { Game } from "../../../gameEngine/core/Game";
 
 type Player = ReturnType<Game["getCurrentPlayer"]>;
 
+
 export function CompactPlayerInfo({
   title,
   player,
@@ -9,6 +10,8 @@ export function CompactPlayerInfo({
   title: string;
   player: Player;
 }) {
+  const lastTrash = player.board.trash[player.board.trash.length - 1];
+
   return (
     <section className="compact-player-info">
       <h2>{title}</h2>
@@ -33,6 +36,22 @@ export function CompactPlayerInfo({
         <strong>
           {player.board.activeActionPoint}/{player.board.maxActionPoint}
         </strong>
+      </div>
+
+      <div className="trash-preview">
+        <div className="info-row">
+          <span>Trash</span>
+          <strong>{player.board.trash.length}</strong>
+        </div>
+
+        {lastTrash && (
+          <img
+            src={lastTrash.card.imagePath}
+            alt={lastTrash.card.name}
+            className="trash-preview-image"
+            onMouseEnter={() => {}}
+          />
+        )}
       </div>
     </section>
   );

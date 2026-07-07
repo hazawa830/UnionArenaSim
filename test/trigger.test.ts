@@ -12,6 +12,7 @@ import { TriggerType } from "../gameEngine/enum/TriggerType";
 
 import { PlayCardAction } from "../gameEngine/actions/PlayCardAction";
 import { AttackAction } from "../gameEngine/actions/AttackAction";
+import { ResolveTriggerChoiceAction } from "../gameEngine/actions/ResolveTriggerChoiceAction";
 
 function setupAttackScenario(triggerType: TriggerType) {
   const game = createTestGame();
@@ -99,7 +100,12 @@ describe("TriggerAction", () => {
 
     AttackAction.execute(game, 0);
 
+    expect(game.pendingTriggerChoice).toBeDefined();
+
+    ResolveTriggerChoiceAction.execute(game, [target]);
+
     expect(target.temporaryBpBonus).toBe(3000);
+    expect(game.pendingTriggerChoice).toBeUndefined();
   });
 
   it("Color青トリガーは相手フロントラインのBP3500以下のキャラを手札に戻す", () => {
@@ -143,13 +149,18 @@ describe("TriggerAction", () => {
 
   attackerPlayer.board.frontLine[1].setCard(target);
 
-  const attacker = attackerPlayer.board.frontLine[0].getCard();
+  const attacker = attackerPlayer.board.frontLine[0].getCard()!;
   expect(attacker).toBeDefined();
 
   AttackAction.execute(game, 0);
 
+  expect(game.pendingTriggerChoice).toBeDefined();
+
+  ResolveTriggerChoiceAction.execute(game, [attacker]);
+
   expect(attackerPlayer.board.frontLine[0].isEmpty()).toBe(true);
   expect(attackerPlayer.board.trash).toContain(attacker);
+  expect(game.pendingTriggerChoice).toBeUndefined();
 });
 
 

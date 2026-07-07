@@ -483,3 +483,29 @@ button {
 .card-choice-item.not-selectable:hover {
   box-shadow: none;
 }
+.bp-bonus-badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 4;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #111;
+  font-size: 13px;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.trash-preview {
+  margin-top: 8px;
+}
+
+.trash-preview-image {
+  display: block;
+  width: 90px;
+  max-width: 100%;
+  margin: 6px auto 0;
+  border: 1px solid #222;
+  border-radius: 4px;
+}

@@ -179,6 +179,12 @@ function CardSlotView({
             className={`official-card-image ${card.isRest ? "rest-card" : ""}`}
             alt={card.card.name}
           />
+          {card.temporaryBpBonus !== 0 && (
+            <div className="bp-bonus-badge">
+              {card.temporaryBpBonus > 0 ? "+" : ""}
+              {card.temporaryBpBonus}
+            </div>
+          )}
 
           <div className="slot-card-name">{card.card.name}</div>
 

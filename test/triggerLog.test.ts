@@ -6,6 +6,7 @@ import { TestCardFactory } from "./helpers/TestCardFactory";
 import { TriggerAction } from "../gameEngine/actions/TriggerAction";
 import { TriggerType } from "../gameEngine/enum/TriggerType";
 import { LogType } from "../gameEngine/enum/LogType";
+import { ResolveTriggerChoiceAction } from "../gameEngine/actions/ResolveTriggerChoiceAction";
 
 describe("TriggerAction logs", () => {
   it("DrawトリガーでTriggerログとTriggerResultログが追加される", () => {
@@ -62,12 +63,7 @@ describe("TriggerAction logs", () => {
     );
 
     expect(resultLog?.payload).toMatchObject({
-      result: "active",
-      success: true,
-      targetInstanceId: target.instanceId,
-      targetCardId: target.card.id,
-      targetCardName: target.card.name,
-      amount: 3000,
+      result: "pendingActiveChoice",
     });
   });
 
