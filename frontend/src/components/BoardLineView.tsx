@@ -205,7 +205,7 @@ function CardSlotView({
             className={`official-card-image ${card.isRest ? "rest-card" : ""}`}
             alt={card.card.name}
           />
-          {temporaryBpBonus !== 0 && (
+          {(temporaryBpBonus !== 0 || continuousBpBonus !== 0 )&& (
           <div className="bp-bonus-badge temporary-bp-badge">
             {temporaryBpBonus > 0 ? "+" : ""}
             {temporaryBpBonus + continuousBpBonus}

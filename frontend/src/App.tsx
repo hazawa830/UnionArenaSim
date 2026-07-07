@@ -93,7 +93,8 @@ function App() {
     if (pendingCardChoice !== null) return;
     if (pendingActivateMain !== null) return;
     if (pendingPlayDestination !== null) return;
-    if (game.pendingRaidTrigger) return;
+    if (game.pendingRaidTrigger?.playerId === player1.id) return;
+    if (game.pendingTriggerChoice?.playerId === player1.id) return;
     if (isSelectingRaidTriggerBase) return;
     if (pendingRaidTriggerBase !== null) return;
     if (game.pendingTriggerChoice) return;
@@ -110,9 +111,13 @@ function App() {
           return;
         }
       }
+      if (RandomCPU.resolvePendingChoices(game)) {
+        refresh();
+        return;
+      }
       RandomCPU.playPhase(game);
       refresh();
-    }, 700);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [
@@ -130,6 +135,7 @@ function App() {
     isSelectingRaidTriggerBase,
     pendingRaidTriggerBase,
     game.pendingTriggerChoice,
+    
   ]);
 
   const handleNewGame = () => {
