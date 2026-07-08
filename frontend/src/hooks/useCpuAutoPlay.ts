@@ -1,0 +1,142 @@
+import { useEffect } from "react";
+import { Game } from "../../../gameEngine/core/Game";
+import { GamePhase } from "../../../gameEngine/enum/GamePhase";
+import { RandomCPU } from "../../../gameEngine/cpu/RandomCPU";
+
+type Props = {
+  game: Game;
+  player1Id: string;
+  player2Id: string;
+  currentPlayerId: string;
+  pendingAttack: number | null;
+  pendingRaid: unknown;
+  pendingRaidBase: unknown;
+  pendingSelection: unknown;
+  pendingCardChoice: unknown;
+  pendingActivateMain: unknown;
+  pendingPlayDestination: unknown;
+  isSelectingRaidTriggerBase: boolean;
+  pendingRaidTriggerBase: unknown;
+  cpuTick: number;
+  setCpuTick: React.Dispatch<React.SetStateAction<number>>;
+  setPendingAttack: React.Dispatch<React.SetStateAction<number | null>>;
+  refresh: () => void;
+};
+
+export function useCpuAutoPlay({
+  game,
+  player1Id,
+  player2Id,
+  currentPlayerId,
+  pendingAttack,
+  pendingRaid,
+  pendingRaidBase,
+  pendingSelection,
+  pendingCardChoice,
+  pendingActivateMain,
+  pendingPlayDestination,
+  isSelectingRaidTriggerBase,
+  pendingRaidTriggerBase,
+  cpuTick,
+  setCpuTick,
+  setPendingAttack,
+  refresh,
+}: Props) {
+  useEffect(() => {
+    if (game.winner) return;
+
+    const hasCpuPendingChoice =
+      game.pendingRaidTrigger?.playerId === player2Id ||
+      game.pendingTriggerChoice?.playerId === player2Id;
+
+    if (currentPlayerId !== player2Id && !hasCpuPendingChoice) return;
+
+    if (pendingAttack !== null) return;
+    if (pendingRaid !== null) return;
+    if (pendingRaidBase !== null) return;
+    if (pendingSelection !== null) return;
+    if (pendingCardChoice !== null) return;
+    if (pendingActivateMain !== null) return;
+    if (pendingPlayDestination !== null) return;
+    if (game.pendingRaidTrigger?.playerId === player1Id) return;
+    if (game.pendingTriggerChoice?.playerId === player1Id) return;
+    if (isSelectingRaidTriggerBase) return;
+    if (pendingRaidTriggerBase !== null) return;
+
+    const timer = setTimeout(() => {
+        const currentPlayerNow = game.getCurrentPlayer();
+        const isCpuTurnNow = currentPlayerNow.id === player2Id;
+
+        const hasCpuPendingChoiceNow =
+            game.pendingRaidTrigger?.playerId === player2Id ||
+            game.pendingTriggerChoice?.playerId === player2Id;
+
+        const hasPlayerPendingChoiceNow =
+            game.pendingRaidTrigger?.playerId === player1Id ||
+            game.pendingTriggerChoice?.playerId === player1Id;
+
+        if (game.winner) {
+            return;
+        }
+
+        if (hasPlayerPendingChoiceNow) {
+            return;
+        }
+
+        if (!isCpuTurnNow && !hasCpuPendingChoiceNow) {
+            return;
+        }
+
+        if (RandomCPU.resolvePendingChoices(game)) {
+            refresh();
+            setCpuTick((x) => x + 1);
+            return;
+        }
+
+        if (!isCpuTurnNow) {
+            return;
+        }
+
+        if (game.phase === GamePhase.Attack) {
+            const attackerIndex = game.player2.board.frontLine.findIndex((slot) => {
+            const card = slot.getCard();
+            return card && !card.isRest;
+            });
+
+            if (attackerIndex !== -1) {
+            setPendingAttack(attackerIndex);
+            return;
+            }
+        }
+
+        RandomCPU.playPhase(game);
+        refresh();
+        setCpuTick((x) => x + 1);
+        }, 500);
+
+    return () => clearTimeout(timer);
+  }, [
+    game,
+    game.phase,
+    game.currentPlayerId,
+    game.winner,
+    game.pendingRaidTrigger,
+    game.pendingTriggerChoice,
+    player1Id,
+    player2Id,
+    currentPlayerId,
+    pendingAttack,
+    pendingRaid,
+    pendingRaidBase,
+    pendingSelection,
+    pendingCardChoice,
+    pendingActivateMain,
+    pendingPlayDestination,
+    isSelectingRaidTriggerBase,
+    pendingRaidTriggerBase,
+    cpuTick,
+    refresh,
+    setCpuTick,
+    setPendingAttack,
+  ]);
+}

@@ -25,6 +25,9 @@ import { CompletePlayFromHandAction } from "../../gameEngine/actions/CompletePla
 import { ResolveRaidTriggerAction } from "../../gameEngine/actions/ResolveRaidTriggerAction";
 import { ResolveTriggerChoiceAction } from "../../gameEngine/actions/ResolveTriggerChoiceAction";
 import { TriggerType } from "../../gameEngine/enum/TriggerType";
+import { useCpuAutoPlay } from "./hooks/useCpuAutoPlay";
+import { RaidDestinationModal } from "./components/overlays/RaidDestinationModal";
+import { PlayDestinationModal } from "./components/overlays/PlayDestinationModal";
 
 type PendingSelection = {
   source: "event" | "activateMain" | "trigger" | "effect";
@@ -84,52 +87,11 @@ function App() {
 
   const refresh = () => forceUpdate();
 
-  useEffect(() => {
-    if (game.winner) return;
-    const hasCpuPendingChoice =
-  game.pendingRaidTrigger?.playerId === player2.id ||
-  game.pendingTriggerChoice?.playerId === player2.id;
-    if (currentPlayer !== player2 && !hasCpuPendingChoice) return;
-    if (pendingAttack !== null) return;
-    if (pendingRaid !== null) return;
-    if (pendingRaidBase !== null) return;
-    if (pendingSelection !== null) return;
-    if (pendingCardChoice !== null) return;
-    if (pendingActivateMain !== null) return;
-    if (pendingPlayDestination !== null) return;
-    if (game.pendingRaidTrigger?.playerId === player1.id) return;
-    if (game.pendingTriggerChoice?.playerId === player1.id) return;
-    if (isSelectingRaidTriggerBase) return;
-    if (pendingRaidTriggerBase !== null) return;
-
-    const timer = setTimeout(() => {
-      if (RandomCPU.resolvePendingChoices(game)) {
-        refresh();
-        setCpuTick((x) => x + 1);
-        return;
-      }
-      if (game.phase === GamePhase.Attack) {
-        const attackerIndex = player2.board.frontLine.findIndex((slot) => {
-          const card = slot.getCard();
-          return card && !card.isRest;
-        });
-
-        if (attackerIndex !== -1) {
-          setPendingAttack(attackerIndex);
-          return;
-        }
-      }
-      
-      RandomCPU.playPhase(game);
-      refresh();
-      setCpuTick((x) => x + 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [
-    game.phase,
-    game.currentPlayerId,
-    game.winner,
+  useCpuAutoPlay({
+    game,
+    player1Id: player1.id,
+    player2Id: player2.id,
+    currentPlayerId: currentPlayer.id,
     pendingAttack,
     pendingRaid,
     pendingRaidBase,
@@ -137,13 +99,13 @@ function App() {
     pendingCardChoice,
     pendingActivateMain,
     pendingPlayDestination,
-    game.pendingRaidTrigger,
     isSelectingRaidTriggerBase,
     pendingRaidTriggerBase,
-    game.pendingTriggerChoice,
     cpuTick,
-    
-  ]);
+    setCpuTick,
+    setPendingAttack,
+    refresh,
+  });
 
   const handleNewGame = () => {
     gameRef.current = GameFactory.createSampleGame();
@@ -1131,40 +1093,12 @@ const handleStartActivateMain = (
         isRaidTriggerBaseSelecting={isSelectingRaidTriggerBase}
       />
 
-      {pendingRaidBase && (
-        <div className="modal-backdrop">
-          <div className="modal">
-            <h3>レイド登場先を選択</h3>
-
-            <div className="raid-destination-buttons">
-              <button
-                onClick={() =>
-                  handleSelectRaidDestination(
-                    BoardLine.EnergyLine,
-                    pendingRaidBase.baseIndex
-                  )
-                }
-              >
-                Energy Lineに登場
-              </button>
-
-              {player1.board.frontLine.map((slot, index) => (
-                <button
-                  key={index}
-                  disabled={!slot.isEmpty()}
-                  onClick={() =>
-                    handleSelectRaidDestination(BoardLine.FrontLine, index)
-                  }
-                >
-                  Front {index + 1}
-                </button>
-              ))}
-            </div>
-
-            <button onClick={handleCancelRaid}>Cancel</button>
-          </div>
-        </div>
-      )}
+      <RaidDestinationModal
+        pendingRaidBase={pendingRaidBase}
+        frontSlotEmpty={player1.board.frontLine.map((slot) => slot.isEmpty())}
+        onSelectDestination={handleSelectRaidDestination}
+        onCancel={handleCancelRaid}
+      />
       {game.pendingRaidTrigger && !isSelectingRaidTriggerBase && (
       <div className="selection-banner">
         レイドトリガーが公開されました
@@ -1215,37 +1149,13 @@ const handleStartActivateMain = (
     </div>
   </div>
 )}
-      {pendingPlayDestination && (
-  <div className="modal-backdrop">
-    <div className="modal">
-      <h3>登場先を選択</h3>
-
-      <div className="raid-destination-buttons">
-        {pendingPlayDestination.allowedLines.includes(BoardLine.FrontLine) && (
-          <button
-            disabled={!player1.board.getEmptyFrontSlot()}
-            onClick={() =>
-              handleSelectPlayFromHandDestination(BoardLine.FrontLine)
-            }
-          >
-            Front Lineに登場
-          </button>
-        )}
-
-        {pendingPlayDestination.allowedLines.includes(BoardLine.EnergyLine) && (
-          <button
-            disabled={!player1.board.getEmptyEnergySlot()}
-            onClick={() =>
-              handleSelectPlayFromHandDestination(BoardLine.EnergyLine)
-            }
-          >
-            Energy Lineに登場
-          </button>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+    <PlayDestinationModal
+      isOpen={pendingPlayDestination !== null}
+      allowedLines={pendingPlayDestination?.allowedLines ?? []}
+      canPlayToFront={Boolean(player1.board.getEmptyFrontSlot())}
+      canPlayToEnergy={Boolean(player1.board.getEmptyEnergySlot())}
+      onSelectDestination={handleSelectPlayFromHandDestination}
+    />  
     </div>
   );
 }
