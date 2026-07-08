@@ -26,13 +26,7 @@ import { ResolveRaidTriggerAction } from "../../gameEngine/actions/ResolveRaidTr
 import { ResolveTriggerChoiceAction } from "../../gameEngine/actions/ResolveTriggerChoiceAction";
 import { TriggerType } from "../../gameEngine/enum/TriggerType";
 import { useCpuAutoPlay } from "./hooks/useCpuAutoPlay";
-import { RaidDestinationModal } from "./components/overlays/RaidDestinationModal";
-import { PlayDestinationModal } from "./components/overlays/PlayDestinationModal";
-import { RaidTriggerBanner } from "./components/overlays/RaidTriggerBanner";
-import { TriggerChoiceBanner } from "./components/overlays/TriggerChoiceBanner";
-import { SelectionBanner } from "./components/overlays/SelectionBanner";
-import { RaidTriggerDestinationModal } from "./components/overlays/RaidTriggerDestinationModal";
-import { RaidTriggerBaseSelectingBanner } from "./components/overlays/RaidTriggerBaseSelectingBanner";
+
 import { GameOverlays } from "./components/overlays/GameOverlays";
 type PendingSelection = {
   source: "event" | "activateMain" | "trigger" | "effect";
@@ -148,61 +142,42 @@ function App() {
       alert(e instanceof Error ? e.message : String(e));
     }
   };
+  const handlePlayCard = (
+  handIndex: number,
+  destinationLine: BoardLine
+) => {
+  if (!isYourTurn) return alert("相手ターンです");
 
-  const handlePlayToEnergy = (handIndex: number) => {
-    if (!isYourTurn) return alert("相手ターンです");
-
-    try {
-      const playedCard = PlayCardAction.execute(
-        game,
-        handIndex,
-        BoardLine.EnergyLine,
-        undefined,
-        {
-          skipSelectableModifyBp: true,
-        }
-      );
-
-      if (startModifyBpTargetSelection(playedCard)) {
-        return;
+  try {
+    const playedCard = PlayCardAction.execute(
+      game,
+      handIndex,
+      destinationLine,
+      undefined,
+      {
+        skipSelectableModifyBp: true,
       }
+    );
 
-      const startedSearch = startSearchTopDeckChoice(playedCard);
-
-      if (!startedSearch) {
-        refresh();
-      }
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
+    if (startModifyBpTargetSelection(playedCard)) {
+      return;
     }
+
+    const startedSearch = startSearchTopDeckChoice(playedCard);
+
+    if (!startedSearch) {
+      refresh();
+    }
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+};
+  const handlePlayToEnergy = (handIndex: number) => {
+    handlePlayCard(handIndex, BoardLine.EnergyLine);
   };
 
   const handlePlayToFront = (handIndex: number) => {
-    if (!isYourTurn) return alert("相手ターンです");
-
-    try {
-      const playedCard = PlayCardAction.execute(
-        game,
-        handIndex,
-        BoardLine.FrontLine,
-        undefined,
-        {
-          skipSelectableModifyBp: true,
-        }
-      );
-
-      if (startModifyBpTargetSelection(playedCard)) {
-        return;
-      }
-
-      const startedSearch = startSearchTopDeckChoice(playedCard);
-
-      if (!startedSearch) {
-        refresh();
-      }
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    }
+    handlePlayCard(handIndex, BoardLine.FrontLine);
   };
 
   const handleMoveToFront = (energyIndex: number) => {
@@ -1062,27 +1037,6 @@ const handleStartActivateMain = (
         onStartTriggerChoice={handleStartTriggerChoice}
         onSelectRaidTriggerDestination={handleSelectRaidTriggerDestination}
       />
-      {isGameOver && (
-        <WinnerModal winner={game.winner} onNewGame={handleNewGame} />
-      )}
-
-      <SelectionBanner
-        raidBaseSelecting={pendingRaid !== null && pendingRaidBase === null}
-        targetSelecting={pendingSelection !== null}
-        selectedCount={pendingSelection?.selectedTargets.length ?? 0}
-        requiredCount={pendingSelection?.requiredCount ?? 0}
-        onCancelRaid={handleCancelRaid}
-        onCancelSelection={handleCancelSelection}
-      />
-
-      <SelectionBanner
-        raidBaseSelecting={pendingRaid !== null && pendingRaidBase === null}
-        targetSelecting={pendingSelection !== null}
-        selectedCount={pendingSelection?.selectedTargets.length ?? 0}
-        requiredCount={pendingSelection?.requiredCount ?? 0}
-        onCancelRaid={handleCancelRaid}
-        onCancelSelection={handleCancelSelection}
-      />
       
       <OfficialBoardLayout
         game={game}
@@ -1120,46 +1074,7 @@ const handleStartActivateMain = (
         isRaidTriggerBaseSelecting={isSelectingRaidTriggerBase}
       />
 
-      <RaidDestinationModal
-        pendingRaidBase={pendingRaidBase}
-        frontSlotEmpty={player1.board.frontLine.map((slot) => slot.isEmpty())}
-        onSelectDestination={handleSelectRaidDestination}
-        onCancel={handleCancelRaid}
-      />
-      <RaidTriggerBanner
-        isOpen={
-          game.pendingRaidTrigger?.playerId === player1.id &&
-          !isSelectingRaidTriggerBase
-        }
-        onStartRaid={handleStartRaidTrigger}
-        onDeclineRaid={handleDeclineRaidTrigger}
-      />
-    <TriggerChoiceBanner
-      isOpen={
-        game.pendingTriggerChoice?.playerId === player1.id &&
-        !pendingSelection
-      }
-      onStartChoice={handleStartTriggerChoice}
-    />
-    <RaidTriggerBaseSelectingBanner
-      isOpen={
-        game.pendingRaidTrigger?.playerId === player1.id &&
-        isSelectingRaidTriggerBase &&
-        pendingRaidTriggerBase === null
-      }
-    />
-    <RaidTriggerDestinationModal
-      pendingRaidTriggerBase={pendingRaidTriggerBase}
-      frontSlotEmpty={player1.board.frontLine.map((slot) => slot.isEmpty())}
-      onSelectDestination={handleSelectRaidTriggerDestination}
-    />
-    <PlayDestinationModal
-      isOpen={pendingPlayDestination !== null}
-      allowedLines={pendingPlayDestination?.allowedLines ?? []}
-      canPlayToFront={Boolean(player1.board.getEmptyFrontSlot())}
-      canPlayToEnergy={Boolean(player1.board.getEmptyEnergySlot())}
-      onSelectDestination={handleSelectPlayFromHandDestination}
-    />  
+    
     </div>
   );
 }
