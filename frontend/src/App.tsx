@@ -15,7 +15,7 @@ import { ExtraDrawAction } from "../../gameEngine/actions/ExtraDrawAction";
 import { RaidPlayAction } from "../../gameEngine/actions/RaidPlayAction";
 import { UseEventCardAction } from "../../gameEngine/actions/UseEventCardAction";
 
-import { WinnerModal } from "./components/WinnerModal";
+
 import { OfficialBoardLayout } from "./components/OfficialBoardLayout";
 import type { PendingCardChoice } from "./components/CardChoicePanel";
 import { CardType } from "../../gameEngine/enum/CardType";
@@ -28,7 +28,12 @@ import { TriggerType } from "../../gameEngine/enum/TriggerType";
 import { useCpuAutoPlay } from "./hooks/useCpuAutoPlay";
 import { RaidDestinationModal } from "./components/overlays/RaidDestinationModal";
 import { PlayDestinationModal } from "./components/overlays/PlayDestinationModal";
-
+import { RaidTriggerBanner } from "./components/overlays/RaidTriggerBanner";
+import { TriggerChoiceBanner } from "./components/overlays/TriggerChoiceBanner";
+import { SelectionBanner } from "./components/overlays/SelectionBanner";
+import { RaidTriggerDestinationModal } from "./components/overlays/RaidTriggerDestinationModal";
+import { RaidTriggerBaseSelectingBanner } from "./components/overlays/RaidTriggerBaseSelectingBanner";
+import { GameOverlays } from "./components/overlays/GameOverlays";
 type PendingSelection = {
   source: "event" | "activateMain" | "trigger" | "effect";
   handIndex?: number;
@@ -1036,26 +1041,48 @@ const handleStartActivateMain = (
   return (
     <div className="app">
       <h1>Union Arena Simulator</h1>
-
+      <GameOverlays
+        game={game}
+        player1={player1}
+        isGameOver={isGameOver}
+        pendingRaid={pendingRaid}
+        pendingRaidBase={pendingRaidBase}
+        pendingSelection={pendingSelection}
+        pendingCardChoice={pendingCardChoice}
+        pendingPlayDestination={pendingPlayDestination}
+        isSelectingRaidTriggerBase={isSelectingRaidTriggerBase}
+        pendingRaidTriggerBase={pendingRaidTriggerBase}
+        onNewGame={handleNewGame}
+        onCancelRaid={handleCancelRaid}
+        onCancelSelection={handleCancelSelection}
+        onSelectRaidDestination={handleSelectRaidDestination}
+        onSelectPlayFromHandDestination={handleSelectPlayFromHandDestination}
+        onStartRaidTrigger={handleStartRaidTrigger}
+        onDeclineRaidTrigger={handleDeclineRaidTrigger}
+        onStartTriggerChoice={handleStartTriggerChoice}
+        onSelectRaidTriggerDestination={handleSelectRaidTriggerDestination}
+      />
       {isGameOver && (
         <WinnerModal winner={game.winner} onNewGame={handleNewGame} />
       )}
 
-      {pendingRaid && !pendingRaidBase && (
-        <div className="selection-banner">
-          レイド元を選択してください
-          <button onClick={handleCancelRaid}>Cancel</button>
-        </div>
-      )}
+      <SelectionBanner
+        raidBaseSelecting={pendingRaid !== null && pendingRaidBase === null}
+        targetSelecting={pendingSelection !== null}
+        selectedCount={pendingSelection?.selectedTargets.length ?? 0}
+        requiredCount={pendingSelection?.requiredCount ?? 0}
+        onCancelRaid={handleCancelRaid}
+        onCancelSelection={handleCancelSelection}
+      />
 
-      {pendingSelection && (
-        <div className="selection-banner">
-          対象を選択してください：
-          {pendingSelection.selectedTargets.length}/
-          {pendingSelection.requiredCount}
-          <button onClick={handleCancelSelection}>Cancel</button>
-        </div>
-      )}
+      <SelectionBanner
+        raidBaseSelecting={pendingRaid !== null && pendingRaidBase === null}
+        targetSelecting={pendingSelection !== null}
+        selectedCount={pendingSelection?.selectedTargets.length ?? 0}
+        requiredCount={pendingSelection?.requiredCount ?? 0}
+        onCancelRaid={handleCancelRaid}
+        onCancelSelection={handleCancelSelection}
+      />
       
       <OfficialBoardLayout
         game={game}
@@ -1099,56 +1126,33 @@ const handleStartActivateMain = (
         onSelectDestination={handleSelectRaidDestination}
         onCancel={handleCancelRaid}
       />
-      {game.pendingRaidTrigger && !isSelectingRaidTriggerBase && (
-      <div className="selection-banner">
-        レイドトリガーが公開されました
-        <button onClick={handleStartRaidTrigger}>レイドする</button>
-        <button onClick={handleDeclineRaidTrigger}>手札に加える</button>
-      </div>
-    )}
-    {game.pendingTriggerChoice && !pendingSelection && (
-      <div className="selection-banner">
-        トリガー効果の対象を選択してください
-        <button onClick={handleStartTriggerChoice}>対象を選ぶ</button>
-      </div>
-    )}
-    {game.pendingRaidTrigger && isSelectingRaidTriggerBase && !pendingRaidTriggerBase && (
-      <div className="selection-banner">
-        レイド元を選択してください
-      </div>
-    )}
-    {pendingRaidTriggerBase && (
-  <div className="modal-backdrop">
-    <div className="modal">
-      <h3>レイドトリガー登場先を選択</h3>
-
-      <div className="raid-destination-buttons">
-        <button
-          onClick={() =>
-            handleSelectRaidTriggerDestination(
-              BoardLine.EnergyLine,
-              pendingRaidTriggerBase.baseIndex
-            )
-          }
-        >
-          Energy Lineに登場
-        </button>
-
-        {player1.board.frontLine.map((slot, index) => (
-          <button
-            key={index}
-            disabled={!slot.isEmpty()}
-            onClick={() =>
-              handleSelectRaidTriggerDestination(BoardLine.FrontLine, index)
-            }
-          >
-            Front {index + 1}
-          </button>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
+      <RaidTriggerBanner
+        isOpen={
+          game.pendingRaidTrigger?.playerId === player1.id &&
+          !isSelectingRaidTriggerBase
+        }
+        onStartRaid={handleStartRaidTrigger}
+        onDeclineRaid={handleDeclineRaidTrigger}
+      />
+    <TriggerChoiceBanner
+      isOpen={
+        game.pendingTriggerChoice?.playerId === player1.id &&
+        !pendingSelection
+      }
+      onStartChoice={handleStartTriggerChoice}
+    />
+    <RaidTriggerBaseSelectingBanner
+      isOpen={
+        game.pendingRaidTrigger?.playerId === player1.id &&
+        isSelectingRaidTriggerBase &&
+        pendingRaidTriggerBase === null
+      }
+    />
+    <RaidTriggerDestinationModal
+      pendingRaidTriggerBase={pendingRaidTriggerBase}
+      frontSlotEmpty={player1.board.frontLine.map((slot) => slot.isEmpty())}
+      onSelectDestination={handleSelectRaidTriggerDestination}
+    />
     <PlayDestinationModal
       isOpen={pendingPlayDestination !== null}
       allowedLines={pendingPlayDestination?.allowedLines ?? []}
