@@ -27,28 +27,59 @@ export function useEventHandlers({
   refresh,
 }: Props) {
   const player1 = game.player1;
+  type FieldTarget = {
+  zone: "frontLine" | "energyLine" | "field" | "ap";
+};
 
+const isFieldTarget = (target: unknown): target is FieldTarget => {
+  if (typeof target !== "object" || target === null) {
+    return false;
+  }
+
+  if (!("zone" in target)) {
+    return false;
+  }
+
+  const zone = target.zone;
+
+  return (
+    zone === "frontLine" ||
+    zone === "energyLine" ||
+    zone === "field" ||
+    zone === "ap"
+  );
+};
   const getEventRequiredTargetCount = (handIndex: number): number => {
-    const card = player1.board.hand[handIndex];
+  const card = player1.board.hand[handIndex];
 
-    if (!card) return 0;
+  if (!card) return 0;
 
-    const targetActions = card.card.effects.flatMap((effect) =>
-      effect.actions.filter((action: any) => {
-        const target = action.target;
-        if (!target) return false;
-        if (target.zone === "ap") return false;
+  const targetActions = card.card.effects.flatMap((effect) =>
+    effect.actions.filter((action) => {
+      if (!("target" in action)) {
+        return false;
+      }
 
-        return (
-          target.zone === "frontLine" ||
-          target.zone === "energyLine" ||
-          target.zone === "field"
-        );
-      })
-    );
+      const target = action.target;
 
-    return targetActions.length;
-  };
+      if (!isFieldTarget(target)) {
+        return false;
+      }
+
+      if (target.zone === "ap") {
+        return false;
+      }
+
+      return (
+        target.zone === "frontLine" ||
+        target.zone === "energyLine" ||
+        target.zone === "field"
+      );
+    })
+  );
+
+  return targetActions.length;
+};
 
   const handleUseEvent = (handIndex: number) => {
     if (!isYourTurn) return alert("相手ターンです");

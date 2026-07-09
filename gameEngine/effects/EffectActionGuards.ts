@@ -1,40 +1,70 @@
 import type {
   SearchTopDeckAction,
   PlayFromHandAction,
-  SelectableModifyBpThisTurnAction,
-} from "./EffectActionTypes";
+  ModifyBpThisTurnAction,
+  DrawAction,
+  DestroyAction,
+  ActivateAction,
+} from "./EffectAction";
 
 export class EffectActionGuards {
-  static isSearchTopDeckAction(action: any): action is SearchTopDeckAction {
+  static isSearchTopDeckAction(action: unknown): action is SearchTopDeckAction {
     return (
-      action?.type === "searchTopDeck" &&
-      typeof action.lookCount === "number" &&
-      typeof action.takeCount === "number" &&
-      action.target !== undefined
+      typeof action === "object" &&
+      action !== null &&
+      (action as any).type === "searchTopDeck" &&
+      typeof (action as any).lookCount === "number" &&
+      typeof (action as any).takeCount === "number" &&
+      (action as any).target !== undefined
     );
   }
 
-  static isPlayFromHandAction(action: any): action is PlayFromHandAction {
+  static isPlayFromHandAction(action: unknown): action is PlayFromHandAction {
     return (
-      action?.type === "playFromHand" &&
-      action.target !== undefined
+      typeof action === "object" &&
+      action !== null &&
+      (action as any).type === "playFromHand" &&
+      (action as any).target !== undefined
     );
   }
 
   static isSelectableModifyBpThisTurnAction(
-    action: any
-  ): action is SelectableModifyBpThisTurnAction {
+    action: unknown
+  ): action is ModifyBpThisTurnAction {
     return (
-      action?.type === "modifyBpThisTurn" &&
-      typeof action.amount === "number" &&
-      typeof action.target === "object" &&
-      action.target !== null &&
-      (action.target.side === "own" || action.target.side === "opponent") &&
-      (
-        action.target.zone === "frontLine" ||
-        action.target.zone === "energyLine" ||
-        action.target.zone === "field"
-      )
+      typeof action === "object" &&
+      action !== null &&
+      (action as any).type === "modifyBpThisTurn" &&
+      typeof (action as any).amount === "number" &&
+      typeof (action as any).target === "object" &&
+      (action as any).target !== null
+    );
+  }
+
+  static isDrawAction(action: unknown): action is DrawAction {
+    return (
+      typeof action === "object" &&
+      action !== null &&
+      (action as any).type === "draw" &&
+      typeof (action as any).count === "number"
+    );
+  }
+
+  static isDestroyAction(action: unknown): action is DestroyAction {
+    return (
+      typeof action === "object" &&
+      action !== null &&
+      (action as any).type === "destroy" &&
+      (action as any).target !== undefined
+    );
+  }
+
+  static isActivateAction(action: unknown): action is ActivateAction {
+    return (
+      typeof action === "object" &&
+      action !== null &&
+      (action as any).type === "activate" &&
+      (action as any).target !== undefined
     );
   }
 }

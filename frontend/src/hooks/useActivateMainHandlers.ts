@@ -53,7 +53,8 @@ export function useActivateMainHandlers({
     }
 
     const needsSelectedOwnOtherCharacter = activateMainEffect.actions.some(
-      (action: any) => action.target === "selectedOwnOtherCharacter"
+    (action) =>
+        "target" in action && action.target === "selectedOwnOtherCharacter"
     );
 
     if (needsSelectedOwnOtherCharacter) {
