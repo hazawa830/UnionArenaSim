@@ -1,33 +1,25 @@
 import { useEffect, useReducer, useRef, useState } from "react";
 import "./App.css";
-
 import { GameFactory } from "../../gameEngine/factory/GameFactory";
 import { Game } from "../../gameEngine/core/Game";
 import { CardInstance } from "../../gameEngine/cards/CardInstance";
 import { BoardLine } from "../../gameEngine/enum/BoardLine";
 import { GamePhase } from "../../gameEngine/enum/GamePhase";
-
 import { RaidPlayAction } from "../../gameEngine/actions/RaidPlayAction";
-import { UseEventCardAction } from "../../gameEngine/actions/UseEventCardAction";
-
 import { OfficialBoardLayout } from "./components/OfficialBoardLayout";
 import type { PendingCardChoice } from "./components/CardChoicePanel";
-import { CardType } from "../../gameEngine/enum/CardType";
 import { ActivateMainEffectAction } from "../../gameEngine/actions/ActivateMainEffectAction";
-import { ResolveSelectedEffectAction } from "../../gameEngine/actions/ResolveSelectedEffectAction";
-import { CompletePlayFromHandAction } from "../../gameEngine/actions/CompletePlayFromHandAction";
 import { ResolveRaidTriggerAction } from "../../gameEngine/actions/ResolveRaidTriggerAction";
-import { ResolveTriggerChoiceAction } from "../../gameEngine/actions/ResolveTriggerChoiceAction";
 import { TriggerType } from "../../gameEngine/enum/TriggerType";
 import { useCpuAutoPlay } from "./hooks/useCpuAutoPlay";
-
 import { GameOverlays } from "./components/overlays/GameOverlays";
 import type { PendingSelection } from "./types/PendingSelection";
 import { usePlayHandlers } from "./hooks/usePlayHandlers";
 import { useCombatHandlers } from "./hooks/useCombatHandlers";
 import { usePhaseHandlers } from "./hooks/usePhaseHandlers";
 import { useCardChoiceHandlers } from "./hooks/useCardChoiceHandlers";
-
+import { useTargetSelectionHandlers } from "./hooks/useTargetSelectionHandlers";
+import { useEventHandlers } from "./hooks/useEventHandlers";
 function App() {
   const gameRef = useRef<Game>(GameFactory.createSampleGame());
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
@@ -74,8 +66,9 @@ function App() {
   const isYourTurn = currentPlayer === player1;
   const isGameOver = game.winner !== undefined;
   const [cpuTick, setCpuTick] = useState(0);
-
+  
   const refresh = () => forceUpdate();
+  
   const {
     startPlayFromHandChoice,
     startSearchTopDeckChoice,
@@ -112,7 +105,25 @@ function App() {
     setPendingAttack,
     refresh,
   });
-
+  const { handleUseEvent } = useEventHandlers({
+    game,
+    isYourTurn,
+    setPendingSelection,
+    startSearchTopDeckChoice,
+    refresh,
+  });
+  const {
+    startModifyBpTargetSelection,
+    handleSelectTarget,
+    handleCancelSelection,
+  } = useTargetSelectionHandlers({
+    game,
+    pendingSelection,
+    pendingActivateMain,
+    setPendingSelection,
+    setPendingActivateMain,
+    refresh,
+  });
   const handleNewGame = () => {
     gameRef.current = GameFactory.createSampleGame();
     setPendingAttack(null);
@@ -217,81 +228,7 @@ function App() {
     setPendingRaidBase(null);
   };
 
-  const getEventRequiredTargetCount = (handIndex: number): number => {
-      const card = player1.board.hand[handIndex];
 
-      if (!card) return 0;
-
-      const targetActions = card.card.effects.flatMap((effect) =>
-        effect.actions.filter((action: any) => {
-          const target = action.target;
-          if (!target) return false;
-          if (target.zone === "ap") return false;
-
-          return (
-            target.zone === "frontLine" ||
-            target.zone === "energyLine" ||
-            target.zone === "field"
-          );
-        })
-      );
-
-      return targetActions.length;
-    };
-    
-    const findSelectableModifyBpAction = (sourceCard: CardInstance) => {
-  for (const effect of sourceCard.card.effects) {
-    for (const action of effect.actions) {
-      if (action.type !== "modifyBpThisTurn") {
-        continue;
-      }
-
-      if (typeof action.target === "string") {
-        continue;
-      }
-
-      return action;
-    }
-  }
-
-  return undefined;
-};
-
-const startModifyBpTargetSelection = (sourceCard: CardInstance): boolean => {
-    const action = findSelectableModifyBpAction(sourceCard);
-
-    if (!action || action.type !== "modifyBpThisTurn") {
-      return false;
-    }
-
-    if (typeof action.target === "string") {
-      return false;
-    }
-
-    const target = action.target;
-
-    setPendingSelection({
-      source: "effect",
-      sourceCard,
-      requiredCount: target.maxCount ?? 1,
-      selectedTargets: [],
-      allowedSide:
-        target.side === "own"
-          ? "own"
-          : target.side === "opponent"
-            ? "opponent"
-            : "both",
-      allowedLines:
-        target.zone === "frontLine"
-          ? [BoardLine.FrontLine]
-          : target.zone === "energyLine"
-            ? [BoardLine.EnergyLine]
-            : [BoardLine.FrontLine, BoardLine.EnergyLine],
-    });
-
-    return true;
-  };
-    
 const { handleAttack, handleNoBlock, handleBlock } = useCombatHandlers({
     game,
     isYourTurn,
@@ -310,192 +247,6 @@ const {
     startModifyBpTargetSelection,
     startSearchTopDeckChoice,
   });
-  const handleUseEvent = (handIndex: number) => {
-    if (!isYourTurn) return alert("相手ターンです");
-    if (game.phase !== GamePhase.Main) return alert("メインフェーズのみです");
-    const eventCard = player1.board.hand[handIndex];
-
-    if (!eventCard) {
-      alert("カードがありません");
-      return;
-    }
-
-
-    const requiredCount = getEventRequiredTargetCount(handIndex);
-
-    if (requiredCount > 0) {
-      setPendingSelection({
-        source: "event",
-        handIndex,
-        requiredCount,
-        selectedTargets: [],
-        allowedSide: "both",
-        allowedLines: [BoardLine.FrontLine, BoardLine.EnergyLine],
-      });
-      return;
-    }
-
-    try {
-      const startedSearch = startSearchTopDeckChoice(eventCard, {handIndex,});
-
-      if (startedSearch) {
-        return;
-      }
-      UseEventCardAction.execute(game, handIndex);
-      refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    }
-  };
-  const findOwnCardPosition = (
-    target: CardInstance
-  ): { line: BoardLine; index: number } | undefined => {
-    for (let i = 0; i < player1.board.frontLine.length; i++) {
-      if (player1.board.frontLine[i].getCard() === target) {
-        return {
-          line: BoardLine.FrontLine,
-          index: i,
-        };
-      }
-    }
-
-    for (let i = 0; i < player1.board.energyLine.length; i++) {
-      if (player1.board.energyLine[i].getCard() === target) {
-        return {
-          line: BoardLine.EnergyLine,
-          index: i,
-        };
-      }
-    }
-
-    return undefined;
-  };
-  const handleSelectTarget = (
-    side: "own" | "opponent",
-    line: BoardLine,
-    index: number
-  ) => {
-    if (!pendingSelection) return;
-
-    if (
-      pendingSelection.allowedSide !== "both" &&
-      pendingSelection.allowedSide !== side
-    ) {
-      alert("選択できない対象です");
-      return;
-    }
-
-    if (!pendingSelection.allowedLines.includes(line)) {
-      alert("選択できないラインです");
-      return;
-    }
-
-    const targetPlayer = side === "own" ? player1 : player2;
-    const slots =
-      line === BoardLine.FrontLine
-        ? targetPlayer.board.frontLine
-        : targetPlayer.board.energyLine;
-
-    const selected = slots[index]?.getCard();
-
-    if (!selected) {
-      alert("対象カードがありません");
-      return;
-    }
-
-    const nextSelectedTargets = [
-      ...pendingSelection.selectedTargets,
-      selected,
-    ];
-
-    if (nextSelectedTargets.length < pendingSelection.requiredCount) {
-      setPendingSelection({
-        ...pendingSelection,
-        selectedTargets: nextSelectedTargets,
-      });
-      return;
-    }
-
-    try {
-  if (pendingSelection.source === "event") {
-    if (pendingSelection.handIndex === undefined) {
-      throw new Error("Event handIndex is missing.");
-    }
-
-    UseEventCardAction.execute(
-      game,
-      pendingSelection.handIndex,
-      nextSelectedTargets
-    );
-  }
-  if (pendingSelection.source === "effect") {
-    if (!pendingSelection.sourceCard) {
-      throw new Error("Effect source card is missing.");
-    }
-
-    const effectAction = findSelectableModifyBpAction(
-      pendingSelection.sourceCard
-    );
-
-    if (!effectAction) {
-      throw new Error("Selectable effect action is missing.");
-    }
-
-    ResolveSelectedEffectAction.execute(
-      game,
-      pendingSelection.sourceCard,
-      effectAction,
-      nextSelectedTargets
-    );
-
-    setPendingSelection(null);
-    refresh();
-    return;
-  }
-  if (pendingSelection.source === "activateMain") {
-      if (!pendingActivateMain) {
-        throw new Error("ActivateMain source is missing.");
-      }
-
-      const selectedTarget = nextSelectedTargets[0];
-
-      const targetPosition = findOwnCardPosition(selectedTarget);
-
-      if (!targetPosition) {
-        throw new Error("Selected target position not found.");
-      }
-
-      ActivateMainEffectAction.execute(
-        game,
-        pendingActivateMain.sourceLine,
-        pendingActivateMain.sourceIndex,
-        targetPosition.line,
-        targetPosition.index
-      );
-
-      setPendingActivateMain(null);
-    }
-    if (pendingSelection.source === "trigger") {
-      ResolveTriggerChoiceAction.execute(game, nextSelectedTargets);
-
-      setPendingSelection(null);
-      refresh();
-      return;
-    }
-    setPendingSelection(null);
-    refresh();
-  } catch (e) {
-    alert(e instanceof Error ? e.message : String(e));
-  }
-  };
-  
-  const handleCancelSelection = () => {
-    setPendingSelection(null);
-  };
-  
-
-  
-
 const handleStartTriggerChoice = () => {
   const pending = game.pendingTriggerChoice;
   if (!pending) return;
@@ -732,8 +483,6 @@ const handleStartActivateMain = (
         }
         isRaidTriggerBaseSelecting={isSelectingRaidTriggerBase}
       />
-
-    
     </div>
   );
 }

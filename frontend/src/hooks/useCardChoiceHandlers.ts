@@ -8,7 +8,8 @@ import { CompletePlayFromHandAction } from "../../../gameEngine/actions/Complete
 import { ActivateMainEffectAction } from "../../../gameEngine/actions/ActivateMainEffectAction";
 
 import type { PendingCardChoice } from "../components/CardChoicePanel";
-
+import { CompleteSearchTopDeckAction } from "../../../gameEngine/actions/CompleteSearchTopDeckAction";
+import { CompleteDiscardHandAction } from "../../../gameEngine/actions/CompleteDiscardHandAction";
 type PendingPlayDestination = {
   sourceCard: CardInstance;
   playedCard: CardInstance;
@@ -195,75 +196,62 @@ export function useCardChoiceHandlers({
       return;
     }
 
+    
     if (pendingCardChoice.source === "searchTopDeck") {
-      const selectedCards = pendingCardChoice.selectedCards;
-      const shownCards = pendingCardChoice.cards;
+    const result = CompleteSearchTopDeckAction.execute(
+        game,
+        player1.id,
+        pendingCardChoice.cards,
+        pendingCardChoice.selectedCards
+    );
 
-      for (const selected of selectedCards) {
-        player1.board.hand.push(selected);
-      }
-
-      player1.board.deck = player1.board.deck.filter(
-        (deckCard) => !shownCards.includes(deckCard)
-      );
-
-      const restCards = shownCards.filter(
-        (card) => !selectedCards.includes(card)
-      );
-
-      player1.board.deck.unshift(...restCards);
-
-      if (selectedCards.length > 0) {
+    if (result.needsDiscard) {
         setPendingCardChoice({
-          source: "discardHand",
-          title: "手札を1枚捨ててください",
-          cards: [...player1.board.hand],
-          minCount: 1,
-          maxCount: 1,
-          selectedCards: [],
-          context: pendingCardChoice.context,
+        source: "discardHand",
+        title: "手札を1枚捨ててください",
+        cards: [...player1.board.hand],
+        minCount: 1,
+        maxCount: 1,
+        selectedCards: [],
+        context: pendingCardChoice.context,
         });
         refresh();
         return;
-      }
+    }
 
-      setPendingCardChoice(null);
-      refresh();
-      return;
+    setPendingCardChoice(null);
+    refresh();
+    return;
     }
 
     if (pendingCardChoice.source === "discardHand") {
-      const discardedCards = pendingCardChoice.selectedCards;
-
-      for (const discarded of discardedCards) {
-        player1.board.hand = player1.board.hand.filter(
-          (handCard) => handCard !== discarded
+    try {
+        CompleteDiscardHandAction.execute(
+        game,
+        player1.id,
+        pendingCardChoice.selectedCards
         );
 
-        player1.board.trash.push(discarded);
-      }
-
-      if (pendingActivateMain) {
-        try {
-          ActivateMainEffectAction.execute(
+        if (pendingActivateMain) {
+        ActivateMainEffectAction.execute(
             game,
             pendingActivateMain.sourceLine,
             pendingActivateMain.sourceIndex
-          );
+        );
 
-          setPendingActivateMain(null);
-          setPendingCardChoice(null);
-          refresh();
-        } catch (e) {
-          alert(e instanceof Error ? e.message : String(e));
+        setPendingActivateMain(null);
+        setPendingCardChoice(null);
+        refresh();
+        return;
         }
 
-        return;
-      }
+        setPendingCardChoice(null);
+        refresh();
+    } catch (e) {
+        alert(e instanceof Error ? e.message : String(e));
+    }
 
-      setPendingCardChoice(null);
-      refresh();
-      return;
+    return;
     }
 
     if (pendingCardChoice.source === "playFromHand") {
