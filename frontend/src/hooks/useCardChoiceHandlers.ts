@@ -14,6 +14,7 @@ import type {
   PendingPlayDestination,
   PendingActivateMain,
 } from "../types/PendingInteraction";
+import { EffectActionFinder } from "../../../gameEngine/effects/EffectActionFinder";
 
 type Props = {
   game: Game;
@@ -39,25 +40,11 @@ export function useCardChoiceHandlers({
   const player1 = game.player1;
   const player2 = game.player2;
 
-  const findSearchTopDeckAction = (sourceCard: CardInstance) => {
-    for (const effect of sourceCard.card.effects) {
-      for (const action of effect.actions) {
-        if (action.type === "searchTopDeck") {
-          return action;
-        }
-      }
-    }
-
-    return undefined;
-  };
-
   const startPlayFromHandChoice = (
     sourceCard: CardInstance,
     playerId: string = player1.id
   ): boolean => {
-    const playFromHandAction = sourceCard.card.raidEffects
-      .flatMap((effect) => effect.actions)
-      .find((action: any) => action.type === "playFromHand");
+    const playFromHandAction = EffectActionFinder.findPlayFromHandAction(sourceCard);
 
     if (!playFromHandAction || playFromHandAction.type !== "playFromHand") {
       return false;
@@ -115,7 +102,7 @@ export function useCardChoiceHandlers({
       handIndex?: number;
     }
   ): boolean => {
-    const action = findSearchTopDeckAction(sourceCard);
+    const action = EffectActionFinder.findSearchTopDeckAction(sourceCard);
 
     if (!action || action.type !== "searchTopDeck") {
       return false;

@@ -7,7 +7,7 @@ import { ActivateMainEffectAction } from "../../../gameEngine/actions/ActivateMa
 
 import type { PendingSelection } from "../types/PendingSelection";
 import type { PendingActivateMain } from "../types/PendingInteraction";
-
+import { EffectActionFinder } from "../../../gameEngine/effects/EffectActionFinder";
 
 type Props = {
   game: Game;
@@ -45,9 +45,7 @@ export function useActivateMainHandlers({
       return;
     }
 
-    const activateMainEffect = sourceCard.card.effects.find(
-      (effect) => effect.trigger === "activateMain"
-    );
+    const activateMainEffect = EffectActionFinder.findActivateMainEffect(sourceCard);
 
     if (!activateMainEffect) {
       alert("起動メイン効果がありません");

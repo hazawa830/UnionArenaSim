@@ -11,6 +11,7 @@ import { ResolveTriggerChoiceAction } from "../../../gameEngine/actions/ResolveT
 
 import type { PendingSelection } from "../types/PendingSelection";
 import type { PendingActivateMain } from "../types/PendingInteraction";
+import { EffectActionFinder } from "../../../gameEngine/effects/EffectActionFinder";
 
 type Props = {
   game: Game;
@@ -32,28 +33,11 @@ export function useTargetSelectionHandlers({
   const player1 = game.player1;
   const player2 = game.player2;
 
-  const findSelectableModifyBpAction = (sourceCard: CardInstance) => {
-    for (const effect of sourceCard.card.effects) {
-      for (const action of effect.actions) {
-        if (action.type !== "modifyBpThisTurn") {
-          continue;
-        }
-
-        if (typeof action.target === "string") {
-          continue;
-        }
-
-        return action;
-      }
-    }
-
-    return undefined;
-  };
 
   const startModifyBpTargetSelection = (
     sourceCard: CardInstance
   ): boolean => {
-    const action = findSelectableModifyBpAction(sourceCard);
+    const action = EffectActionFinder.findSelectableModifyBpAction(sourceCard);
 
     if (!action || action.type !== "modifyBpThisTurn") {
       return false;
@@ -175,9 +159,10 @@ export function useTargetSelectionHandlers({
           throw new Error("Effect source card is missing.");
         }
 
-        const effectAction = findSelectableModifyBpAction(
-          pendingSelection.sourceCard
-        );
+        const effectAction =
+            EffectActionFinder.findSelectableModifyBpAction(
+                pendingSelection.sourceCard
+            );
 
         if (!effectAction) {
           throw new Error("Selectable effect action is missing.");
