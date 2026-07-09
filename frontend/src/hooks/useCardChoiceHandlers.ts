@@ -10,18 +10,10 @@ import { ActivateMainEffectAction } from "../../../gameEngine/actions/ActivateMa
 import type { PendingCardChoice } from "../components/CardChoicePanel";
 import { CompleteSearchTopDeckAction } from "../../../gameEngine/actions/CompleteSearchTopDeckAction";
 import { CompleteDiscardHandAction } from "../../../gameEngine/actions/CompleteDiscardHandAction";
-type PendingPlayDestination = {
-  sourceCard: CardInstance;
-  playedCard: CardInstance;
-  allowedLines: BoardLine[];
-  rest: boolean;
-  playerId: string;
-} | null;
-
-type PendingActivateMain = {
-  sourceLine: BoardLine;
-  sourceIndex: number;
-} | null;
+import type {
+  PendingPlayDestination,
+  PendingActivateMain,
+} from "../types/PendingInteraction";
 
 type Props = {
   game: Game;

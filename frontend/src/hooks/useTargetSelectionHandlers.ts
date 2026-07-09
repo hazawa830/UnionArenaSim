@@ -10,11 +10,7 @@ import { ResolveSelectedEffectAction } from "../../../gameEngine/actions/Resolve
 import { ResolveTriggerChoiceAction } from "../../../gameEngine/actions/ResolveTriggerChoiceAction";
 
 import type { PendingSelection } from "../types/PendingSelection";
-
-type PendingActivateMain = {
-  sourceLine: BoardLine;
-  sourceIndex: number;
-} | null;
+import type { PendingActivateMain } from "../types/PendingInteraction";
 
 type Props = {
   game: Game;

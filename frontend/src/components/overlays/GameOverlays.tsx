@@ -12,31 +12,24 @@ import { SelectionBanner } from "./SelectionBanner";
 import { RaidTriggerDestinationModal } from "./RaidTriggerDestinationModal";
 import { RaidTriggerBaseSelectingBanner } from "./RaidTriggerBaseSelectingBanner";
 import type { PendingSelection } from "../../types/PendingSelection";
+import type {
+  PendingRaid,
+  PendingRaidBase,
+  PendingRaidTriggerBase,
+  PendingPlayDestination,
+} from "../../types/PendingInteraction";
 
 type Props = {
   game: Game;
   player1: Player;
   isGameOver: boolean;
   pendingRaid: { handIndex: number } | null;
-  pendingRaidBase: {
-    handIndex: number;
-    baseLine: BoardLine;
-    baseIndex: number;
-  } | null;
+  pendingRaidBase: PendingRaidBase;
   pendingSelection: PendingSelection | null;
   pendingCardChoice: PendingCardChoice | null;
-  pendingPlayDestination: {
-    sourceCard: CardInstance;
-    playedCard: CardInstance;
-    allowedLines: BoardLine[];
-    rest: boolean;
-    playerId: string;
-  } | null;
+  pendingPlayDestination: PendingPlayDestination;
   isSelectingRaidTriggerBase: boolean;
-  pendingRaidTriggerBase: {
-    baseLine: BoardLine;
-    baseIndex: number;
-  } | null;
+  pendingRaidTriggerBase: PendingRaidTriggerBase;
 
   onNewGame: () => void;
   onCancelRaid: () => void;
