@@ -11,16 +11,7 @@ import { TriggerChoiceBanner } from "./TriggerChoiceBanner";
 import { SelectionBanner } from "./SelectionBanner";
 import { RaidTriggerDestinationModal } from "./RaidTriggerDestinationModal";
 import { RaidTriggerBaseSelectingBanner } from "./RaidTriggerBaseSelectingBanner";
-
-type PendingSelection = {
-  source: "event" | "activateMain" | "trigger" | "effect";
-  handIndex?: number;
-  requiredCount: number;
-  selectedTargets: CardInstance[];
-  allowedSide: "own" | "opponent" | "both";
-  allowedLines: BoardLine[];
-  sourceCard?: CardInstance;
-};
+import type { PendingSelection } from "../../types/PendingSelection";
 
 type Props = {
   game: Game;
