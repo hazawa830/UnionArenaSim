@@ -52,7 +52,6 @@ export function CompactPlayerInfo({
           )}
         </div>
 
-        <div className="trash-count">{player.board.trash.length}枚</div>
       </div>
     </section>
   );

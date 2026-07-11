@@ -27,14 +27,26 @@ type ActiveTriggerResult =
 type ColorTriggerResult =
   | {
       success: true;
+      color: "blue";
+      effect: "returnToHand";
       returnedCardInstanceId: number;
       returnedCardId: string;
       returnedCardName: string;
       targetIndex: number;
     }
   | {
+      success: true;
+      color: "red";
+      effect: "destroy";
+      destroyedCardInstanceId: number;
+      destroyedCardId: string;
+      destroyedCardName: string;
+      targetIndex: number;
+    }
+  | {
       success: false;
-      reason: "notBlue" | "noTarget";
+      color?: string;
+      reason: "unsupportedColor" | "noTarget";
     };
 
 type FinalTriggerResult =
@@ -95,16 +107,18 @@ export class TriggerAction {
       }
 
       case TriggerType.Color: {
-        const result = this.resolveColorTrigger(
+        game.pendingTriggerChoice = {
           revealedCard,
-          damagedPlayer,
-          opponentPlayer
-        );
-        damagedPlayer.board.trash.push(revealedCard);
+          playerId: damagedPlayer.id,
+          opponentPlayerId: opponentPlayer.id,
+          triggerType: TriggerType.Color,
+        };
+
         this.logTriggerResult(game, damagedPlayer, revealedCard, {
-          result: "color",
-          ...result,
+          result: "pendingColorChoice",
+          color: revealedCard.card.color,
         });
+
         return;
       }
 
@@ -221,13 +235,23 @@ export class TriggerAction {
     damagedPlayer: Player,
     opponentPlayer: Player
   ): ColorTriggerResult {
-    if (revealedCard.card.color !== "blue") {
-      return {
-        success: false,
-        reason: "notBlue",
-      };
+    if (revealedCard.card.color === "blue") {
+      return this.resolveBlueColorTrigger(opponentPlayer);
     }
 
+    if (revealedCard.card.color === "red") {
+      return this.resolveRedColorTrigger(opponentPlayer);
+    }
+
+    return {
+      success: false,
+      color: revealedCard.card.color,
+      reason: "unsupportedColor",
+    };
+  }
+  private static resolveBlueColorTrigger(
+  opponentPlayer: Player
+  ): ColorTriggerResult {
     const targetIndex = opponentPlayer.board.frontLine.findIndex((slot) => {
       const card = slot.getCard();
 
@@ -241,6 +265,7 @@ export class TriggerAction {
     if (targetIndex === -1) {
       return {
         success: false,
+        color: "blue",
         reason: "noTarget",
       };
     }
@@ -250,6 +275,7 @@ export class TriggerAction {
     if (!returned) {
       return {
         success: false,
+        color: "blue",
         reason: "noTarget",
       };
     }
@@ -257,14 +283,58 @@ export class TriggerAction {
     opponentPlayer.board.hand.push(returned);
 
     return {
-      success: true,
-      returnedCardInstanceId: returned.instanceId,
-      returnedCardId: returned.card.id,
-      returnedCardName: returned.card.name,
-      targetIndex,
-    };
+    success: true,
+    color: "blue",
+    effect: "returnToHand",
+    returnedCardInstanceId: returned.instanceId,
+    returnedCardId: returned.card.id,
+    returnedCardName: returned.card.name,
+    targetIndex,
+  };
   }
+  private static resolveRedColorTrigger(
+    opponentPlayer: Player
+  ): ColorTriggerResult {
+    const targetIndex = opponentPlayer.board.frontLine.findIndex((slot) => {
+      const card = slot.getCard();
 
+      if (!card || !(card.card instanceof CharacterCard)) {
+        return false;
+      }
+
+      return card.getCurrentBp() <= 2500;
+    });
+
+    if (targetIndex === -1) {
+      return {
+        success: false,
+        color: "red",
+        reason: "noTarget",
+      };
+    }
+
+    const destroyed = opponentPlayer.board.frontLine[targetIndex].removeCard();
+
+    if (!destroyed) {
+      return {
+        success: false,
+        color: "red",
+        reason: "noTarget",
+      };
+    }
+
+    opponentPlayer.board.trash.push(destroyed);
+
+    return {
+    success: true,
+    color: "red",
+    effect: "destroy",
+    destroyedCardInstanceId: destroyed.instanceId,
+    destroyedCardId: destroyed.card.id,
+    destroyedCardName: destroyed.card.name,
+    targetIndex,
+  };
+  }
   private static resolveFinalTrigger(player: Player): FinalTriggerResult {
     if (player.board.lifeArea.length > 0) {
       return {

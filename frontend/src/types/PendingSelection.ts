@@ -17,4 +17,5 @@ export type PendingSelection = {
   allowedSide: TargetSide;
   allowedLines: BoardLine[];
   sourceCard?: CardInstance;
+  maxBp?: number;
 };

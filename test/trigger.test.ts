@@ -109,19 +109,24 @@ describe("TriggerAction", () => {
   });
 
   it("Color青トリガーは相手フロントラインのBP3500以下のキャラを手札に戻す", () => {
-    const { game, attackerPlayer } = setupAttackScenario(TriggerType.Color);
+  const { game, attackerPlayer } = setupAttackScenario(TriggerType.Color);
 
-    const attacker = attackerPlayer.board.frontLine[0].getCard();
-    expect(attacker).toBeDefined();
+  const attacker = attackerPlayer.board.frontLine[0].getCard();
+  expect(attacker).toBeDefined();
 
-    const attackerHandBefore = attackerPlayer.board.hand.length;
+  const attackerHandBefore = attackerPlayer.board.hand.length;
 
-    AttackAction.execute(game, 0);
+  AttackAction.execute(game, 0);
 
-    expect(attackerPlayer.board.frontLine[0].isEmpty()).toBe(true);
-    expect(attackerPlayer.board.hand.length).toBe(attackerHandBefore + 1);
-    expect(attackerPlayer.board.hand).toContain(attacker);
-  });
+  expect(game.pendingTriggerChoice).toBeDefined();
+  expect(game.pendingTriggerChoice?.triggerType).toBe(TriggerType.Color);
+
+  ResolveTriggerChoiceAction.execute(game, [attacker!]);
+
+  expect(attackerPlayer.board.frontLine[0].isEmpty()).toBe(true);
+  expect(attackerPlayer.board.hand.length).toBe(attackerHandBefore + 1);
+  expect(attackerPlayer.board.hand).toContain(attacker);
+});
   it("Finalトリガーはライフが0の場合、山札の上から1枚をライフに置く", () => {
     const { game, defenderPlayer, triggerCard } =
       setupAttackScenario(TriggerType.Final);

@@ -60,8 +60,37 @@ export function useTriggerHandlers({
       });
       return;
     }
+    if (pending.triggerType === TriggerType.Color) {
+    const color = pending.revealedCard.card.color;
 
+    if (color === "blue") {
+      setPendingSelection({
+        source: "trigger",
+        requiredCount: 1,
+        selectedTargets: [],
+        allowedSide: "opponent",
+        allowedLines: [BoardLine.FrontLine],
+        sourceCard: pending.revealedCard,
+        maxBp: 3500,
+      });
+      return;
+    }
+
+    if (color === "red") {
+      setPendingSelection({
+        source: "trigger",
+        requiredCount: 1,
+        selectedTargets: [],
+        allowedSide: "opponent",
+        allowedLines: [BoardLine.FrontLine],
+        sourceCard: pending.revealedCard,
+        maxBp: 2500,
+      });
+      return;
+    }
     alert("未対応のトリガー選択です");
+    return
+  }
   };
   const handleDeclineTriggerChoice = () => {
     try {

@@ -68,40 +68,77 @@ describe("TriggerAction logs", () => {
   });
 
   it("Colorトリガーで相手キャラを手札に戻した結果ログが追加される", () => {
-    const game = createTestGame();
-    const damagedPlayer = game.getCurrentPlayer();
-    const opponentPlayer = game.getOpponentPlayer();
+  const game = createTestGame();
+  const damagedPlayer = game.getCurrentPlayer();
+  const opponentPlayer = game.getOpponentPlayer();
 
-    const returnedTarget = TestCardFactory.createCharacter({
-      name: "戻されるキャラ",
-      bp: 3000,
-    });
-
-    const triggerCard = TestCardFactory.createTriggerCard(TriggerType.Color, {
-      name: "カラートリガー",
-      color: "blue",
-    });
-
-    opponentPlayer.board.frontLine[1].setCard(returnedTarget);
-
-    TriggerAction.resolve(game, triggerCard, damagedPlayer, opponentPlayer);
-
-    const resultLog = game.logs.find(
-      (log) => log.type === LogType.TriggerResult
-    );
-
-    expect(opponentPlayer.board.hand).toContain(returnedTarget);
-
-    expect(resultLog?.payload).toMatchObject({
-      result: "color",
-      success: true,
-      returnedCardInstanceId: returnedTarget.instanceId,
-      returnedCardId: returnedTarget.card.id,
-      returnedCardName: returnedTarget.card.name,
-      targetIndex: 1,
-    });
+  const returnedTarget = TestCardFactory.createCharacter({
+    name: "戻されるキャラ",
+    bp: 3000,
   });
 
+  const triggerCard = TestCardFactory.createTriggerCard(TriggerType.Color, {
+    name: "カラートリガー",
+    color: "blue",
+  });
+
+  opponentPlayer.board.frontLine[1].setCard(returnedTarget);
+
+  TriggerAction.resolve(game, triggerCard, damagedPlayer, opponentPlayer);
+
+  expect(game.pendingTriggerChoice).toBeDefined();
+  expect(game.pendingTriggerChoice?.triggerType).toBe(TriggerType.Color);
+
+  ResolveTriggerChoiceAction.execute(game, [returnedTarget]);
+
+  expect(opponentPlayer.board.hand).toContain(returnedTarget);
+
+  const resultLog = [...game.logs]
+    .reverse()
+    .find(
+      (log) =>
+        log.type === LogType.TriggerResult &&
+        log.payload.result === "resolvedColorTrigger"
+    );
+
+  expect(resultLog?.payload).toMatchObject({
+    result: "resolvedColorTrigger",
+    color: "blue",
+    effect: "returnToHand",
+    returnedCardInstanceId: returnedTarget.instanceId,
+    returnedCardId: returnedTarget.card.id,
+    returnedCardName: returnedTarget.card.name,
+    targetIndex: 1,
+  });
+});
+it("Color赤トリガーは相手フロントラインのBP2500以下のキャラをトラッシュに送る", () => {
+  const game = createTestGame();
+  const damagedPlayer = game.getCurrentPlayer();
+  const opponentPlayer = game.getOpponentPlayer();
+
+  const destroyedTarget = TestCardFactory.createCharacter({
+    name: "トラッシュに送られるキャラ",
+    bp: 2500,
+  });
+
+  const triggerCard = TestCardFactory.createTriggerCard(TriggerType.Color, {
+    name: "赤カラートリガー",
+    color: "red",
+  });
+
+  opponentPlayer.board.frontLine[1].setCard(destroyedTarget);
+
+  TriggerAction.resolve(game, triggerCard, damagedPlayer, opponentPlayer);
+
+  expect(game.pendingTriggerChoice).toBeDefined();
+  expect(game.pendingTriggerChoice?.triggerType).toBe(TriggerType.Color);
+
+  ResolveTriggerChoiceAction.execute(game, [destroyedTarget]);
+
+  expect(opponentPlayer.board.frontLine[1].isEmpty()).toBe(true);
+  expect(opponentPlayer.board.trash).toContain(destroyedTarget);
+  expect(damagedPlayer.board.trash).toContain(triggerCard);
+});
   it("Noneトリガーで効果なし結果ログが追加される", () => {
     const game = createTestGame();
     const damagedPlayer = game.getCurrentPlayer();
