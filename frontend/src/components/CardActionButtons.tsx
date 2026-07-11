@@ -13,6 +13,8 @@ type Props = {
   onMoveToFront?: (energyIndex: number) => void;
   onAttack?: (frontIndex: number) => void;
   onStartActivateMain?: (line: BoardLine, index: number) => void;
+  canMoveToEnergy: boolean;
+  onMoveToEnergy?: (frontIndex: number) => void;
 };
 
 export function CardActionButtons({
@@ -26,6 +28,8 @@ export function CardActionButtons({
   onMoveToFront,
   onAttack,
   onStartActivateMain,
+  canMoveToEnergy,
+  onMoveToEnergy,
 }: Props) {
   if (!isYou) {
     return null;
@@ -43,7 +47,16 @@ export function CardActionButtons({
           Move
         </button>
       )}
-
+      {canMoveToEnergy && !isSelecting && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onMoveToEnergy?.(index);
+          }}
+        >
+          Move
+        </button>
+      )}
       {canActivateMain && !isSelecting && (
         <button
           onClick={(e) => {

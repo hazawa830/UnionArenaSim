@@ -193,6 +193,7 @@ const {
     handlePlayToEnergy,
     handlePlayToFront,
     handleMoveToFront,
+    handleMoveToEnergy,
   } = usePlayHandlers({
     game,
     isYourTurn,
@@ -255,6 +256,7 @@ const {
         onConfirmCardChoice={handleConfirmCardChoice}
         onCancelCardChoice={handleCancelCardChoice}
         onStartActivateMain={handleStartActivateMain}
+        onMoveToEnergy={handleMoveToEnergy}
         canCancelCardChoice={
           pendingCardChoice?.source !== "discardHand" 
         }

@@ -28,6 +28,7 @@ type Props = {
   onStartActivateMain?: (line: BoardLine, index: number) => void;
   game: Game;
   opponent: Player;
+  onMoveToEnergy?: (frontIndex: number) => void;
 };
 
 export function PlayerView({
@@ -45,6 +46,7 @@ export function PlayerView({
   onAttack,
   onHoverImage,
   onStartActivateMain,
+  onMoveToEnergy,
   game,
   opponent,
 }: Props) {
@@ -65,6 +67,7 @@ export function PlayerView({
             game={game}
             actor={player}
             opponent={opponent}
+            onMoveToEnergy={onMoveToEnergy}
           />
 
           <BoardLineView
@@ -80,6 +83,7 @@ export function PlayerView({
             game={game}
             actor={player}
             opponent={opponent}
+            onMoveToEnergy={onMoveToEnergy}
           />
         </>
       ) : (
@@ -100,6 +104,7 @@ export function PlayerView({
             game={game}
             actor={player}
             opponent={opponent}
+            onMoveToEnergy={onMoveToEnergy}
           />
 
           <BoardLineView
@@ -118,6 +123,7 @@ export function PlayerView({
             game={game}
             actor={player}
             opponent={opponent}
+            onMoveToEnergy={onMoveToEnergy}
           />
         </>
       )}

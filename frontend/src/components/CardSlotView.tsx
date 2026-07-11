@@ -27,6 +27,7 @@ export type CardSlotProps = {
   onAttack?: (frontIndex: number) => void;
   onStartActivateMain?: (line: BoardLine, index: number) => void;
   onHoverImage?: (imagePath: string | null) => void;
+  onMoveToEnergy?: (frontIndex: number) => void;
   game: Game;
   actor: Player;
   opponent: Player;
@@ -48,6 +49,7 @@ export function CardSlotView({
   onAttack,
   onStartActivateMain,
   onHoverImage,
+  onMoveToEnergy,
   game,
   actor,
   opponent,
@@ -55,7 +57,12 @@ export function CardSlotView({
   const canMoveToFront = Boolean(
     isYou && line === BoardLine.EnergyLine && card
   );
-
+  const canMoveToEnergy = Boolean(
+    isYou &&
+      line === BoardLine.FrontLine &&
+      card &&
+      card.card.hasKeyword("step")
+  );
   const canAttack = Boolean(
     isYou && line === BoardLine.FrontLine && card
   );
@@ -126,13 +133,15 @@ export function CardSlotView({
             line={line}
             index={index}
             canMoveToFront={canMoveToFront}
+            canMoveToEnergy={canMoveToEnergy}
             canActivateMain={canActivateMain}
             canAttack={canAttack}
             isSelecting={isSelecting}
             onMoveToFront={onMoveToFront}
+            onMoveToEnergy={onMoveToEnergy}
             onAttack={onAttack}
             onStartActivateMain={onStartActivateMain}
-            />
+          />
         </>
       ) : (
         <span className="empty-slot-label">-</span>

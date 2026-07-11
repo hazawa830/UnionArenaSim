@@ -68,6 +68,7 @@ type Props = {
   onConfirmCardChoice: () => void;
   onCancelCardChoice: () => void;
   onStartActivateMain: (line: BoardLine, index: number) => void;
+  onMoveToEnergy: (frontIndex: number) => void;
   canCancelCardChoice?: boolean;
 };
 
@@ -101,6 +102,7 @@ export function OfficialBoardLayout({
   onConfirmCardChoice,
   onCancelCardChoice,
   onStartActivateMain,
+  onMoveToEnergy,
   canCancelCardChoice = true,
   isRaidTriggerBaseSelecting,
 }: Props) {
@@ -211,6 +213,7 @@ export function OfficialBoardLayout({
             onStartActivateMain={onStartActivateMain}
             opponent={player2}
             game={game}
+            onMoveToEnergy={onMoveToEnergy}
           />
         </section>
 

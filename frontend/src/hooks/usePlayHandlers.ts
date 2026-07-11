@@ -63,37 +63,78 @@ export function usePlayHandlers({
   const handlePlayToFront = (handIndex: number) => {
     handlePlayCard(handIndex, BoardLine.FrontLine);
   };
+  const handleMoveToEnergy = (frontIndex: number) => {
+  if (!isYourTurn) return alert("相手ターンです");
+  if (game.phase !== GamePhase.Move) return alert("移動フェーズのみです");
 
-  const handleMoveToFront = (energyIndex: number) => {
-    if (!isYourTurn) return alert("相手ターンです");
-    if (game.phase !== GamePhase.Move) return alert("移動フェーズのみです");
+  const sourceSlot = player1.board.frontLine[frontIndex];
+  const sourceCard = sourceSlot?.getCard();
 
-    const emptyFrontIndex = player1.board.frontLine.findIndex((slot) =>
-      slot.isEmpty()
+  if (!sourceCard) {
+    alert("カードがありません");
+    return;
+  }
+
+  if (!sourceCard.card.hasKeyword("step")) {
+    alert("ステップを持たないカードはエナジーラインに移動できません");
+    return;
+  }
+
+  const emptyEnergyIndex = player1.board.energyLine.findIndex((slot) =>
+    slot.isEmpty()
+  );
+
+  if (emptyEnergyIndex === -1) {
+    alert("エナジーラインに空きがありません");
+    return;
+  }
+
+  try {
+    MoveCardAction.execute(
+      game,
+      BoardLine.FrontLine,
+      frontIndex,
+      BoardLine.EnergyLine,
+      emptyEnergyIndex
     );
 
-    if (emptyFrontIndex === -1) {
-      alert("フロントラインに空きがありません");
-      return;
-    }
+    refresh();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+};
+  const handleMoveToFront = (energyIndex: number) => {
+  if (!isYourTurn) return alert("相手ターンです");
+  if (game.phase !== GamePhase.Move) return alert("移動フェーズのみです");
 
-    try {
-      MoveCardAction.execute(
-        game,
-        BoardLine.EnergyLine,
-        energyIndex,
-        BoardLine.FrontLine,
-        emptyFrontIndex
-      );
-      refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
-    }
-  };
+  const emptyFrontIndex = player1.board.frontLine.findIndex((slot) =>
+    slot.isEmpty()
+  );
+
+  if (emptyFrontIndex === -1) {
+    alert("フロントラインに空きがありません");
+    return;
+  }
+
+  try {
+    MoveCardAction.execute(
+      game,
+      BoardLine.EnergyLine,
+      energyIndex,
+      BoardLine.FrontLine,
+      emptyFrontIndex
+    );
+
+    refresh();
+  } catch (e) {
+    alert(e instanceof Error ? e.message : String(e));
+  }
+};
 
   return {
     handlePlayToEnergy,
     handlePlayToFront,
     handleMoveToFront,
+    handleMoveToEnergy,
   };
 }

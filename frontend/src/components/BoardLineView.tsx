@@ -29,6 +29,7 @@ type Props = {
   onAttack?: (frontIndex: number) => void;
   onStartActivateMain?: (line: BoardLine, index: number) => void;
   onHoverImage?: (imagePath: string | null) => void;
+  onMoveToEnergy?: (frontIndex: number) => void;
   game: Game;
   actor: Player;
   opponent: Player;
@@ -51,6 +52,7 @@ export function BoardLineView({
     onAttack,
     onStartActivateMain,
     onHoverImage,
+    onMoveToEnergy,
     game,
   actor,
   opponent
@@ -93,6 +95,7 @@ export function BoardLineView({
               game={game}
               actor={actor}
               opponent={opponent}
+              onMoveToEnergy={onMoveToEnergy}
             />
           );
         })}
