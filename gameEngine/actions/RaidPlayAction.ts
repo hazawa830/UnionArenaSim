@@ -75,7 +75,9 @@ export class RaidPlayAction {
     if (!baseCard) {
       throw new Error("Raid base slot is empty.");
     }
-
+    if (baseCard.raidBase) {
+      throw new Error("すでにレイドしているキャラクターにはレイドできません");
+    }
     if (
       !RaidConditionResolver.canRaidOn(
         raidCard.card.raidConditions,

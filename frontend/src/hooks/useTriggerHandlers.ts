@@ -8,7 +8,7 @@ import { ResolveRaidTriggerAction } from "../../../gameEngine/actions/ResolveRai
 
 import type { PendingSelection } from "../types/PendingSelection";
 import type { PendingRaidTriggerBase } from "../types/PendingInteraction";
-
+import { DeclineTriggerChoiceAction } from "../../../gameEngine/actions/DeclineTriggerChoiceAction";
 
 
 type Props = {
@@ -63,7 +63,15 @@ export function useTriggerHandlers({
 
     alert("未対応のトリガー選択です");
   };
-
+  const handleDeclineTriggerChoice = () => {
+    try {
+      DeclineTriggerChoiceAction.execute(game);
+      setPendingSelection(null);
+      refresh();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
+  };
   const handleDeclineRaidTrigger = () => {
     try {
       ResolveRaidTriggerAction.execute(game, false);
@@ -158,6 +166,7 @@ export function useTriggerHandlers({
 
   return {
     handleStartTriggerChoice,
+    handleDeclineTriggerChoice,
     handleDeclineRaidTrigger,
     handleStartRaidTrigger,
     handleSelectRaidTriggerBase,

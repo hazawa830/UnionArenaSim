@@ -67,7 +67,9 @@ export class ResolveRaidTriggerAction {
     if (!baseSlot || !baseCard) {
       throw new Error("Raid base not found.");
     }
-
+    if (baseCard.raidBase) {
+      throw new Error("すでにレイドしているキャラクターにはレイドできません");
+    }
     if (
       !RaidConditionResolver.canRaidOn(raidCard.card.raidConditions, baseCard)
     ) {

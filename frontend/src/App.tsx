@@ -83,6 +83,7 @@ function App() {
   });
   const {
     handleStartTriggerChoice,
+    handleDeclineTriggerChoice,
     handleDeclineRaidTrigger,
     handleStartRaidTrigger,
     handleSelectRaidTriggerBase,
@@ -221,6 +222,7 @@ const {
         onDeclineRaidTrigger={handleDeclineRaidTrigger}
         onStartTriggerChoice={handleStartTriggerChoice}
         onSelectRaidTriggerDestination={handleSelectRaidTriggerDestination}
+        onDeclineTriggerChoice={handleDeclineTriggerChoice}
       />
       <OfficialBoardLayout
         game={game}

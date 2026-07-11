@@ -30,6 +30,7 @@ type Props = {
   pendingPlayDestination: PendingPlayDestination;
   isSelectingRaidTriggerBase: boolean;
   pendingRaidTriggerBase: PendingRaidTriggerBase;
+  onDeclineTriggerChoice: () => void;
 
   onNewGame: () => void;
   onCancelRaid: () => void;
@@ -69,6 +70,7 @@ export function GameOverlays({
   onDeclineRaidTrigger,
   onStartTriggerChoice,
   onSelectRaidTriggerDestination,
+  onDeclineTriggerChoice,
 }: Props) {
   return (
     <>
@@ -102,11 +104,9 @@ export function GameOverlays({
       />
 
       <TriggerChoiceBanner
-        isOpen={
-          game.pendingTriggerChoice?.playerId === player1.id &&
-          !pendingSelection
-        }
+        isOpen={game.pendingTriggerChoice !== undefined && pendingSelection === null}
         onStartChoice={onStartTriggerChoice}
+        onDecline={onDeclineTriggerChoice}
       />
 
       <RaidTriggerBaseSelectingBanner
