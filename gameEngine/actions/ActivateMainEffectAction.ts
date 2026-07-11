@@ -11,7 +11,10 @@ export class ActivateMainEffectAction {
     sourceLine: BoardLine,
     sourceIndex: number,
     targetLine?: BoardLine,
-    targetIndex?: number
+    targetIndex?: number,
+    options?: {
+      skipCosts?: boolean;
+    }
   ): void {
     if (game.phase !== GamePhase.Main) {
       throw new Error("Activate main effect is only allowed in main phase.");
@@ -40,6 +43,7 @@ export class ActivateMainEffectAction {
       opponent,
       {
         target,
+        skipCosts: options?.skipCosts,
       }
     );
   }

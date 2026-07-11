@@ -19,6 +19,7 @@ export type PendingRaidTriggerBase = {
 export type PendingActivateMain = {
   sourceLine: BoardLine;
   sourceIndex: number;
+  skipCosts?: boolean;
 } | null;
 
 export type PendingPlayDestination = {

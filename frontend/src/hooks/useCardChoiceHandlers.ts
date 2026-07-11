@@ -215,7 +215,12 @@ export function useCardChoiceHandlers({
         ActivateMainEffectAction.execute(
             game,
             pendingActivateMain.sourceLine,
-            pendingActivateMain.sourceIndex
+            pendingActivateMain.sourceIndex,
+            undefined,
+            undefined,
+            {
+              skipCosts: pendingActivateMain.skipCosts,
+            }
         );
 
         setPendingActivateMain(null);

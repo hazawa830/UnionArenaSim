@@ -8,12 +8,14 @@ import { ActivateMainEffectAction } from "../../../gameEngine/actions/ActivateMa
 import type { PendingSelection } from "../types/PendingSelection";
 import type { PendingActivateMain } from "../types/PendingInteraction";
 import { EffectActionFinder } from "../../../gameEngine/effects/EffectActionFinder";
+import type { PendingCardChoice } from "../components/CardChoicePanel";
 
 type Props = {
   game: Game;
   isYourTurn: boolean;
   setPendingActivateMain: Dispatch<SetStateAction<PendingActivateMain>>;
   setPendingSelection: Dispatch<SetStateAction<PendingSelection | null>>;
+  setPendingCardChoice: Dispatch<SetStateAction<PendingCardChoice | null>>;
   refresh: () => void;
 };
 
@@ -22,6 +24,7 @@ export function useActivateMainHandlers({
   isYourTurn,
   setPendingActivateMain,
   setPendingSelection,
+  setPendingCardChoice,
   refresh,
 }: Props) {
   const player1 = game.player1;
@@ -45,15 +48,43 @@ export function useActivateMainHandlers({
       return;
     }
 
-    const activateMainEffect = EffectActionFinder.findActivateMainEffect(sourceCard);
+    const activateMainEffect =
+      EffectActionFinder.findActivateMainEffect(sourceCard);
 
     if (!activateMainEffect) {
       alert("起動メイン効果がありません");
       return;
     }
 
+    const discardHandCost = activateMainEffect.costs?.find(
+      (cost) => cost.type === "discardHand"
+    );
+
+    if (discardHandCost && discardHandCost.count > 0) {
+      setPendingActivateMain({
+        sourceLine,
+        sourceIndex,
+        skipCosts: true,
+      });
+
+      setPendingCardChoice({
+        source: "discardHand",
+        title: `${sourceCard.card.name}: コストとして手札を${discardHandCost.count}枚捨ててください`,
+        cards: [...player1.board.hand],
+        minCount: discardHandCost.count,
+        maxCount: discardHandCost.count,
+        selectedCards: [],
+        context: {
+          sourceCard,
+          playerId: player1.id,
+        },
+      });
+
+      return;
+    }
+
     const needsSelectedOwnOtherCharacter = activateMainEffect.actions.some(
-    (action) =>
+      (action) =>
         "target" in action && action.target === "selectedOwnOtherCharacter"
     );
 

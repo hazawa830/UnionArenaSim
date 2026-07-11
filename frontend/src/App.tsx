@@ -120,6 +120,7 @@ function App() {
     isYourTurn,
     setPendingActivateMain,
     setPendingSelection,
+    setPendingCardChoice,
     refresh,
   });
   useCpuAutoPlay({

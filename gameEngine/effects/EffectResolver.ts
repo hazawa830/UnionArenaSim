@@ -34,7 +34,9 @@ export class EffectResolver {
       if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {
         continue;
       }
-      EffectCostExecutor.payCosts(context, effect.costs);
+      if (!context.event?.skipCosts) {
+        EffectCostExecutor.payCosts(context, effect.costs);
+      }
       this.markOncePerTurnEffectUsed(context, effect);
       this.executeActions(context, effect);
     }
@@ -84,7 +86,9 @@ export class EffectResolver {
       if (!EffectConditionResolver.checkConditions(context, effect.conditions)) {
         continue;
       }
-      EffectCostExecutor.payCosts(context, effect.costs);
+      if (!context.event?.skipCosts) {
+        EffectCostExecutor.payCosts(context, effect.costs);
+      }
       this.markOncePerTurnEffectUsed(context, effect);
       this.executeActions(context, effect);
     }
