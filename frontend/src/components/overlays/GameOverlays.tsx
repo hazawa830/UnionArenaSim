@@ -94,20 +94,9 @@ export function GameOverlays({
         onCancel={onCancelRaid}
       />
 
-      <RaidTriggerBanner
-        isOpen={
-          game.pendingRaidTrigger?.playerId === player1.id &&
-          !isSelectingRaidTriggerBase
-        }
-        onStartRaid={onStartRaidTrigger}
-        onDeclineRaid={onDeclineRaidTrigger}
-      />
+      
 
-      <TriggerChoiceBanner
-        isOpen={game.pendingTriggerChoice !== undefined && pendingSelection === null}
-        onStartChoice={onStartTriggerChoice}
-        onDecline={onDeclineTriggerChoice}
-      />
+      
 
       <RaidTriggerBaseSelectingBanner
         isOpen={
@@ -115,12 +104,6 @@ export function GameOverlays({
           isSelectingRaidTriggerBase &&
           pendingRaidTriggerBase === null
         }
-      />
-
-      <RaidTriggerDestinationModal
-        pendingRaidTriggerBase={pendingRaidTriggerBase}
-        frontSlotEmpty={player1.board.frontLine.map((slot) => slot.isEmpty())}
-        onSelectDestination={onSelectRaidTriggerDestination}
       />
 
       <PlayDestinationModal

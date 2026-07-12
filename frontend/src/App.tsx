@@ -18,6 +18,7 @@ import { useEventHandlers } from "./hooks/useEventHandlers";
 import { useTriggerHandlers } from "./hooks/useTriggerHandlers";
 import { useRaidHandlers } from "./hooks/useRaidHandlers";
 import { useActivateMainHandlers } from "./hooks/useActivateMainHandlers";
+import { TrashViewerModal } from "./components/TrashViewerModal";
 import type {
   PendingRaid,
   PendingRaidBase,
@@ -52,7 +53,8 @@ function App() {
     useState<PendingSelection | null>(null);
   const [pendingCardChoice, setPendingCardChoice] =
     useState<PendingCardChoice | null>(null);
-
+  const [trashViewerPlayerId, setTrashViewerPlayerId] =
+    useState<string | null>(null);
   
   const game = gameRef.current;
   const player1 = game.player1;
@@ -63,7 +65,19 @@ function App() {
   const [cpuTick, setCpuTick] = useState(0);
   
   const refresh = () => forceUpdate();
-  
+  const trashViewerPlayer =
+    trashViewerPlayerId === player1.id
+      ? player1
+      : trashViewerPlayerId === player2.id
+        ? player2
+        : null;
+
+  const trashViewerTitle =
+    trashViewerPlayerId === player1.id
+      ? "You"
+      : trashViewerPlayerId === player2.id
+        ? "Opponent"
+        : "";
   const {
     startPlayFromHandChoice,
     startSearchTopDeckChoice,
@@ -257,10 +271,23 @@ const {
         onCancelCardChoice={handleCancelCardChoice}
         onStartActivateMain={handleStartActivateMain}
         onMoveToEnergy={handleMoveToEnergy}
+        onStartTriggerChoice={handleStartTriggerChoice}
+        onDeclineTriggerChoice={handleDeclineTriggerChoice}
+        onStartRaidTrigger={handleStartRaidTrigger}
+        onDeclineRaidTrigger={handleDeclineRaidTrigger}
+        pendingRaidTriggerBase={pendingRaidTriggerBase}
+        onSelectRaidTriggerDestination={handleSelectRaidTriggerDestination}
+        onOpenTrashViewer={setTrashViewerPlayerId}
         canCancelCardChoice={
           pendingCardChoice?.source !== "discardHand" 
         }
         isRaidTriggerBaseSelecting={isSelectingRaidTriggerBase}
+      />
+      <TrashViewerModal
+        player={trashViewerPlayer}
+        title={trashViewerTitle}
+        onClose={() => setTrashViewerPlayerId(null)}
+        onHoverImage={setHoveredCardImage}
       />
     </div>
   );

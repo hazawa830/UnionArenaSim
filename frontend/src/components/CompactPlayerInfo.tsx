@@ -5,9 +5,11 @@ type Player = ReturnType<Game["getCurrentPlayer"]>;
 export function CompactPlayerInfo({
   title,
   player,
+  onOpenTrash,
 }: {
   title: string;
   player: Player;
+  onOpenTrash?: () => void;
 }) {
   const lastTrash = player.board.trash[player.board.trash.length - 1];
 
@@ -37,8 +39,15 @@ export function CompactPlayerInfo({
         </strong>
       </div>
 
-      <div className="trash-zone">
-        <div className="trash-zone-title">TRASH</div>
+      <button
+        type="button"
+        className="trash-zone trash-zone-button"
+        onClick={onOpenTrash}
+        disabled={!onOpenTrash}
+      >
+        <div className="trash-zone-title">
+          TRASH ({player.board.trash.length})
+        </div>
 
         <div className="trash-card-frame">
           {lastTrash ? (
@@ -51,8 +60,7 @@ export function CompactPlayerInfo({
             <span className="trash-empty">EMPTY</span>
           )}
         </div>
-
-      </div>
+      </button>
     </section>
   );
 }

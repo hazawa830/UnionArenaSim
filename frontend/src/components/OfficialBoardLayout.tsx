@@ -11,6 +11,9 @@ import { BlockPanel } from "./BlockPanel";
 import {
   CardChoicePanel} from "./CardChoicePanel";
 import type { PendingCardChoice } from "./CardChoicePanel";
+import { TurnControls } from "./TurnControls";
+import { CurrentTriggerPanel } from "./CurrentTriggerPanel";
+import type { PendingRaidTriggerBase } from "../types/PendingInteraction";
 
 type PendingRaid = {
   handIndex: number;
@@ -70,6 +73,16 @@ type Props = {
   onStartActivateMain: (line: BoardLine, index: number) => void;
   onMoveToEnergy: (frontIndex: number) => void;
   canCancelCardChoice?: boolean;
+  onStartTriggerChoice: () => void;
+  onDeclineTriggerChoice: () => void;
+  onStartRaidTrigger: () => void;
+  onDeclineRaidTrigger: () => void;
+  pendingRaidTriggerBase: PendingRaidTriggerBase;
+  onOpenTrashViewer: (playerId: string) => void;
+  onSelectRaidTriggerDestination: (
+    destinationLine: BoardLine,
+    destinationIndex?: number
+  ) => void;
 };
 
 export function OfficialBoardLayout({
@@ -105,28 +118,51 @@ export function OfficialBoardLayout({
   onMoveToEnergy,
   canCancelCardChoice = true,
   isRaidTriggerBaseSelecting,
+  onStartTriggerChoice,
+  onDeclineTriggerChoice,
+  onStartRaidTrigger,
+  onDeclineRaidTrigger,
+  pendingRaidTriggerBase,
+  onSelectRaidTriggerDestination,
+  onOpenTrashViewer,
 }: Props) {
   const isTargetSelecting = pendingSelection !== null;
 
   return (
     <div className="official-layout">
       <aside className="official-side official-side-left">
-        <CardChoicePanel
-          choice={pendingCardChoice}
-          onToggleCard={onToggleChoiceCard}
-          onConfirm={onConfirmCardChoice}
-          onCancel={onCancelCardChoice}
-          onHoverImage={onHoverImage}
-          canCancel={canCancelCardChoice}
-        />
+      <CardChoicePanel
+        choice={pendingCardChoice}
+        onToggleCard={onToggleChoiceCard}
+        onConfirm={onConfirmCardChoice}
+        onCancel={onCancelCardChoice}
+        onHoverImage={onHoverImage}
+        canCancel={canCancelCardChoice}
+      />
 
-        {!pendingCardChoice && (
-          <>
-            <CompactPlayerInfo title="Opponent" player={player2} />
-            <CompactPlayerInfo title="You" player={player1} />
-          </>
-        )}
-      </aside>
+      {!pendingCardChoice && (
+        <>
+          <CompactPlayerInfo
+            title="Opponent"
+            player={player2}
+            onOpenTrash={() => onOpenTrashViewer(player2.id)}
+          />
+
+          <CompactPlayerInfo
+            title="You"
+            player={player1}
+            onOpenTrash={() => onOpenTrashViewer(player1.id)}
+          />
+          <CurrentTriggerPanel
+            game={game}
+            onStartTriggerChoice={onStartTriggerChoice}
+            onDeclineTriggerChoice={onDeclineTriggerChoice}
+            onStartRaidTrigger={onStartRaidTrigger}
+            onDeclineRaidTrigger={onDeclineRaidTrigger}
+          />
+        </>
+      )}
+    </aside>
 
       <main className="official-board">
         <section className="official-player-area opponent-area">
@@ -145,16 +181,6 @@ export function OfficialBoardLayout({
         </section>
 
         <section className="official-center-panel">
-          <div>
-            <strong>Turn:</strong> {game.turnCount}
-          </div>
-          <div>
-            <strong>Phase:</strong> {game.phase}
-          </div>
-          <div>
-            <strong>Current:</strong> {currentPlayer.name}
-          </div>
-
           {pendingRaid && !pendingRaidBase && (
             <div className="selection-hint">レイド元選択中</div>
           )}
@@ -170,14 +196,45 @@ export function OfficialBoardLayout({
             </div>
           )}
 
-          <button onClick={onNextPhase} disabled={isGameOver}>
-            Next Phase
-          </button>
+          {!pendingRaid &&
+            !pendingRaidBase &&
+            !pendingRaidTriggerBase &&
+            !pendingSelection && (
+              <div className="selection-hint idle-hint">
+                操作待ち
+              </div>
+            )}
+          {pendingRaidTriggerBase && (
+            <div className="raid-trigger-destination-inline">
+              <div className="selection-hint">
+                レイドトリガー登場先を選択
+              </div>
 
-          {isYourTurn && game.phase === GamePhase.Start && (
-            <button onClick={onExtraDraw} disabled={isGameOver}>
-              Extra Draw - AP1
-            </button>
+              <div className="raid-trigger-destination-buttons">
+                <button
+                  onClick={() =>
+                    onSelectRaidTriggerDestination(
+                      BoardLine.EnergyLine,
+                      pendingRaidTriggerBase.baseIndex
+                    )
+                  }
+                >
+                  Energy Lineに登場
+                </button>
+
+                {player1.board.frontLine.map((slot, index) => (
+                  <button
+                    key={index}
+                    disabled={!slot.isEmpty()}
+                    onClick={() =>
+                      onSelectRaidTriggerDestination(BoardLine.FrontLine, index)
+                    }
+                  >
+                    Front {index + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </section>
 
@@ -244,7 +301,7 @@ export function OfficialBoardLayout({
             ))}
           </div>
         </section>
-
+        
         {hoveredCardImage && (
           <section className="hover-card-preview">
             <img
@@ -254,6 +311,14 @@ export function OfficialBoardLayout({
             />
           </section>
         )}
+        <TurnControls
+          game={game}
+          currentPlayer={currentPlayer}
+          isYourTurn={isYourTurn}
+          isGameOver={isGameOver}
+          onNextPhase={onNextPhase}
+          onExtraDraw={onExtraDraw}
+        />
       </aside>
     </div>
   );
