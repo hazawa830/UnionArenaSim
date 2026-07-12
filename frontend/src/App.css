@@ -888,3 +888,62 @@ button {
 .center-cancel-button:hover {
   background: #fecaca;
 }
+/* ===== Layout width fix ===== */
+
+/* PC前提で、盤面が潰れない幅を確保する */
+.app {
+  min-width: 1180px;
+}
+
+/* 横幅を前の感覚に戻す */
+.official-layout {
+  width: 1180px;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 320px 560px 260px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* 中央盤面を縮ませない */
+.official-board {
+  width: 560px;
+  min-width: 560px;
+  box-sizing: border-box;
+}
+
+/* 左右カラムも中身がはみ出しにくいようにする */
+.official-side-left {
+  width: 320px;
+  min-width: 320px;
+  box-sizing: border-box;
+}
+
+.official-side-right {
+  width: 260px;
+  min-width: 260px;
+  box-sizing: border-box;
+}
+/* ===== Card choice panel fix ===== */
+
+.card-choice-panel {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* 選択カード一覧が横に伸びすぎないようにする */
+.card-choice-list,
+.card-choice-cards {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* 選択中カードの画像が大きすぎる場合の保険 */
+.card-choice-panel .card-image,
+.card-choice-panel img {
+  max-width: 82px;
+  height: auto;
+}

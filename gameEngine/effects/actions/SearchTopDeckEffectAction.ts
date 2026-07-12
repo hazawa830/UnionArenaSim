@@ -37,6 +37,10 @@ export class SearchTopDeckEffectAction {
 
     if (takenCards.length > 0 && action.ifTaken) {
       for (const nextAction of action.ifTaken) {
+        if (nextAction.type === "discardHand") {
+          continue;
+        }
+
         EffectActionExecutor.execute(context, nextAction);
       }
     }
