@@ -278,6 +278,7 @@ const {
         pendingRaidTriggerBase={pendingRaidTriggerBase}
         onSelectRaidTriggerDestination={handleSelectRaidTriggerDestination}
         onOpenTrashViewer={setTrashViewerPlayerId}
+        onCancelSelection={handleCancelSelection}
         canCancelCardChoice={
           pendingCardChoice?.source !== "discardHand" 
         }

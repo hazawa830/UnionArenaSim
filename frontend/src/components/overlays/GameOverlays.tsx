@@ -80,9 +80,9 @@ export function GameOverlays({
 
       <SelectionBanner
         raidBaseSelecting={pendingRaid !== null && pendingRaidBase === null}
-        targetSelecting={pendingSelection !== null}
-        selectedCount={pendingSelection?.selectedTargets.length ?? 0}
-        requiredCount={pendingSelection?.requiredCount ?? 0}
+        targetSelecting={false}
+        selectedCount={0}
+        requiredCount={0}
         onCancelRaid={onCancelRaid}
         onCancelSelection={onCancelSelection}
       />

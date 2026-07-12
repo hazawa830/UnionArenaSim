@@ -79,6 +79,7 @@ type Props = {
   onDeclineRaidTrigger: () => void;
   pendingRaidTriggerBase: PendingRaidTriggerBase;
   onOpenTrashViewer: (playerId: string) => void;
+  onCancelSelection: () => void;
   onSelectRaidTriggerDestination: (
     destinationLine: BoardLine,
     destinationIndex?: number
@@ -125,6 +126,7 @@ export function OfficialBoardLayout({
   pendingRaidTriggerBase,
   onSelectRaidTriggerDestination,
   onOpenTrashViewer,
+  onCancelSelection,
 }: Props) {
   const isTargetSelecting = pendingSelection !== null;
 
@@ -190,9 +192,22 @@ export function OfficialBoardLayout({
           )}
 
           {pendingSelection && (
-            <div className="selection-hint">
-              対象選択中 {pendingSelection.selectedTargets.length}/
-              {pendingSelection.requiredCount}
+            <div className="center-selection-panel">
+              <div className="selection-hint">
+                対象を選択してください
+              </div>
+
+              <div className="center-selection-count">
+                {pendingSelection.selectedTargets.length}/
+                {pendingSelection.requiredCount}
+              </div>
+
+              <button
+                className="center-cancel-button"
+                onClick={onCancelSelection}
+              >
+                Cancel
+              </button>
             </div>
           )}
 
