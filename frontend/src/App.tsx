@@ -19,6 +19,7 @@ import { useTriggerHandlers } from "./hooks/useTriggerHandlers";
 import { useRaidHandlers } from "./hooks/useRaidHandlers";
 import { useActivateMainHandlers } from "./hooks/useActivateMainHandlers";
 import { TrashViewerModal } from "./components/TrashViewerModal";
+import type { CpuMode } from "../../gameEngine/cpu/CpuMode";
 import type {
   PendingRaid,
   PendingRaidBase,
@@ -63,7 +64,8 @@ function App() {
   const isYourTurn = currentPlayer === player1;
   const isGameOver = game.winner !== undefined;
   const [cpuTick, setCpuTick] = useState(0);
-  
+  //const [cpuMode, setCpuMode] = useState<CpuMode>("random");
+  const [cpuMode, setCpuMode] = useState<CpuMode>("simulation");
   const refresh = () => forceUpdate();
   const trashViewerPlayer =
     trashViewerPlayerId === player1.id
@@ -155,6 +157,7 @@ function App() {
     setCpuTick,
     setPendingAttack,
     refresh,
+    cpuMode,
   });
   const { handleUseEvent } = useEventHandlers({
     game,
