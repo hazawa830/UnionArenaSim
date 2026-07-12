@@ -10,7 +10,7 @@ import { EffectTrigger } from "../gameEngine/effects/EffectTrigger";
 import { PlayCardAction } from "../gameEngine/actions/PlayCardAction";
 
 describe("SearchTopDeckEffectAction", () => {
-  it("登場時、山札上3枚から指定名称のキャラを1枚手札に加え、残りを山札下に置き、加えた場合は手札を1枚捨てる", () => {
+  it("登場時、山札上3枚から指定名称のキャラを1枚手札に加え、残りを山札下に置く。discardHandは自動実行しない", () => {
     const game = createTestGame();
     const player = game.getCurrentPlayer();
 
@@ -80,7 +80,8 @@ describe("SearchTopDeckEffectAction", () => {
     expect(player.board.frontLine[0].getCard()).toBe(kotone);
 
     expect(player.board.hand).toContain(hitCard);
-    expect(player.board.trash).toContain(discardCard);
+    expect(player.board.hand).toContain(discardCard);
+    expect(player.board.trash).not.toContain(discardCard);
 
     expect(player.board.deck.length).toBe(deckBefore - 3 + 2);
     expect(player.board.deck[player.board.deck.length - 2]).toBe(missCard1);

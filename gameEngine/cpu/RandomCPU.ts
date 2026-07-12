@@ -8,6 +8,7 @@ import { ResolveRaidTriggerAction } from "../actions/ResolveRaidTriggerAction";
 import { BoardLine } from "../enum/BoardLine";
 import { TriggerType } from "../enum/TriggerType";
 import { RaidConditionResolver } from "../raid/RaidConditionResolver";
+import { CpuActionEvaluator } from "./CpuActionEvaluator";
 
 export class RandomCPU {
   public static playPhase(game: Game): void {
@@ -21,15 +22,26 @@ export class RandomCPU {
       return;
     }
 
-    const shuffled = this.shuffle(actions);
+    const orderedActions = this.sortByScore(game, actions);
 
-    for (const action of shuffled) {
+    for (const action of orderedActions) {
       if (CpuActionExecutor.tryExecute(game, action)) {
         return;
       }
     }
   }
-
+  private static sortByScore<T extends { type: string }>(
+    game: Game,
+    actions: T[]
+  ): T[] {
+    return [...actions]
+      .map((action) => ({
+        action,
+        score: CpuActionEvaluator.score(game, action as any) + Math.random() * 5,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .map((item) => item.action);
+  }
   private static shuffle<T>(items: T[]): T[] {
     return [...items].sort(() => Math.random() - 0.5);
   }
