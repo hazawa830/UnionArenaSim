@@ -27,7 +27,12 @@ export class CpuActionEvaluator {
         }
 
         if (action.destination === BoardLine.FrontLine) {
-          const bp = "bp" in card.card ? card.card.bp : undefined;
+          const bp =
+            "bp" in card.card &&
+            typeof card.card.bp === "number"
+              ? card.card.bp
+              : undefined;
+
           return 75 + this.getBpBonus(bp);
         }
 
