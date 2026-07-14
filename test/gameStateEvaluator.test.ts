@@ -96,4 +96,46 @@ describe("GameStateEvaluator", () => {
 
     expect(score).toBeLessThan(-50000);
   });
+  it("自分のエナジーが増えると高評価になる", () => {
+    const game = GameFactory.createSampleGame();
+
+    const player = game.player1;
+
+    const baseScore = GameStateEvaluator.evaluate(game, player.id);
+
+    const card = player.board.hand.shift();
+
+    if (!card) {
+      throw new Error("手札が空です");
+    }
+
+    player.board.energyLine[0].setCard(card);
+
+    const afterEnergyScore = GameStateEvaluator.evaluate(game, player.id);
+
+    expect(afterEnergyScore).toBeGreaterThan(baseScore);
+  });
+  it("相手のエナジーが増えると低評価になる", () => {
+    const game = GameFactory.createSampleGame();
+
+    const player = game.player1;
+    const opponent = game.player2;
+
+    const baseScore = GameStateEvaluator.evaluate(game, player.id);
+
+    const card = opponent.board.hand.shift();
+
+    if (!card) {
+      throw new Error("相手の手札が空です");
+    }
+
+    opponent.board.energyLine[0].setCard(card);
+
+    const afterOpponentEnergyScore = GameStateEvaluator.evaluate(
+      game,
+      player.id
+    );
+
+    expect(afterOpponentEnergyScore).toBeLessThan(baseScore);
+  });
 });

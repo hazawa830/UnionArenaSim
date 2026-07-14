@@ -139,6 +139,13 @@ function App() {
     setPendingCardChoice,
     refresh,
   });
+  const { handleAttack, handleNoBlock, handleBlock } = useCombatHandlers({
+    game,
+    isYourTurn,
+    pendingAttack,
+    setPendingAttack,
+    refresh,
+  });
   useCpuAutoPlay({
     game,
     player1Id: player1.id,
@@ -158,6 +165,8 @@ function App() {
     setPendingAttack,
     refresh,
     cpuMode,
+    onCpuBlock: handleBlock,
+    onCpuNoBlock: handleNoBlock,
   });
   const { handleUseEvent } = useEventHandlers({
     game,
@@ -199,13 +208,7 @@ function App() {
     refresh,
   });
   
-const { handleAttack, handleNoBlock, handleBlock } = useCombatHandlers({
-    game,
-    isYourTurn,
-    pendingAttack,
-    setPendingAttack,
-    refresh,
-  });
+
 const {
     handlePlayToEnergy,
     handlePlayToFront,

@@ -23,6 +23,7 @@ export class GameStateEvaluator {
     score += this.evaluateCardAdvantage(player, opponent);
     score += this.evaluateBoardPresence(player, opponent);
     score += this.evaluateActionPoints(player);
+    score += this.evaluateEnergy(player, opponent);
 
     return score;
   }
@@ -78,10 +79,34 @@ export class GameStateEvaluator {
   }
 
   private static evaluateActionPoints(player: Player): number {
-    // シミュレーション途中評価用。APが残っている盤面は少しだけ価値あり。
-    return player.board.activeActionPoint * 20;
-  }
+      // シミュレーション途中評価用。APが残っている盤面は少しだけ価値あり。
+      return player.board.activeActionPoint * 20;
+    }
+    private static evaluateEnergy(player: Player, opponent: Player): number {
+    const ownEnergy = this.countEnergyLineCards(player);
+    const opponentEnergy = this.countEnergyLineCards(opponent);
 
+    let score = 0;
+
+    // エナジー枚数差そのものを評価
+    score += (ownEnergy - opponentEnergy) * 180;
+
+    // 序盤のエナジー不足を重めにペナルティ
+    if (ownEnergy === 0) {
+      score -= 700;
+    } else if (ownEnergy === 1) {
+      score -= 400;
+    } else if (ownEnergy === 2) {
+      score -= 150;
+    }
+
+    // 3エナジー以上は最低限動けるので軽め
+    if (ownEnergy >= 3) {
+      score += 100;
+    }
+
+    return score;
+  }
   private static getFrontLineBpTotal(player: Player): number {
     return player.board.frontLine.reduce((total, slot) => {
       const card = slot.getCard();

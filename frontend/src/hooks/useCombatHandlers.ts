@@ -16,19 +16,46 @@ export function useCombatHandlers({
   setPendingAttack,
   refresh,
 }: Props) {
+  /**
+   * 攻撃開始。
+   *
+   * ここではまだAttackActionを実行せず、
+   * 防御側のブロック選択を待つ。
+   */
   const handleAttack = (frontIndex: number) => {
-    if (!isYourTurn) return alert("相手ターンです");
-
-    try {
-      AttackAction.execute(game, frontIndex);
-      refresh();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
+    if (!isYourTurn) {
+      alert("相手ターンです");
+      return;
     }
+
+    if (pendingAttack !== null) {
+      return;
+    }
+
+    const attackerSlot = game.getCurrentPlayer().board.frontLine[frontIndex];
+    const attacker = attackerSlot?.getCard();
+
+    if (!attacker) {
+      alert("攻撃するカードがありません");
+      return;
+    }
+
+    if (attacker.isRest) {
+      alert("レスト状態のカードは攻撃できません");
+      return;
+    }
+
+    setPendingAttack(frontIndex);
+    refresh();
   };
 
+  /**
+   * ブロック選択後に攻撃を実際に解決する。
+   */
   const resolvePendingAttack = (blockerIndex?: number) => {
-    if (pendingAttack === null) return;
+    if (pendingAttack === null) {
+      return;
+    }
 
     try {
       AttackAction.execute(game, pendingAttack, blockerIndex);

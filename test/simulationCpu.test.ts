@@ -27,4 +27,14 @@ describe("SimulationCPU", () => {
       }
     }).not.toThrow();
   });
+  it("実行不能な候補が含まれても行動選択できる", () => {
+    const game = GameFactory.createSampleGame();
+
+    expect(() => {
+      SimulationCPU.playPhase(game, {
+        simulationsPerAction: 2,
+        playoutSteps: 3,
+      });
+    }).not.toThrow();
+  });
 });

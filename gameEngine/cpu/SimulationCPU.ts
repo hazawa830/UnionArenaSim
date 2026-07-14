@@ -5,7 +5,7 @@ import { CpuActionGenerator } from "./CpuActionGenerator";
 import { CpuActionExecutor } from "./CpuActionExecutor";
 import { GameStateEvaluator } from "./GameStateEvaluator";
 import { RandomCPU } from "./RandomCPU";
-
+import { CpuActionEvaluator } from "./CpuActionEvaluator";
 type SimulationOptions = {
   simulationsPerAction?: number;
   playoutSteps?: number;
@@ -32,9 +32,9 @@ export class SimulationCPU {
 
     const playerId = game.getCurrentPlayer().id;
 
-    const bestAction = this.selectBestAction(game, playerId, actions, {
-      simulationsPerAction: options.simulationsPerAction ?? 5,
-      playoutSteps: options.playoutSteps ?? 8,
+    const bestAction = this.selectBestAction(game, playerId, actions, {/////////////////////////
+      simulationsPerAction: options.simulationsPerAction ?? 100,
+      playoutSteps: options.playoutSteps ?? 100,
     });
 
     CpuActionExecutor.tryExecute(game, bestAction);
@@ -75,19 +75,25 @@ export class SimulationCPU {
     let totalScore = 0;
     let successCount = 0;
 
+    const actionScore = CpuActionEvaluator.score(game, action);
+
     for (let i = 0; i < options.simulationsPerAction; i++) {
       const clonedGame = GameCloner.clone(game);
 
       const executed = CpuActionExecutor.tryExecute(clonedGame, action);
 
       if (!executed) {
-        totalScore += Number.NEGATIVE_INFINITY;
         continue;
       }
 
       this.playout(clonedGame, options.playoutSteps);
 
-      totalScore += GameStateEvaluator.evaluate(clonedGame, playerId);
+      const stateScore = GameStateEvaluator.evaluate(
+        clonedGame,
+        playerId
+      );
+
+      totalScore += stateScore + actionScore * 100;
       successCount++;
     }
 

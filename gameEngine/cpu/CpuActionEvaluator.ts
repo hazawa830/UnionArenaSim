@@ -51,6 +51,9 @@ export class CpuActionEvaluator {
           action.fromLine === BoardLine.EnergyLine &&
           action.toLine === BoardLine.FrontLine
         ) {
+          if (this.shouldKeepRequiredEnergy(game)) {
+            return -100;
+          }
           return 65;
         }
 
@@ -72,7 +75,22 @@ export class CpuActionEvaluator {
         return 0;
     }
   }
+  private static getTargetEnergyCount(game: Game): number {
+    const player = game.getCurrentPlayer();
 
+    const requiredEnergyTotals = player.board.hand.map(
+      (card) => card.card.requiredEnergy.getTotal()
+    );
+
+    if (requiredEnergyTotals.length === 0) {
+      return 2;
+    }
+
+    const highestRequiredEnergy = Math.max(...requiredEnergyTotals);
+
+    // 現在の盤面ではエナジーライン最大4枚なので上限4
+    return Math.min(highestRequiredEnergy, 4);
+  }
   private static shouldPrioritizeEnergy(game: Game): boolean {
     const player = game.getCurrentPlayer();
 
@@ -80,8 +98,9 @@ export class CpuActionEvaluator {
       (slot) => !slot.isEmpty()
     ).length;
 
-    // まずはかなり雑でOK。序盤はエナジーを伸ばしたい
-    return currentEnergyCount < 2;
+    const targetEnergyCount = this.getTargetEnergyCount(game);
+
+    return currentEnergyCount < targetEnergyCount;
   }
 
   private static getBpBonus(bp?: number): number {
@@ -92,5 +111,16 @@ export class CpuActionEvaluator {
     if (bp >= 2000) return 6;
 
     return 0;
+  }
+  private static shouldKeepRequiredEnergy(game: Game): boolean {
+    const player = game.getCurrentPlayer();
+
+    const energyCount = player.board.energyLine.filter(
+      (slot) => !slot.isEmpty()
+    ).length;
+
+    const targetEnergyCount = this.getTargetEnergyCount(game);
+
+    return energyCount <= targetEnergyCount;
   }
 }
