@@ -16,7 +16,7 @@ export class CpuActionEvaluator {
       }
 
       case "raidPlay": {
-        return 95;
+        return 120;
       }
 
       case "playCard": {
