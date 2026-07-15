@@ -1,3 +1,5 @@
+import { CardZone } from "../../enum/CardZone";
+import { CardMovementService } from "../../service/CardMovementService";
 import { EffectAction } from "../EffectAction";
 import { EffectContext } from "../EffectContext";
 
@@ -8,16 +10,24 @@ export class DiscardHandEffectAction {
     context: EffectContext,
     action: DiscardHandAction
   ): void {
-    const board = context.actor.board;
+    const actor = context.actor;
 
-    for (let i = 0; i < action.count; i++) {
-      const discarded = board.hand.shift();
+    const discardCount = Math.min(
+      action.count,
+      actor.board.hand.length
+    );
 
-      if (!discarded) {
-        return;
-      }
-
-      board.trash.push(discarded);
+    if (discardCount === 0) {
+      return;
     }
+
+    const discardedCards = actor.board.hand.slice(0, discardCount);
+
+    CardMovementService.moveCards(
+      actor,
+      discardedCards,
+      CardZone.Hand,
+      CardZone.Trash
+    );
   }
 }
