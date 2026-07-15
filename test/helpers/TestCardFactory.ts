@@ -13,6 +13,7 @@ type CreateTestCharacterOptions = {
   color?: string;
   effects?: Effect[];
   keywords?: Keyword[];
+  features?: string[];
   generatedEnergy?: {
     red?: number;
     blue?: number;
@@ -40,6 +41,7 @@ export class TestCardFactory {
       color: options.color,
       effects: options.effects ?? [],
       keywords: options.keywords ?? [],
+      features: options.features ?? [],
     });
 
     return new CardInstance(nextTestInstanceId++, card);

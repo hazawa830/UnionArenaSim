@@ -33,6 +33,7 @@ type RawCardData = {
   raidConditions?: RaidCondition[];
   raidEffects?: Effect[];
   raidKeywords?: {type: string;value?: number;}[];
+  features?: string[];
 };
 
 export class CardFactory {

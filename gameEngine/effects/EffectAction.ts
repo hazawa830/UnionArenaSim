@@ -1,29 +1,51 @@
-import { TargetType } from "./TargetType";
-import { EffectTarget } from "./EffectTarget";
-import { Effect } from "./Effect";
 import { CardZone } from "../enum/CardZone";
 import { DeckPosition } from "../enum/DeckPosition";
 import { CardFilter } from "./CardFilter";
+import { Effect } from "./Effect";
+import { EffectTarget } from "./EffectTarget";
+import { TargetType } from "./TargetType";
+
 export type LookTopDeckSelection = {
-  
+  /**
+   * 選択処理を識別するID。
+   */
+  id: string;
+
+  /**
+   * UI表示用の文言。
+   */
+  label?: string;
+
+  /**
+   * 最低選択枚数。
+   * 「1枚まで」の場合は0。
+   */
   minCount: number;
 
-  int: number;
+  /**
+   * 最大選択枚数。
+   */
+  maxCount: number;
 
-  
+  /**
+   * 選択可能なカードの条件。
+   */
   filter?: CardFilter;
 
-  
+  /**
+   * 選択したカードの移動先。
+   */
   destination: CardZone;
 
-  
+  /**
+   * 移動先が山札の場合の配置位置。
+   */
+  deckPosition?: DeckPosition;
+
+  /**
+   * 選択したカードを公開扱いにするか。
+   */
   reveal?: boolean;
-
-  
-  id?: string;
-
-  
-  label?: string;
 };
 
 export type LookTopDeckAction = {
@@ -41,13 +63,12 @@ export type LookTopDeckAction = {
   selections: LookTopDeckSelection[];
 
   /**
-   * どの選択にも使われなかったカードの戻し先。
-   * 現段階ではDeckを想定する。
+   * どの選択にも使われなかったカードの移動先。
    */
   restDestination: CardZone;
 
   /**
-   * 残りを山札上・山札下のどちらへ戻すか。
+   * 残りを山札へ置く場合の配置位置。
    */
   restDeckPosition?: DeckPosition;
 
@@ -61,6 +82,7 @@ export type LookTopDeckAction = {
    */
   ifSelected?: EffectAction[];
 };
+
 export type SearchTopDeckAction = {
   type: "searchTopDeck";
   lookCount: number;
