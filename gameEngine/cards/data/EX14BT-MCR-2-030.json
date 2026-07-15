@@ -1,0 +1,40 @@
+{
+  "id": "EX14BT-MCR-2-030",
+  "name": "カナメ・バッカニア",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "color": "purple",
+  "features": ["ワルキューレ"],
+  "requiredEnergy": {
+    "purple": 1
+  },
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": {
+    "purple": 1
+  },
+  "triggerType": "draw",
+  "effects": [
+    {
+      "id": "on-play-search-walkure-top-3",
+      "trigger": "onPlay",
+      "actions": [
+        {
+          "type": "searchTopDeck",
+          "lookCount": 3,
+          "takeCount": 1,
+          "target": {
+            "features": ["ワルキューレ"]
+          },
+          "restToBottom": true,
+          "ifTaken": [
+            {
+              "type": "discardHand",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

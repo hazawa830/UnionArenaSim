@@ -56,12 +56,28 @@ export class SearchTopDeckEffectAction {
       }
     }
 
-    if (action.target.nameFilter && action.target.nameFilter.length > 0) {
+    if (
+      action.target.nameFilter &&
+      action.target.nameFilter.length > 0
+    ) {
       if (!action.target.nameFilter.includes(card.card.name)) {
         return false;
       }
     }
 
+    if (
+      action.target.features &&
+      action.target.features.length > 0
+    ) {
+      const hasMatchingFeature = action.target.features.some((feature) =>
+        card.card.features.includes(feature)
+      );
+
+      if (!hasMatchingFeature) {
+        return false;
+      }
+    }
+
     return true;
-  }
+}
 }

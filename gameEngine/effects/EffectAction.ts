@@ -9,8 +9,10 @@ export type SearchTopDeckAction = {
   target: {
     cardType?: "character" | "event" | "stage";
     nameFilter?: string[];
+    features?: string[];
   };
   restToBottom: boolean;
+  optional?: boolean;
   ifTaken?: EffectAction[];
 };
 

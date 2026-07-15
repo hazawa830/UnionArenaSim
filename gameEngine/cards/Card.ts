@@ -20,6 +20,7 @@ export abstract class Card {
     public readonly raidConditions: RaidCondition[];
     public readonly raidEffects: Effect[];
     public readonly raidKeywords: Keyword[];
+    public readonly features: string[];
 
     constructor(data: CardData) {
         this.id = data.id;
@@ -35,8 +36,20 @@ export abstract class Card {
         this.raidConditions = data.raidConditions ?? [];
         this.raidEffects = data.raidEffects ?? [];
         this.raidKeywords = data.raidKeywords ?? [];
+        this.features = data.features ?? [];
+        
     }
     public hasKeyword(type: Keyword["type"]): boolean {
         return this.keywords.some((keyword) => keyword.type === type);
+    }
+    public hasFeature(feature: string): boolean {
+        return this.features.includes(feature);
+    }
+    public hasAnyFeature(features: string[]): boolean {
+        return features.some((feature) => this.features.includes(feature));
+    }
+
+    public hasAllFeatures(features: string[]): boolean {
+        return features.every((feature) => this.features.includes(feature));
     }
 }

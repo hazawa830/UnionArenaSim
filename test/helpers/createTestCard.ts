@@ -9,6 +9,7 @@ type CreateTestCardOptions = {
   bp?: number;
   triggerType?: TriggerType;
   color?: string;
+  features?: string[];
 };
 
 export function createTestCharacterCard(options: CreateTestCardOptions = {}) {
@@ -24,6 +25,6 @@ export function createTestCharacterCard(options: CreateTestCardOptions = {}) {
     triggerType: options.triggerType ?? TriggerType.None,
     color: options.color,
     effects: [],
-    
+    features: options.features ?? [],
   });
 }

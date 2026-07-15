@@ -1,0 +1,178 @@
+[
+{
+  "id": "EX14BT-MCR-2-030",
+  "name": "カナメ・バッカニア",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 1},
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "draw",
+  "effects": ["分の山札の上から3枚見て、［特徴：ワルキューレ］を1枚まで公開し手札に加える。残りを望む順で山札の下に置く。手札に加えた場合、自分の手札を1枚場外に置く。"]
+},
+{
+  "id": "EX14BT-MCR-2-031",
+  "name": "カナメ・バッカニア",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 3},
+  "actionPointCost": 2,
+  "bp": 4000,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "color",
+  "effects": ["このキャラはアクティブで登場させる。",
+"自分の手札を1枚場外に置いてもよい。そうした場合、自分の場外から必要エナジーが2以下の紫の［特徴：ワルキューレ］を1枚まで自分の場にレストで登場させる。"]
+},
+{
+  "id": "EX14BT-MCR-2-032",
+  "name": "フレイア・ヴィオン",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {},
+  "actionPointCost": 1,
+  "bp": 1500,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "draw",
+  "effects": ["[登場時] : カードを1枚引き、自分の手札を1枚場外に置く。"
+]
+},
+{
+  "id": "EX14BT-MCR-2-034",
+  "name": "フレイア・ヴィオン",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 1},
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "draw",
+  "effects": ["[自分のターン中] : 自分の場に［特徴：ワルキューレ］のカード名が3種類以上ある場合、このキャラはBP+1000。"
+]
+},
+{
+  "id": "EX14BT-MCR-2-036",
+  "name": "フレイア・ヴィオン",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 3},
+  "actionPointCost": 1,
+  "bp": 3500,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "raid",
+  "effects": ["このカードを手札からレイドする際、自分の場に［特徴：ワルキューレ］のカード名が5種類以上ある場合、消費APを-1する。このターン中に他の〈フレイア・ヴィオン〉をAPを支払わずにレイドしているなら、この効果は無効になる。",
+  "[レイド] : フレイア・ヴィオン",
+  "[アタック時] : 自分の場に［特徴：ワルキューレ］のカード名が3種類以上ある場合、自分の場のキャラ全ては、このターン中、BP+1000。"
+  
+]
+},
+{
+  "id": "EX14BT-MCR-2-037",
+  "name": "マキナ・中島",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 0},
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "none",
+  "effects": ["インパクト無効"]
+},
+{
+  "id": "EX14BT-MCR-2-040",
+  "name": "マキナ・中島",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 2},
+  "actionPointCost": 1,
+  "bp": 2500,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "none",
+  "effects": ["自分のフロントLに［特徴：ワルキューレ］が2枚以上ある場合、このキャラの発生エナジー+1",
+"自分の場に〈レイナ・プラウラー〉がある場合、自分の山札の上から2枚見て、望む枚数を望む順で山札の上に置き、残りを場外に置く。"]
+},
+{
+  "id": "EX14BT-MCR-2-041",
+  "name": "美雲・ギンヌメール",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {},
+  "actionPointCost": 1,
+  "bp": 1500,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "active",
+  "effects": ["[登場時] : 自分の山札の上から2枚見て、［特徴：ワルキューレ］を1枚まで場外に置き、残りを望む順で山札の上に置く。"]
+},
+{
+  "id": "EX14BT-MCR-2-044",
+  "name": "美雲・ギンヌメール",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 1},
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "none",
+  "effects": ["インパクト無効",
+"自分の場に［特徴：ワルキューレ］のカード名が3種類以上ある場合、このキャラはBP+1000。"]
+},
+{
+  "id": "EX14BT-MCR-2-045",
+  "name": "美雲・ギンヌメール",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 4},
+  "actionPointCost": 1,
+  "bp": 4000,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "raid",
+  "effects": ["[レイド] : 美雲・ギンヌメール",
+"[自分のターン中] : 自分の場に［特徴：ワルキューレ］のカード名が3種類以上ある場合、このキャラはインパクト（1）を得る。",
+"[アタック時] : 以下から2つまで選ぶ。・自分の場外の［特徴：歌（ワルキューレ）］を1枚リムーブエリアに置く。そうした場合、カードを1枚引く。・自分の場に［特徴：ワルキューレ］のカード名が5種類以上ある場合、このキャラは次の自分のターン開始時まで、BP+1000。"]
+},
+{
+  "id": "EX14BT-MCR-2-049",
+  "name": "レイナ・プラウラー",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "character",
+  "requiredEnergy": {"purple": 2},
+  "actionPointCost": 1,
+  "bp": 2000,
+  "generatedEnergy": { "purple": 1 },
+  "triggerType": "active",
+  "effects": ["[起動メイン] : 以下から1つ選ぶ。・自分の場の他のキャラを1枚選び、このターン中、BP+1000。・自分の場に〈マキナ・中島〉がある場合、自分の場の他のキャラを1枚選び、このターン中、「このキャラはBP4000以上のキャラにブロックされない。」を与える。〈レイナ・プラウラー〉のこの効果は1ターンに1回のみ選べる。 "]
+},
+{
+  "id": "EX14BT-MCR-2-056",
+  "name": "覚悟するんよ",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "event",
+  "requiredEnergy": {"purple": 3},
+  "actionPointCost": 1,
+  
+  "triggerType": "final",
+  "effects": ["自分のAPカードを2枚まで選び、アクティブにする。"]
+},
+{
+  "id": "EX14BT-MCR-2-060",
+  "name": "一度だけの恋なら",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "event",
+  "requiredEnergy": {"purple": 3},
+  "actionPointCost": 1,
+  
+  "triggerType": "special",
+  "effects": ["『BP3000以下』の相手のフロントLのキャラを1枚選び、退場させる。自分の場に［特徴：ワルキューレ］のカード名が3種類以上ある場合、『BP5000以下』に代わる。"]
+},
+{
+  "id": "EX14BT-MCR-2-059",
+  "name": "いけないボーダーライン",
+  "imagePath": "/card-images/UA34BT_CGD-1-041.png",
+  "cardType": "event",
+  "requiredEnergy": {"purple": 2},
+  "actionPointCost": 1,
+  
+  "triggerType": "none",
+  "effects": ["自分の山札の上から3枚見て、［特徴：ワルキューレ］を1枚まで公開し手札に加える。残りを望む順で山札の下に置く。このターン中、次に手札から使用する［特徴：ワルキューレ］の消費APを-1する"]
+},
+]

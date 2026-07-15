@@ -13,6 +13,7 @@ export type CardData = {
   cardType: CardType;
   requiredEnergy: Energy;
   actionPointCost: number;
+  features?: string[];
   effects?: Effect[];
   triggerType: TriggerType;
   color?: string;
