@@ -69,4 +69,22 @@ describe("CardZoneService", () => {
       CardZoneService.getCards(player, CardZone.EnergyLine)
     ).toContain(card);
   });
+  it("フロントラインから指定カードを取り外せる", () => {
+  const game = createTestGame();
+  const player = game.player1;
+
+  const target = player.board.hand[0];
+
+  player.board.hand.shift();
+  player.board.frontLine[0].setCard(target);
+
+  const removed = CardZoneService.removeCard(
+    player,
+    CardZone.FrontLine,
+    target
+  );
+
+  expect(removed).toBe(target);
+  expect(player.board.frontLine[0].isEmpty()).toBe(true);
+});
 });

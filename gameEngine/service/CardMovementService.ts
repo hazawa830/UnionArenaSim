@@ -2,9 +2,11 @@ import { CardInstance } from "../cards/CardInstance";
 import { Player } from "../core/Player";
 import { CardZone } from "../enum/CardZone";
 import { DeckPosition } from "../enum/DeckPosition";
+import { CardZoneService } from "./CardZoneService";
 
 export type MoveCardsOptions = {
   deckPosition?: DeckPosition;
+  enterRested?: boolean;
 };
 
 export class CardMovementService {
@@ -25,126 +27,119 @@ export class CardMovementService {
       return;
     }
 
-    const source = this.getMutableZone(player, from);
-    const destination = this.getMutableZone(player, to);
-
-    // 途中まで移動してから失敗しないよう、
-    // 先に全カードが移動元に存在することを確認する
+    /*
+     * 1枚でも存在しないカードがあれば、
+     * 移動開始前に失敗させる。
+     */
     for (const card of cards) {
-      if (!source.includes(card)) {
+      if (!CardZoneService.containsCard(player, from, card)) {
         throw new Error(
           `移動元ゾーン ${from} にカードが存在しません: ${card.card.name}`
         );
       }
     }
 
-    // 同じCardInstanceが二重に入るのを防ぐ
-    for (const card of cards) {
-      if (destination.includes(card)) {
-        throw new Error(
-          `移動先ゾーン ${to} にカードが既に存在します: ${card.card.name}`
-        );
+    /*
+     * 配列型ゾーンでは重複を防ぐ。
+     * Slot型ゾーンは空きスロット検査をaddCards側で行う。
+     */
+    if (
+      to !== CardZone.FrontLine &&
+      to !== CardZone.EnergyLine
+    ) {
+      for (const card of cards) {
+        if (CardZoneService.containsCard(player, to, card)) {
+          throw new Error(
+            `移動先ゾーン ${to} にカードが既に存在します: ${card.card.name}`
+          );
+        }
       }
     }
 
-    // 移動元から削除
-    for (const card of cards) {
-      const index = source.indexOf(card);
+    /*
+     * 盤面への追加で失敗してカードが消えないよう、
+     * 取り外す前に空きスロットを確認する。
+     */
+    this.validateDestinationCapacity(player, cards, to);
 
-      if (index === -1) {
-        throw new Error(
-          `移動元ゾーン ${from} からカードを削除できませんでした`
-        );
-      }
+    const removedCards = cards.map((card) =>
+      CardZoneService.removeCard(player, from, card)
+    );
 
-      source.splice(index, 1);
-    }
+    CardZoneService.addCards(
+      player,
+      to,
+      removedCards,
+      options
+    );
+  }
 
-    // 移動先へ追加
-    if (to === CardZone.Deck) {
-      const deckPosition =
-        options.deckPosition ?? DeckPosition.Bottom;
-
-      if (deckPosition === DeckPosition.Top) {
-        destination.unshift(...cards);
-        return;
-      }
-
-      destination.push(...cards);
+  public static moveCardsWithinDeck(
+    player: Player,
+    cards: CardInstance[],
+    position: DeckPosition
+  ): void {
+    if (cards.length === 0) {
       return;
     }
 
-    destination.push(...cards);
-  }
-  public static moveCardsWithinDeck(
-  player: Player,
-  cards: CardInstance[],
-  position: DeckPosition
-): void {
-  if (cards.length === 0) {
-    return;
-  }
-
-  const deck = player.board.deck;
-
-  for (const card of cards) {
-    if (!deck.includes(card)) {
-      throw new Error(
-        `山札にカードが存在しません: ${card.card.name}`
-      );
-    }
-  }
-
-  for (const card of cards) {
-    const index = deck.indexOf(card);
-
-    if (index === -1) {
-      throw new Error(
-        `山札からカードを取り除けませんでした: ${card.card.name}`
-      );
-    }
-
-    deck.splice(index, 1);
-  }
-
-  if (position === DeckPosition.Top) {
-    deck.unshift(...cards);
-    return;
-  }
-
-  deck.push(...cards);
-}
-  private static getMutableZone(
-    player: Player,
-    zone: CardZone
-  ): CardInstance[] {
-    switch (zone) {
-      case CardZone.Hand:
-        return player.board.hand;
-
-      case CardZone.Deck:
-        return player.board.deck;
-
-      case CardZone.Trash:
-        return player.board.trash;
-
-      case CardZone.Life:
-        return player.board.lifeArea;
-
-      case CardZone.Remove:
-        return player.board.removeArea;
-
-      case CardZone.FrontLine:
-      case CardZone.EnergyLine:
+    for (const card of cards) {
+      if (
+        !CardZoneService.containsCard(
+          player,
+          CardZone.Deck,
+          card
+        )
+      ) {
         throw new Error(
-          `${zone} はSlot型ゾーンのため、現在のCardMovementServiceでは未対応です`
+          `山札にカードが存在しません: ${card.card.name}`
         );
+      }
+    }
 
-      default: {
-        const exhaustiveCheck: never = zone;
+    const removedCards = cards.map((card) =>
+      CardZoneService.removeCard(
+        player,
+        CardZone.Deck,
+        card
+      )
+    );
 
+    CardZoneService.addCards(
+      player,
+      CardZone.Deck,
+      removedCards,
+      {
+        deckPosition: position
+      }
+    );
+  }
+
+  private static validateDestinationCapacity(
+    player: Player,
+    cards: CardInstance[],
+    to: CardZone
+  ): void {
+    if (to === CardZone.FrontLine) {
+      const emptyCount = player.board.frontLine.filter(
+        (slot) => slot.isEmpty()
+      ).length;
+
+      if (emptyCount < cards.length) {
         throw new Error(
-          `未対応のカードゾーンです: ${exhaustiveCheck}`
+          "フロントラインに空きスロットが足りません"
+        );
+      }
+    }
+
+    if (to === CardZone.EnergyLine) {
+      const emptyCount = player.board.energyLine.filter(
+        (slot) => slot.isEmpty()
+      ).length;
+
+      if (emptyCount < cards.length) {
+        throw new Error(
+          "エナジーラインに空きスロットが足りません"
         );
       }
     }
